@@ -1,0 +1,573 @@
+﻿@model IEnumerable<GuardiansExpress.Models.DTOs.AddressBookMasterDTO>
+@{
+    int rCnt = 1;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="row">
+            <div class="col-md-12 mt-3">
+                <!-- List of Address Books Tab -->
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Address Book List</h4>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAddressBookModal">
+                            <i class="fas fa-plus"></i> Add Address Book
+                        </button>
+                    </div>
+                    <div class="box-body">
+                        <div class="table-responsive">
+                            <table id="addressBookTable" class="text-fade table table-bordered display" style="width:100%">
+                                <thead>
+                                    <tr class="text-dark">
+                                        <th>S.No</th>
+                                        <th>Client Name</th>
+                                        <th>Bill Party</th>
+                                        <th>Contact Person</th>
+                                        <th>Mobile</th>
+                                        <th>Email</th>
+                                        <th>Address</th>
+                                        <th>City</th>
+                                        <th>State</th>
+                                        <th>Country</th>
+                                        <th>Pincode</th>
+                                        <th>GST No</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var client in Model)
+                                    {
+                                        <tr>
+                                            <th scope="row">@(rCnt++)</th>
+                                            <td>
+                                                <a href="#" class="edit-address-book"
+                                                   data-id="@client.ClientId"
+                                                   data-client-name="@client.ClientName"
+                                                   data-bill-party="@client.BillParty"
+                                                   data-contact-person="@client.ContactPersonName"
+                                                   data-mobile="@client.Mobile"
+                                                   data-email="@client.Email"
+                                                   data-address="@client.Address"
+                                                   data-city="@client.City"
+                                                   data-state="@client.State"
+                                                   data-country="@client.Country"
+                                                   data-pincode="@client.Pincode"
+                                                   data-gst="@client.GSTNo"
+                                                   data-active="@client.IsActive.ToString().ToLower()">
+                                                    @client.ClientName
+                                                </a>
+                                            </td>
+                                            <td>@client.BillParty</td>
+                                            <td>@client.ContactPersonName</td>
+                                            <td>@client.Mobile</td>
+                                            <td>@client.Email</td>
+                                            <td>@client.Address</td>
+                                            <td>@client.City</td>
+                                            <td>@client.State</td>
+                                            <td>@client.Country</td>
+                                            <td>@client.Pincode</td>
+                                            <td>@client.GSTNo</td>
+                                            <td>
+                                                <a href="#" class="delete-address-book" data-id="@client.ClientId" title="Delete">
+                                                    <button type="button" class="waves-effect waves-circle btn btn-circle btn-danger btn-xs">
+                                                        <i class="fa fa-trash"></i>
+                                                    </button>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Address Book Modal -->
+<div class="modal fade" id="addAddressBookModal" tabindex="-1" aria-labelledby="addAddressBookModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addAddressBookModalLabel">Add Address Book</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addressBookForm" action="@Url.Action("AddContact", "AddressBookMaster")" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="row">
+                        <!-- Client Name -->
+                        <div class="col-lg-6">
+                            <div class="mb-3">
+                                <label for="ClientName" class="form-label">Client Name *</label>
+                                <input type="text" class="form-control" id="ClientName" name="ClientName" required
+                                       maxlength="100" placeholder="Enter client name">
+                                <div class="invalid-feedback">Please enter a client name.</div>
+                            </div>
+                        </div>
+                        <!-- Bill Party -->
+                        <div class="col-lg-6">
+                            <div class="mb-3">
+                                <label for="BillParty" class="form-label">Bill Party</label>
+                                <input type="text" class="form-control" id="BillParty" name="BillParty"
+                                       maxlength="100" placeholder="Enter bill party name">
+                            </div>
+                        </div>
+                    </div>
+                    <!-- First Group -->
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <div class="mb-3">
+                                <label for="ContactPersonName" class="form-label">Contact Person Name</label>
+                                <input type="text" class="form-control" id="ContactPersonName" name="ContactPersonName"
+                                       maxlength="100" placeholder="Enter contact person name">
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="mb-3">
+                                <label for="Mobile" class="form-label">Mobile *</label>
+                                <input type="text" class="form-control" id="Mobile" name="Mobile" required
+                                       pattern="[0-9]{10}" maxlength="10" placeholder="Enter 10-digit mobile number">
+                                <div class="invalid-feedback">Please enter a valid 10-digit mobile number.</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="mb-3">
+                                <label for="Email" class="form-label">Email *</label>
+                                <input type="email" class="form-control" id="Email" name="Email" required
+                                       maxlength="100" placeholder="Enter valid email address">
+                                <div class="invalid-feedback">Please enter a valid email address.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Second Group -->
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <div class="mb-3">
+                                <label for="Address" class="form-label">Address *</label>
+                                <textarea class="form-control" id="Address" name="Address" rows="3" required
+                                          maxlength="500" placeholder="Enter full address"></textarea>
+                                <div class="invalid-feedback">Please enter an address.</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="mb-3">
+                                <label for="City" class="form-label">City *</label>
+                                <input type="text" class="form-control" id="City" name="City" required
+                                       maxlength="50" placeholder="Enter city">
+                                <div class="invalid-feedback">Please enter a city.</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="mb-3">
+                                <label for="State" class="form-label">State *</label>
+                                <select class="form-control" id="State" name="State" required>
+                                    <option value="">Select State</option>
+                                    @foreach (var item in ViewBag.state)
+                                    {
+                                        <option value="@item" data-taxname="@item">@item</option>
+                                    }
+                                </select>
+                                <div class="invalid-feedback">Please enter a state.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Third Group -->
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <div class="mb-3">
+                                <label for="Country" class="form-label">Country *</label>
+                                <input type="text" class="form-control" id="Country" name="Country" required
+                                       maxlength="50" placeholder="Enter country" value="India">
+                                <div class="invalid-feedback">Please enter a country.</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="mb-3">
+                                <label for="Pincode" class="form-label">Pincode *</label>
+                                <input type="text" class="form-control" id="Pincode" name="Pincode" required
+                                       pattern="[0-9]{6}" maxlength="6" placeholder="Enter 6-digit pincode">
+                                <div class="invalid-feedback">Please enter a valid 6-digit pincode.</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="mb-3">
+                                <label for="GSTNo" class="form-label">GST No</label>
+                                <input type="text" class="form-control" id="GSTNo" name="GSTNo"
+                                       maxlength="15" placeholder="Enter GST number">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Add Address Book</button>
+                        <button type="reset" class="btn btn-success">Reset</button>
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Address Book Modal -->
+<div class="modal fade" id="editAddressBookModal" tabindex="-1" aria-labelledby="editAddressBookModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editAddressBookModalLabel">Edit Address Book</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editAddressBookForm" action="@Url.Action("UpdateContact", "AddressBookMaster")" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="ClientId" id="editClientId" />
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="mb-3">
+                                <label for="editClientName" class="form-label">Client Name *</label>
+                                <input type="text" class="form-control" id="editClientName" name="ClientName" required
+                                       maxlength="100" placeholder="Enter client name">
+                                <div class="invalid-feedback">Please enter a client name.</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="mb-3">
+                                <label for="editBillParty" class="form-label">Bill Party</label>
+                                <input type="text" class="form-control" id="editBillParty" name="BillParty"
+                                       maxlength="100" placeholder="Enter bill party name">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <div class="mb-3">
+                                <label for="editContactPersonName" class="form-label">Contact Person Name</label>
+                                <input type="text" class="form-control" id="editContactPersonName" name="ContactPersonName"
+                                       maxlength="100" placeholder="Enter contact person name">
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="mb-3">
+                                <label for="editMobile" class="form-label">Mobile *</label>
+                                <input type="text" class="form-control" id="editMobile" name="Mobile" required
+                                       pattern="[0-9]{10}" maxlength="10" placeholder="Enter 10-digit mobile number">
+                                <div class="invalid-feedback">Please enter a valid 10-digit mobile number.</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="mb-3">
+                                <label for="editEmail" class="form-label">Email *</label>
+                                <input type="email" class="form-control" id="editEmail" name="Email" required
+                                       maxlength="100" placeholder="Enter valid email address">
+                                <div class="invalid-feedback">Please enter a valid email address.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <div class="mb-3">
+                                <label for="editAddress" class="form-label">Address *</label>
+                                <textarea class="form-control" id="editAddress" name="Address" rows="3" required
+                                          maxlength="500" placeholder="Enter full address"></textarea>
+                                <div class="invalid-feedback">Please enter an address.</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="mb-3">
+                                <label for="editCity" class="form-label">City *</label>
+                                <input type="text" class="form-control" id="editCity" name="City" required
+                                       maxlength="50" placeholder="Enter city">
+                                <div class="invalid-feedback">Please enter a city.</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="mb-3">
+                                <label for="editState" class="form-label">State *</label>
+                                <input type="text" class="form-control" id="editState" name="State" required
+                                       maxlength="50" placeholder="Enter state">
+                                <div class="invalid-feedback">Please enter a state.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <div class="mb-3">
+                                <label for="editCountry" class="form-label">Country *</label>
+                                <input type="text" class="form-control" id="editCountry" name="Country" required
+                                       maxlength="50" placeholder="Enter country" value="India">
+                                <div class="invalid-feedback">Please enter a country.</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="mb-3">
+                                <label for="editPincode" class="form-label">Pincode *</label>
+                                <input type="text" class="form-control" id="editPincode" name="Pincode" required
+                                       pattern="[0-9]{6}" maxlength="6" placeholder="Enter 6-digit pincode">
+                                <div class="invalid-feedback">Please enter a valid 6-digit pincode.</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="mb-3">
+                                <label for="editGSTNo" class="form-label">GST No</label>
+                                <input type="text" class="form-control" id="editGSTNo" name="GSTNo"
+                                       maxlength="15" placeholder="Enter GST number">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="editIsActive" name="IsActive">
+                                <label class="form-check-label" for="editIsActive">
+                                    Is Active
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Update Address Book</button>
+                        <button type="reset" class="btn btn-success">Reset</button>
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        // Initialize the data table with responsive features
+        $('#addressBookTable').DataTable({
+            responsive: true,
+            lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+            columnDefs: [
+                { orderable: false, targets: 12 } // Disable sorting on action column
+            ]
+        });
+
+        // Add form validation
+        function validateForm(formId) {
+            const form = document.getElementById(formId);
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+                $(form).addClass('was-validated');
+                return false;
+            }
+            return true;
+        }
+
+        // Handle the form submission for Add Address Book using AJAX
+        $('#addressBookForm').submit(function (e) {
+            e.preventDefault();
+
+            if (!validateForm('addressBookForm')) return;
+
+            var formData = new FormData(this);
+
+            $.ajax({
+                url: "@Url.Action("AddContact", "AddressBookMaster")",
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                beforeSend: function () {
+                    // Show loading indicator
+                    Swal.fire({
+                        title: 'Processing...',
+                        text: 'Please wait',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading()
+                        }
+                    });
+                },
+                success: function (response) {
+                    Swal.close();
+                    if (response.success) {
+                        Swal.fire({
+                            title: "Success!",
+                            text: "Address Book entry added successfully.",
+                            icon: "success",
+                            confirmButtonText: "OK"
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            title: "Error!",
+                            text: response.message || "There was an issue adding the address book entry.",
+                            icon: "error",
+                            confirmButtonText: "OK"
+                        });
+                    }
+                },
+                error: function (xhr) {
+                    Swal.close();
+                    Swal.fire({
+                        title: "Error!",
+                        text: "There was an error processing your request.",
+                        icon: "error",
+                        confirmButtonText: "OK"
+                    });
+                    console.error("Error:", xhr);
+                }
+            });
+        });
+
+        // Handle Edit Address Book form submission
+        $('#editAddressBookForm').submit(function (e) {
+            e.preventDefault();
+
+            if (!validateForm('editAddressBookForm')) return;
+
+            var formData = new FormData(this);
+
+            $.ajax({
+                url: "@Url.Action("UpdateContact", "AddressBookMaster")",
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                beforeSend: function () {
+                    Swal.fire({
+                        title: 'Processing...',
+                        text: 'Please wait',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading()
+                        }
+                    });
+                },
+                success: function (response) {
+                    Swal.close();
+                    if (response.success) {
+                        Swal.fire({
+                            title: "Updated!",
+                            text: "Address Book entry updated successfully.",
+                            icon: "success",
+                            confirmButtonText: "OK"
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            title: "Error!",
+                            text: response.message || "Failed to update address book entry.",
+                            icon: "error",
+                            confirmButtonText: "OK"
+                        });
+                    }
+                },
+                error: function (xhr) {
+                    Swal.close();
+                    Swal.fire({
+                        title: "Error!",
+                        text: "An error occurred while updating the address book entry.",
+                        icon: "error",
+                        confirmButtonText: "OK"
+                    });
+                    console.error("Error:", xhr);
+                }
+            });
+        });
+
+        // Handle click on edit links
+        $('.edit-address-book').click(function (e) {
+            e.preventDefault();
+
+            const clientData = $(this).data();
+
+            $("#editClientId").val(clientData.id);
+            $("#editClientName").val(clientData.clientName);
+            $("#editBillParty").val(clientData.billParty);
+            $("#editContactPersonName").val(clientData.contactPerson);
+            $("#editMobile").val(clientData.mobile);
+            $("#editEmail").val(clientData.email);
+            $("#editAddress").val(clientData.address);
+            $("#editCity").val(clientData.city);
+            $("#editState").val(clientData.state);
+            $("#editCountry").val(clientData.country);
+            $("#editPincode").val(clientData.pincode);
+            $("#editGSTNo").val(clientData.gst);
+            $("#editIsActive").prop("checked", clientData.active === "true");
+
+            $('#editAddressBookModal').modal('show');
+        });
+
+        // Handle click on delete buttons
+        $('.delete-address-book').click(function (e) {
+            e.preventDefault();
+            const clientId = $(this).data('id');
+
+            deleteAddressBook(clientId);
+        });
+    });
+
+    function deleteAddressBook(clientId) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '@Url.Action("Delete", "AddressBookMaster")/' + clientId,
+                    type: 'POST',
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    beforeSend: function () {
+                        Swal.fire({
+                            title: 'Processing...',
+                            text: 'Please wait',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading()
+                            }
+                        });
+                    },
+                    success: function (response) {
+                        Swal.close();
+                        if (response.success) {
+                            Swal.fire({
+                                title: "Deleted!",
+                                text: "Address Book entry has been deleted.",
+                                icon: "success",
+                                confirmButtonText: "OK"
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                title: "Error!",
+                                text: response.message || "There was an issue deleting the address book entry.",
+                                icon: "error",
+                                confirmButtonText: "OK"
+                            });
+                        }
+                    },
+                    error: function (xhr) {
+                        Swal.close();
+                        Swal.fire({
+                            title: "Error!",
+                            text: "There was an error processing your request.",
+                            icon: "error",
+                            confirmButtonText: "OK"
+                        });
+                        console.error("Error:", xhr);
+                    }
+                });
+            }
+        });
+    }
+</script>

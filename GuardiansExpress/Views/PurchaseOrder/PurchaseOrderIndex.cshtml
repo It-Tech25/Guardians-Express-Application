@@ -1,0 +1,937 @@
+﻿@model IEnumerable<GuardiansExpress.Models.DTOs.PurchaseOrderModel>
+@{
+    int rCnt = 1;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var searchTerm = ViewData["SearchTerm"] as string;
+    int currentPage = ViewData["CurrentPage"] as int? ?? 1;
+    int totalPages = ViewData["TotalPages"] as int? ?? 1;
+    int pageSize = ViewData["PageSize"] as int? ?? 10;
+}
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="row">
+            <div class="col-md-12 mt-3">
+                <div class="card">
+                    <div class="col-lg-12">
+                        <div class="pull-right">
+                            <form method="get" action="@Url.Action("Index", "PurchaseOrder")" style="width:250px">
+                                <div class="input-group">
+                                    <label class="mt-2 mr-1">No. of records:</label>
+                                    <select name="pageSize" id="PageSize" class="form-select" onchange="this.form.submit()">
+                                        <option value="50" selected="@(pageSize == 50)">50</option>
+                                        <option value="100" selected="@(pageSize == 100)">100</option>
+                                        <option value="500" selected="@(pageSize == 500)">500</option>
+                                        <option value="1000" selected="@(pageSize == 1000)">1000</option>
+                                    </select>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="card-header">
+                        <ul class="nav nav-tabs" id="myTab" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="list-tab" data-bs-toggle="tab" href="#list" role="tab">List of Purchase Orders</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="add-tab" data-bs-toggle="tab" href="#add" role="tab">Add Purchase Order</a>
+                            </li>
+                            <li class="nav-item d-none" id="editTabItem">
+                                <a class="nav-link" id="edit-tab" data-bs-toggle="tab" href="#edit" role="tab">Edit Purchase Order</a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="tab-content">
+                            <!-- List of Purchase Orders Tab -->
+                            <div class="tab-pane fade show active" id="list" role="tabpanel">
+                                <div class="table-responsive">
+                                    <div class="mt-4" id="purchaseOrderList">
+                                        <h5 class="bg-light p-2">Purchase Order List</h5>
+                                        <table class="table table-bordered">
+                                            <thead>
+                                                <tr class="text-dark">
+                                                    <th>S.No</th>
+                                                    <th>Voucher Date</th>
+                                                    <th>Branch</th>
+                                                    <th>Client Name</th>
+                                                    <th>Indent No</th>
+                                                    <th>Net Amount</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var po in Model)
+                                                {
+                                                    <tr>
+                                                        <td>@(rCnt++)</td>
+                                                        <td>@(po.VoucherDate?.ToString("dd/MM/yyyy"))</td>
+                                                        <td>@po.BranchName</td>
+                                                        <td>@po.ClientName</td>
+                                                        <td>@po.IndentNo</td>
+                                                        <td>@po.NetAmount?.ToString("0.00")</td>
+                                                        <td>@(po.IsActive == true ? "Active" : "Inactive")</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Add Purchase Order Tab -->
+                            <div class="tab-pane fade" id="add" role="tabpanel">
+                                <form id="PurchaseOrderForm" action="@Url.Action("CreatePurchaseOrder", "PurchaseOrder")" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <div class="card-header">
+                                        <div class="col-md-12 mt-3">
+                                            <h5 class="bg-light p-2">Purchase Order Details</h5>
+                                            <div class="row">
+                                                <div class="col-md-2">
+                                                    <label class="form-label">Branch<span class="text-danger">*</span></label>
+                                                    <select class="form-select" name="BranchId" id="BranchId" required>
+                                                        @foreach (var b in ViewBag.Branches)
+                                                        {
+                                                            <option value="@b.id">@b.BranchName</option>
+                                                        }
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <label class="form-label">Voucher Date<span class="text-danger">*</span></label>
+                                                    <input type="date" class="form-control" id="VoucherDate" name="VoucherDate" required>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <label class="form-label">Client Name<span class="text-danger">*</span></label>
+                                                    <div class="d-flex">
+                                                        <input type="text" class="form-control" name="ClientName" id="clientNameInput" required>
+@*                                                         <button type="button" class="btn btn-primary" onclick="openAddLedgerMasterModal()">➕</button>
+ *@                                                    </div>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <label class="form-label">Indent No</label>
+                                                    <input type="text" class="form-control" id="IndentNo" name="IndentNo">
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <label class="form-label">Payment Terms</label>
+                                                    <input type="text" class="form-control" id="PaymentTerms" name="PaymentTerms">
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <label class="form-label">Delivery Terms</label>
+                                                    <input type="text" class="form-control" id="DeliveryTerms" name="DeliveryTerms">
+                                                </div>
+                                            </div>
+
+                                            <div class="row mt-3">
+                                                <div class="col-md-4">
+                                                    <label class="form-label">Ship To</label>
+                                                    <textarea class="form-control" id="ShipTo" name="ShipTo" rows="2"></textarea>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <label class="form-label">Packing</label>
+                                                    <input type="text" class="form-control" id="Packing" name="Packing">
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <label class="form-label">Transport</label>
+                                                    <select class="form-select" id="Transport" name="Transport">
+                                                        <option value="none">Select Transport</option>
+                                                        <option value="air">By Air</option>
+                                                        <option value="road">By Road</option>
+                                                        <option value="sea">By Sea</option>
+                                                        <option value="courier">By Courier</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <label class="form-label">Insurance</label>
+                                                    <select class="form-select" id="Insurance" name="Insurance">
+                                                        <option value="none">Select Insurance</option>
+                                                        <option value="paid_by_you">Paid by You</option>
+                                                        <option value="paid_by_us">Paid by Us</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <label class="form-label">Freight</label>
+                                                    <select class="form-select" id="Freight" name="Freight">
+                                                        <option value="none">Select Freight</option>
+                                                        <option value="paid_by_you">Paid by You</option>
+                                                        <option value="paid_by_us">Paid by Us</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div class="row mt-3">
+                                                <div class="col-md-2">
+                                                    <label class="form-label">Cost Center</label>
+                                                    <select class="form-select" name="CostCenterId" id="CostCenterId">
+                                                        @foreach (var b in ViewBag.Branches)
+                                                        {
+                                                            <option value="@b.id">@b.id</option>
+                                                        }
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <label class="form-label">Valid From</label>
+                                                    <input type="date" class="form-control" id="ValidFrom" name="ValidFrom">
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <label class="form-label">Valid To</label>
+                                                    <input type="date" class="form-control" id="ValidTo" name="ValidTo">
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <label class="form-label">Discount on MRP (%)</label>
+                                                    <input type="number" class="form-control" id="DiscountOnMRP" name="DiscountOnMRP" step="0.01" value="0.00">
+                                                </div>
+                                                <div class="col-md-4 d-flex align-items-center">
+                                                    <div class="form-check me-3">
+                                                        <input type="hidden" name="NoGST" value="false" />
+                                                        <input class="form-check-input" type="checkbox" id="NoGST" name="NoGST" value="true">
+                                                        <label class="form-check-label" for="NoGST">No GST</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input type="hidden" name="IsActive" value="false" />
+                                                        <input class="form-check-input" type="checkbox" id="IsActive" name="IsActive" value="true" checked>
+                                                        <label class="form-check-label" for="IsActive">Active</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <h5 class="bg-light p-2 mt-4">Order Items</h5>
+                                    <div class="card-header">
+                                        
+                                        <table class="table table-bordered" id="itemTable">
+                                            <thead>
+                                                <tr>
+                                                    <th>Item & Description</th>
+                                                    <th>HSN/SAC</th>
+                                                    <th>MRP</th>
+                                                    <th>Rate</th>
+                                                    <th>Disc(%)</th>
+                                                    <th>Qty</th>
+                                                    <th>Free Qty</th>
+                                                    <th>Unit</th>
+                                                    <th>Amount</th>
+                                                    <th>Tax%</th>
+                                                    <th>Tax Amt</th>
+                                                    <th>Total</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="orderItemsTableBody">
+                                                <tr>
+                                                    <td>
+                                                        <input type="text" class="form-control item-name" name="Items[0].Item" required placeholder="Item Name">
+                                                        <input type="text" class="form-control mt-1" name="Items[0].ItemDescription" placeholder="Description">
+                                                    </td>
+                                                    <td><input type="text" class="form-control" name="Items[0].HSNSAC"></td>
+                                                    <td><input type="number" class="form-control item-mrp" name="Items[0].MRP" value="0.00"></td>
+                                                    <td><input type="number" class="form-control item-rate" name="Items[0].Rate" value="0.00" onchange="calculateItemAmount(this)"></td>
+                                                    <td><input type="number" class="form-control item-disc" name="Items[0].DiscountPercentage" value="0.00" onchange="calculateItemAmount(this)"></td>
+                                                    <td><input type="number" class="form-control item-qty" name="Items[0].Quantity" value="1" onchange="calculateItemAmount(this)"></td>
+                                                    <td><input type="number" class="form-control" name="Items[0].FreeQuantity" value="0"></td>
+                                                    <td><input type="text" class="form-control" name="Items[0].Unit" value="Nos"></td>
+                                                    <td><input type="number" class="form-control item-amount" name="Items[0].Amount" value="0.00" readonly></td>
+                                                    <td>
+                                                        <select class="form-select item-tax-percent" name="Items[0].TaxPercentage" onchange="calculateItemAmount(this)">
+                                                            <option value="0">GST@0%</option>
+                                                            <option value="5">GST@5%</option>
+                                                            <option value="12">GST@12%</option>
+                                                            <option value="18">GST@18%</option>
+                                                        </select>
+                                                    </td>
+                                                    <td><input type="number" class="form-control item-tax-amount" name="Items[0].TaxAmount" value="0.00" readonly></td>
+                                                    <td><input type="number" class="form-control item-total" name="Items[0].TotalAmount" value="0.00" readonly></td>
+                                                    <td><button type="button" class="btn btn-danger" onclick="removeOrderItem(this)">X</button></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                        <button type="button" class="btn btn-primary" onclick="addOrderItem()">Add More</button>
+                                   
+                                    <div class="card-header">
+                                        <div class="container mt-4">
+                                            <h5 class="bg-light p-2">Total Amount And Tax Details</h5>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <label for="Notes" class="form-label">Notes:</label>
+                                                    <textarea id="Notes" name="Notes" class="form-control" rows="4" placeholder="Enter any notes..."></textarea>
+                                                </div>
+
+                                                <div class="col-md-6">
+                                                    <table class="table table-bordered">
+                                                        <tr>
+                                                            <td>Gross Amount</td>
+                                                            <td><input type="number" class="form-control" id="GrossAmount" name="GrossAmount" step="0.01" value="0.00" readonly></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Discount</td>
+                                                            <td><input type="number" class="form-control" id="Discount" name="Discount" step="0.01" value="0.00" readonly></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Tax</td>
+                                                            <td><input type="number" class="form-control" id="Tax" name="Tax" step="0.01" value="0.00" readonly></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Round Off</td>
+                                                            <td><input type="number" class="form-control" id="RoundOff" name="RoundOff" step="0.01" value="0.00" onchange="calculateFinalAmount()"></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td><b>Net Amount</b></td>
+                                                            <td><b class="text-danger"><input type="number" class="form-control" id="NetAmount" name="NetAmount" step="0.01" value="0.00" readonly></b></td>
+                                                        </tr>
+                                                    </table>
+                                                </div>
+                                                <div class="row mt-3">
+                                                    <div class="col-md-6">
+                                                        <button type="submit" class="btn btn-success">
+                                                            <i class="bi bi-check-circle"></i> Save
+                                                        </button>
+                                                        <button type="reset" class="btn btn-secondary">
+                                                            <i class="bi bi-arrow-counterclockwise"></i> Reset
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- Edit Purchase Order Tab (hidden by default) -->
+                            <div class="tab-pane fade" id="edit" role="tabpanel">
+                                <!-- The edit form will be populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="addLedgerModal" tabindex="-1" aria-labelledby="addLedgerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addLedgerModalLabel">Add Ledger</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="ledgerForm" action="@Url.Action("AddorUpdateLedgerMaster", "LedgerMaster")" method="post">
+                    @Html.AntiForgeryToken()
+                    <fieldset class="border p-3 mb-3">
+                        <legend class="w-auto">Ledger Details</legend>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="AccGroup" class="form-label">Account Group <span class="text-danger">*</span></label>
+                                <select class="form-select" id="AccGroup" name="AccGroup" required>
+                                    <option value="">Select SubGroup</option>
+                                    @if (ViewBag.subgroup != null)
+                                    {
+                                        foreach (var item in ViewBag.subgrouphead)
+                                        {
+                                            <option value="@item.SubGroupName">@item.SubGroupName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="AccHead" class="form-label">Account Head <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="AccHead" name="AccHead" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="TDSPercent" class="form-label">TDS %</label>
+                                <input type="number" class="form-control" id="TDSPercent" name="TDSPercent" step="0.01" placeholder="0.00">
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-check form-check-inline">
+                                    <input type="checkbox" class="form-check-input" id="BankAccount" name="BankAccount" value="true">
+                                    <label for="BankAccount" class="form-check-label">Bank Account</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input type="checkbox" class="form-check-input" id="TaxLedger" name="TaxLedger" value="true">
+                                    <label for="TaxLedger" class="form-check-label">Tax Ledger</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input type="checkbox" class="form-check-input" id="Taxable" name="Taxable" value="true">
+                                    <label for="Taxable" class="form-check-label">Taxable</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input type="checkbox" class="form-check-input" id="VehicleExpense" name="VehicleExpense" value="true">
+                                    <label for="VehicleExpense" class="form-check-label">Vehicle Expense</label>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Contact & Address Details -->
+                    <fieldset class="border p-3 mt-3">
+                        <legend class="fw-bold d-flex justify-content-between align-items-center">
+                            Contact & Address Details
+                            <button type="button" class="btn btn-primary" id="addContactBtn">
+                                <i class="fas fa-plus"></i> Add
+                            </button>
+                        </legend>
+                        <div id="contactForm">
+                            <div class="contact-section border p-3 mb-2">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <label for="ContactPerson" class="form-label">Contact Person</label>
+                                        <input type="text" class="form-control" id="ContactPerson" name="ContactPerson[]">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="Mobile" class="form-label">Mobile</label>
+                                        <input type="number" class="form-control" id="Mobile" name="Mobile[]">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="AltMobile" class="form-label">Alt. Mobile</label>
+                                        <input type="number" class="form-control" id="AltMobile" name="AltMobile[]">
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-md-4">
+                                        <label for="Email" class="form-label">Email ID</label>
+                                        <input type="email" id="Email" class="form-control" name="Email[]">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="TelNo" class="form-label">Tel No</label>
+                                        <input type="number" id="TelNo" class="form-control" name="TelNo[]">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="RefID" class="form-label">Ref ID</label>
+                                        <input type="text" id="RefID" class="form-control" name="RefID[]">
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-md-4">
+                                        <label for="CCEmailId" class="form-label">CC Email ID</label>
+                                        <input type="email" id="CCEmailId" class="form-control" name="CCEmailId[]">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="OtherEmailId" class="form-label">Other Email ID</label>
+                                        <input type="email" id="OtherEmailId" class="form-control" name="OtherEmailId[]">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="VendorCode" class="form-label">Vendor Code</label>
+                                        <input type="text" id="VendorCode" class="form-control" name="VendorCode[]">
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-md-6">
+                                        <label for="Address1" class="form-label">Address 1</label>
+                                        <input type="text" id="Address1" class="form-control" name="Address1[]">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="Address2" class="form-label">Address 2</label>
+                                        <input type="text" id="Address2" class="form-control" name="Address2[]">
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-md-4">
+                                        <label for="City" class="form-label">City</label>
+                                        <input type="text" id="City" class="form-control" name="City[]">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="State" class="form-label">State*</label>
+                                        <select id="State" class="form-control" name="State[]">
+                                            <option value="Telangana" selected>Telangana</option>
+                                            <option value="Andhra Pradesh">Andhra Pradesh</option>
+                                            <option value="Karnataka">Karnataka</option>
+                                            <option value="Tamil Nadu">Tamil Nadu</option>
+                                            <option value="Maharashtra">Maharashtra</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="Pincode" class="form-label">Pincode</label>
+                                        <input type="number" id="Pincode" class="form-control" name="Pincode[]">
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-md-4">
+                                        <label for="Country" class="form-label">Country*</label>
+                                        <select class="form-select" id="Country" name="Country[]">
+                                            <option value="India" selected>India</option>
+                                            <option value="USA">USA</option>
+                                            <option value="UK">UK</option>
+                                            <option value="Canada">Canada</option>
+                                            <option value="Australia">Australia</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Document & Bank Details -->
+                    <fieldset class="border p-3 mt-3">
+                        <legend class="fw-bold">Document & Bank Details</legend>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label for="RegistrationType" class="form-label">Registration Type</label>
+                                <select class="form-select" id="RegistrationType" name="RegistrationType">
+                                    <option value="Composition">Composition</option>
+                                    <option value="Consumer">Consumer</option>
+                                    <option value="Regular">Regular</option>
+                                    <option value="Unregistered">Unregistered</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="PartyType" class="form-label">Party Type</label>
+                                <input type="text" class="form-control" id="PartyType" name="PartyType">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="CINNo" class="form-label">CIN No</label>
+                                <input type="number" class="form-control" id="CINNo" name="CINNo">
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-4">
+                                <label for="GSTIN" class="form-label">GSTIN</label>
+                                <input type="text" class="form-control" id="GSTIN" name="GSTIN">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="PANNo" class="form-label">PAN No</label>
+                                <input type="text" class="form-control" id="PANNo" name="PANNo">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="AAdharNumber" class="form-label">Aadhar No</label>
+                                <input type="number" class="form-control" id="AAdharNumber" name="AAdharNumber">
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-4">
+                                <label for="AccHolderName" class="form-label">Acc. Holder Name</label>
+                                <input type="text" class="form-control" id="AccHolderName" name="AccHolderName">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="BankName" class="form-label">Bank Name</label>
+                                <input type="text" class="form-control" id="BankName" name="BankName">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="BankAccNo" class="form-label">Bank Acc No</label>
+                                <input type="text" class="form-control" id="BankAccNo" name="BankAccNo">
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-4">
+                                <label for="BankBranch" class="form-label">Bank Branch</label>
+                                <input type="text" class="form-control" id="BankBranch" name="BankBranch">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="IFSCCode" class="form-label">IFSC Code</label>
+                                <input type="text" class="form-control" id="IFSCCode" name="IFSCCode">
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Balance & Other Details -->
+                    <fieldset class="border p-3 mt-3">
+                        <legend class="fw-bold">Balance & Other Details</legend>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label for="OpeningBalance" class="form-label">Opening Balance</label>
+                                <input type="text" class="form-control" id="OpeningBalance" name="OpeningBalance">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="BalanceIn" class="form-label">Balance In</label>
+                                <select class="form-select" id="BalanceIn" name="BalanceIn">
+                                    <option value="Credit">Credit</option>
+                                    <option value="Debit">Debit</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="PaymentTerm" class="form-label">Payment Term</label>
+                                <input type="text" class="form-control" id="PaymentTerm" name="PaymentTerm">
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-4">
+                                <label for="DueDays" class="form-label">Due Days</label>
+                                <input type="number" class="form-control" id="DueDays" name="DueDays">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="Agent" class="form-label">Agent</label>
+                                <input type="text" class="form-control" id="Agent" name="Agent">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="UserName" class="form-label">Username</label>
+                                <input type="text" class="form-control" id="UserName" name="UserName" autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-4">
+                                <label for="Password" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="Password" name="Password" placeholder="**********" autocomplete="off">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="Status" class="form-label">Status*</label>
+                                <select class="form-select" id="Status" name="Status">
+                                    <option value="Active">Active</option>
+                                    <option value="Inactive">Inactive</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check mt-4">
+                                    <input class="form-check-input" type="checkbox" id="WalkinLedger" name="WalkinLedger" value="true">
+                                    <label class="form-check-label" for="WalkinLedger">Walkin Ledger</label>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Address Details -->
+                    <fieldset class="border p-3 mt-3">
+                        <legend class="fw-bold text-success">Address Details</legend>
+                        <table class="table table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Branch Name</th>
+                                    <th>Name/Address/Mobile</th>
+                                    <th>Address</th>
+                                    <th>City/State/Pincode</th>
+                                    <th>GSTIN</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="addressTableBody">
+                                <tr class="addressRow">
+                                    <td><input type="text" class="form-control" name="AddressDetails[0].BranchName"></td>
+                                    <td><input type="text" class="form-control" name="AddressDetails[0].NameAddressMobile"></td>
+                                    <td><input type="text" class="form-control" name="AddressDetails[0].Address"></td>
+                                    <td><input type="text" class="form-control" name="AddressDetails[0].CityStatePincode"></td>
+                                    <td><input type="text" class="form-control" name="AddressDetails[0].GSTIN"></td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-danger btn-sm removeAddress">Delete</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <button type="button" id="addMoreAddress" class="btn btn-primary">Add More</button>
+                    </fieldset>
+
+                    <div class="col-md-6 mt-3">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save btn-icon"></i>Save
+                        </button>
+                        <button type="reset" class="btn btn-secondary">
+                            <i class="fas fa-undo btn-icon"></i>Reset
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Function to open the ledger popup
+    function openAddLedgerMasterModal() {
+        $('#addLedgerModal').modal('show');
+    }
+
+    // Function to close the ledger popup
+    function closeLedgerPopup() {
+        document.getElementById('ledgerPopup').style.display = 'none';
+    }
+
+    // Function to select a ledger and update the input field
+    function selectLedger(ledgerName) {
+        if (selectedInput) {
+            selectedInput.value = ledgerName; // Update the input field with the selected ledger
+        }
+        closeLedgerPopup(); // Close the popup
+    }
+
+    // Close the modal if the user clicks outside of it
+    window.onclick = function (event) {
+        var modal = document.getElementById('ledgerPopup');
+        if (event.target == modal) {
+            closeLedgerPopup();
+        }
+    };
+        // Global variables
+    let itemCounter = 1; // Start from 1 since we already have 0 in the template
+
+    // Function to add a new order item row
+    function addOrderItem() {
+        const tableBody = document.getElementById('orderItemsTableBody');
+        const newRow = document.createElement('tr');
+
+      newRow.innerHTML = `
+        <td><input type="text" class="form-control item-name" name="Items[${itemCounter}].Item" required>
+        <input type="text" class="form-control" name="Items[${itemCounter}].ItemDescription"></td>
+        <td><input type="text" class="form-control" name="Items[${itemCounter}].HSNSAC"></td>
+        <td><input type="text" class="form-control item-mrp" name="Items[${itemCounter}].MRP" value="0.00"></td>
+        <td><input type="text" class="form-control item-rate" name="Items[${itemCounter}].Rate" value="0.00" onchange="calculateItemAmount(this)"></td>
+        <td><input type="text" class="form-control item-qty" name="Items[${itemCounter}].Quantity" value="1" onchange="calculateItemAmount(this)"></td>
+        <td><input type="text" class="form-control" name="Items[${itemCounter}].FreeQuantity" value="0"></td>
+        <td><input type="text" class="form-control" name="Items[${itemCounter}].Unit" value="Nos"></td>
+        <td><input type="text" class="form-control item-disc" name="Items[${itemCounter}].DiscountPercentage" value="0.00" onchange="calculateItemAmount(this)"></td>
+        <td><input type="text" class="form-control item-amount" name="Items[${itemCounter}].Amount" value="0.00" readonly></td>
+        <td><input type="text" class="form-control item-tax-percent" name="Items[${itemCounter}].TaxPercentage" value="0.00" onchange="calculateItemAmount(this)"></td>
+        <td><input type="text" class="form-control item-tax-amount" name="Items[${itemCounter}].TaxAmount" value="0.00" readonly></td>
+        <td><input type="text" class="form-control item-total" name="Items[${itemCounter}].TotalAmount" value="0.00" readonly></td>
+        <td><button type="button" class="btn btn-danger btn-sm" onclick="removeOrderItem(this)">✖</button></td>
+    `  ;
+
+        tableBody.appendChild(newRow);
+        itemCounter++;
+    }
+    $(document).ready(function () {
+        // Add more address rows
+        $("#addMoreAddress").click(function () {
+            let rowCount = $("#addressTableBody tr").length; // Get the current number of rows
+            let newRow = `
+                <tr class="addressRow">
+                    <td><input type="text" class="form-control" name="AddressDetails[${rowCount}].BranchName"></td>
+                    <td><input type="text" class="form-control" name="AddressDetails[${rowCount}].NameAddressMobile"></td>
+                    <td><input type="text" class="form-control" name="AddressDetails[${rowCount}].Address"></td>
+                    <td><input type="text" class="form-control" name="AddressDetails[${rowCount}].CityStatePincode"></td>
+                    <td><input type="text" class="form-control" name="AddressDetails[${rowCount}].GSTIN"></td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-danger btn-sm removeAddress">Delete</button>
+                    </td>
+                </tr>
+            `;
+            $("#addressTableBody").append(newRow);
+        });
+
+        // Remove an address row
+        $(document).on("click", ".removeAddress", function () {
+            if ($("#addressTableBody tr").length > 1) { // Ensure at least one row remains
+                $(this).closest("tr").remove();
+            } else {
+                alert("You cannot delete the last row.");
+            }
+        });
+    });
+    // Function to remove an order item row
+    function removeOrderItem(button) {
+        const row = button.closest('tr');
+        if (document.getElementById('orderItemsTableBody').rows.length > 1) {
+            row.remove();
+            // Recalculate totals
+            calculateOrderTotals();
+        } else {
+            alert('At least one item is required!');
+        }
+    }
+
+    // Function to calculate amount for a single item
+    function calculateItemAmount(input) {
+        const row = input.closest('tr');
+
+        const rate = parseFloat(row.querySelector('.item-rate').value) || 0;
+        const quantity = parseInt(row.querySelector('.item-qty').value) || 0;
+        const discountPercent = parseFloat(row.querySelector('.item-disc').value) || 0;
+        const taxPercent = parseFloat(row.querySelector('.item-tax-percent').value) || 0;
+
+        // Calculate the amount (rate * quantity)
+        let amount = rate * quantity;
+
+        // Apply discount if any
+        const discountAmount = (amount * discountPercent) / 100;
+        amount = amount - discountAmount;
+
+        // Calculate tax amount
+        const taxAmount = (amount * taxPercent) / 100;
+
+        // Calculate total amount (amount + tax)
+        const totalAmount = amount + taxAmount;
+
+        // Update the fields
+        row.querySelector('.item-amount').value = amount.toFixed(2);
+        row.querySelector('.item-tax-amount').value = taxAmount.toFixed(2);
+        row.querySelector('.item-total').value = totalAmount.toFixed(2);
+
+        // Recalculate order totals
+        calculateOrderTotals();
+    }
+
+    // Function to calculate order totals
+    function calculateOrderTotals() {
+        let grossAmount = 0;
+        let totalDiscount = 0;
+        let totalTax = 0;
+
+        // Get all rows
+        const rows = document.getElementById('orderItemsTableBody').querySelectorAll('tr');
+
+        // Calculate totals from each row
+        rows.forEach(row => {
+            const rate = parseFloat(row.querySelector('.item-rate').value) || 0;
+            const quantity = parseInt(row.querySelector('.item-qty').value) || 0;
+            const discountPercent = parseFloat(row.querySelector('.item-disc').value) || 0;
+            const taxAmount = parseFloat(row.querySelector('.item-tax-amount').value) || 0;
+
+            const subtotal = rate * quantity;
+            const discountAmount = (subtotal * discountPercent) / 100;
+
+            grossAmount += subtotal;
+            totalDiscount += discountAmount;
+            totalTax += taxAmount;
+        });
+
+        // Update summary fields
+        document.getElementById('GrossAmount').value = grossAmount.toFixed(2);
+        document.getElementById('Discount').value = totalDiscount.toFixed(2);
+        document.getElementById('Tax').value = totalTax.toFixed(2);
+
+        // Calculate final amount
+        calculateFinalAmount();
+    }
+
+    // Function to calculate the final amount with round off
+    function calculateFinalAmount() {
+        const grossAmount = parseFloat(document.getElementById('GrossAmount').value) || 0;
+        const discount = parseFloat(document.getElementById('Discount').value) || 0;
+        const tax = parseFloat(document.getElementById('Tax').value) || 0;
+        const roundOff = parseFloat(document.getElementById('RoundOff').value) || 0;
+
+        const netAmount = grossAmount - discount + tax + roundOff;
+        document.getElementById('NetAmount').value = netAmount.toFixed(2);
+    }
+
+    // Function to initialize the form
+    function initForm() {
+        // Set voucher date to today by default
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('VoucherDate').value = today;
+
+        // Calculate initial values for the first row
+        const firstItemRateInput = document.querySelector('#orderItemsTableBody tr:first-child .item-rate');
+        if (firstItemRateInput) {
+            calculateItemAmount(firstItemRateInput);
+        }
+
+        // Add form submission handler
+        document.getElementById('PurchaseOrderForm').addEventListener('submit', function(event) {
+            if (!validateForm()) {
+                event.preventDefault();
+            }
+        });
+
+        // Add NoGST checkbox event handler
+        document.getElementById('NoGST').addEventListener('change', function() {
+            const isNoGST = this.checked;
+            const rows = document.getElementById('orderItemsTableBody').querySelectorAll('tr');
+
+            // If NoGST is checked, set all tax percentages to 0
+            rows.forEach(row => {
+                const taxPercentInput = row.querySelector('.item-tax-percent');
+                if (isNoGST) {
+                    taxPercentInput.value = '0.00';
+                    taxPercentInput.disabled = true;
+                } else {
+                    taxPercentInput.disabled = false;
+                }
+                calculateItemAmount(taxPercentInput);
+            });
+        });
+    }
+
+    // Validate form before submission
+    function validateForm() {
+        const clientName = document.getElementById('ClientName').value.trim();
+        const voucherDate = document.getElementById('VoucherDate').value;
+        const branchId = document.getElementById('BranchId').value;
+
+        if (!clientName) {
+            alert('Please enter Client Name');
+            return false;
+        }
+
+        if (!voucherDate) {
+            alert('Please select Voucher Date');
+            return false;
+        }
+
+        if (!branchId) {
+            alert('Please select Branch');
+            return false;
+        }
+
+        // Check if at least one item is entered
+        const itemNames = document.querySelectorAll('.item-name');
+        let itemsValid = false;
+
+        for (let i = 0; i < itemNames.length; i++) {
+            if (itemNames[i].value.trim()) {
+                itemsValid = true;
+                break;
+            }
+        }
+
+        if (!itemsValid) {
+            alert('Please add at least one item');
+            return false;
+        }
+        const transport = document.getElementById('Transport').value;
+    const insurance = document.getElementById('Insurance').value;
+    const freight = document.getElementById('Freight').value;
+
+    // Set default values if empty
+    if (!transport) {
+        document.getElementById('Transport').value = "none";
+    }
+
+    if (!insurance) {
+        document.getElementById('Insurance').value = "none";
+    }
+
+    if (!freight) {
+        document.getElementById('Freight').value = "none";
+    }
+
+
+        return true;
+    }
+
+    // Function to delete a purchase order
+    function DeletePurchaseOrder(purchaseId) {
+        if (confirm('Are you sure you want to delete this Purchase Order?')) {
+            // Send AJAX request to delete the purchase order
+            fetch(`/PurchaseOrder/DeletePurchaseOrder/${purchaseId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // Include anti-forgery token if needed
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Reload the page or update the table
+                    window.location.reload();
+                } else {
+                    alert('Failed to delete the purchase order');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while deleting the purchase order');
+            });
+        }
+    }
+
+    // Initialize the form when the document is loaded
+    document.addEventListener('DOMContentLoaded', initForm);
+
+    // Initialize DataTable for the purchase orders list
+    document.addEventListener('DOMContentLoaded', function() {
+        $('#example1').DataTable({
+            "responsive": true,
+            "lengthChange": true,
+            "autoWidth": false,
+            "ordering": true,
+            "paging": true,
+            "info": true,
+            "language": {
+                "search": "Search:",
+                "lengthMenu": "Show _MENU_ entries",
+                "info": "Showing _START_ to _END_ of _TOTAL_ entries",
+                "infoEmpty": "Showing 0 to 0 of 0 entries",
+                "infoFiltered": "(filtered from _MAX_ total entries)"
+            }
+        });
+    });
+</script>

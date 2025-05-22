@@ -1,0 +1,53 @@
+﻿@model GuardiansExpress.Models.Entity.InvoiceTypeMasterEntity
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="row flex-row-reverse">
+            <div class="col-md-12 mt-3">
+                <div class="card">
+                    <!-- Tab Navigation -->
+                    <div class="card-header">
+                        <ul class="nav nav-pills" id="editTab" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <a class="nav-link active" id="edit-invoice-tab" data-bs-toggle="pill" href="#edit-invoice" role="tab" aria-controls="edit-invoice" aria-selected="true">
+                                    Edit Invoice Type
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Tab Content -->
+                    <div class="card-body">
+                        <div class="tab-content" id="editTabContent">
+                            <div class="tab-pane fade show active" id="edit-invoice" role="tabpanel" aria-labelledby="edit-invoice-tab">
+                                <form action="@Url.Action("AddOrUpdateInvoiceType", "InvoiceType")" method="post" enctype="multipart/form-data">
+                                    <div class="row">
+                                        <div class="col-lg-6">
+                                            <div class="form-group">
+                                                <input type="hidden" id="Id" name="Id" value="@Model?.Id" />
+
+                                                <label>Invoice Type</label><span class="text-danger">*</span>
+                                                <input class="form-control" name="InvoiceType" id="InvoiceType" type="text" value="@Model?.InvoiceType" placeholder="Enter Invoice Type" required>
+
+                                                <label>Status</label><span class="text-danger">*</span>
+                                                <input class="form-control" name="Status" id="Status" type="text" value="@Model?.Status" placeholder="Status" required>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Row for Update Button -->
+                                    <div class="row">
+                                        <div class="col-md-6 pt-4">
+                                            <!-- Update Button Below the Inputs -->
+                                            <button type="submit" class="btn btn-success w-100">Update</button> <!-- w-100 makes the button full-width -->
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

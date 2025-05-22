@@ -1,0 +1,259 @@
+﻿@model IEnumerable<GuardiansExpress.Models.Entity.GRNoEntity>
+@{
+    int rCnt = 1;
+
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="row">
+            <div class="col-md-12 mt-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">GR Number List</h4>
+                        <a href="javascript:void(0);" onclick="addBodyTypeModal();" class="btn btn-success btn-xs" style="height: 100%; display: flex; justify-content: center; align-items: center; padding: 0 10px;">
+                            <i class="fa fa-plus" aria-hidden="true"></i> Add GRNO
+                        </a>
+                    </div>
+
+                    <div class="box-body">
+                        <div class="table-responsive">
+                            <table id="example1" class="text-fade table table-bordered" style="width:100%">
+                                <thead>
+                                    <tr class="text-dark">
+                                        <th>S.No</th>
+                                        <th>GRNO</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var bodyType in Model)
+                                    {
+                                        <tr>
+                                            <td scope="row">@(rCnt++)</td>
+                                            <td>
+                                                <a href="#" onclick="EditGRNo(@bodyType.Grnoid, '@bodyType.GR', @bodyType.IsActive.ToString().ToLower())" title="Edit">@bodyType.GR</a>
+                                            </td>
+                                            <td>@((bodyType.IsActive ?? false) ? "Active" : "Inactive")</td>
+
+                                            <td>
+                                                <a href="#" onclick="DeleteBodyType(@bodyType.Grnoid)" title="Delete">
+                                                    <button type="button" class="waves-effect waves-circle btn btn-circle btn-danger btn-xs">
+                                                        <i class="fa fa-trash"></i>
+                                                    </button>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Body Type Modal -->
+<div class="modal fade" id="addBodyTypeModal" tabindex="-1" aria-labelledby="addBodyTypeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addBodyTypeModalLabel">Add GRNo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="GRNOForm" action="@Url.Action("AddGRNo", "GRNo")" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <div class="row">
+                       @*  <div class="col-lg-12">
+                            <h5 class="mb-3" style="background-color: whitesmoke; color: black; padding: 10px; text-transform: uppercase;">GR Details</h5>
+                        </div> *@
+                        <div class="col-lg-12">
+                            <label for="GR">GR No *</label>
+                            <input type="text" class="form-control" id="GR" name="GR" required maxlength="20">
+                            <div class="col-lg-12 mt-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="true" id="IsActive" name="IsActive" />
+                                    <label class="form-check-label" for="IsActive">
+                                        Is Active
+                                    </label>
+                                </div>
+                                @* Hidden field to ensure a value is always posted for unchecked case *@
+                                <input type="hidden" name="IsActive" value="false" />
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Body Type Modal -->
+<div class="modal fade" id="editBodyTypeModal" tabindex="-1" aria-labelledby="editBodyTypeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editBodyTypeModalLabel">Edit GRNo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editGRNOForm" action="@Url.Action("UpdateGRNo", "GRNo")" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="Grnoid" id="editGrnoid" value="" />
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <h5 class="mb-3" style="background-color: whitesmoke; color: black; padding: 10px; text-transform: uppercase;">Body Type Details</h5>
+                        </div>
+                        <div class="col-lg-12">
+                            <label for="editGR">GR NO *</label>
+                            <input type="text" class="form-control" id="editGR" name="GR" required maxlength="20">
+                        </div>
+
+                        <div class="col-lg-12 mt-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="true" id="editIsActive" name="IsActive" />
+                                <label class="form-check-label" for="editIsActive">
+                                    Is Active
+                                </label>
+                            </div>
+                            <input type="hidden" name="IsActive" value="false" />
+                        </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Update</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('#bodyTypeList').DataTable();
+
+    $('#GRNOForm').submit(function (e) {
+        e.preventDefault();
+        var formData = new FormData(this); // Creates FormData from the form
+
+        $.ajax({
+            url: '/GRNo/AddGRNo',
+            type: 'POST',
+            data: formData,
+            processData: false, // Required for FormData
+            contentType: false, // Required for FormData
+            success: function (response) {
+                if (response.success) {
+                    Swal.fire("Success!", "GR NO added successfully.", "success")
+                        .then(() => {
+                            window.location.reload();
+                        });
+                } else {
+                    Swal.fire("Error!", response.message || "Failed to add GRNo.", "error");
+                }
+            },
+            error: function () {
+                Swal.fire("Error!", "An error occurred while adding the GRNO.", "error");
+            }
+        });
+    });        $('#editGRNOForm').submit(function (e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+            $.ajax({
+                url: '/GRNo/UpdateGRNo',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire("Updated!", "GR NO updated successfully.", "success").then(() => {
+                            $('#editBodyTypeModal').modal('hide');
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire("Error!", response.message || "Failed to update GRNo.", "error");
+                    }
+                },
+                error: function () {
+                    Swal.fire("Error!", "An error occurred while updating the GRNO.", "error");
+                }
+            });
+        });
+    });
+
+    function addBodyTypeModal() {
+        $('#addBodyTypeModal').modal('show');
+    }
+
+      function EditGRNo(id, gr) {
+        $("#editGrnoid").val(id);
+        $("#editGR").val(gr);
+        $('#editBodyTypeModal').modal('show');
+    }
+
+
+    function DeleteBodyType(id) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/GRNo/DeleteGrNo/' + id,
+                    type: 'POST',
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire("Deleted!", "GRNo has been deleted.", "success").then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire("Error!", response.message || "There was an issue deleting the GR NO.", "error");
+                        }
+                    },
+                    error: function () {
+                        Swal.fire("Error!", "There was an error processing your request.", "error");
+                    }
+                });
+            }
+        });
+    }
+
+       function searchTable() {
+        var input = document.getElementById("searchGR").value.toLowerCase();
+        var table = document.getElementById("example1");
+        var rows = table.getElementsByTagName("tr");
+
+        for (var i = 1; i < rows.length; i++) { // start from 1 to skip header
+            var cells = rows[i].getElementsByTagName("td");
+
+            if (cells.length >= 2) {
+                var grText = cells[1].textContent.trim().toLowerCase(); // GRNO is in 2nd column
+
+                if (grText.includes(input)) {
+                    rows[i].style.display = "";
+                } else {
+                    rows[i].style.display = "none";
+                }
+            }
+        }
+    }
+
+</script>

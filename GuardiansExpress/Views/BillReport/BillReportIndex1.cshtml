@@ -1,0 +1,328 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bill Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f8f8;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #00a67d;
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            text-align: center;
+        }
+        
+        .form-row {
+            display: flex;
+            margin-bottom: 15px;
+            gap: 10px;
+        }
+        
+        .form-group {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .form-group-full {
+            flex-basis: 100%;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            box-sizing: border-box;
+        }
+        
+        select {
+            appearance: menulist;
+            background: #f9f9f9 url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E") no-repeat right 10px center;
+            background-size: 12px;
+        }
+        
+        .date-input {
+            position: relative;
+        }
+        
+        .date-input:after {
+            content: "📅";
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
+        
+        .action-buttons {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .btn-search {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .btn-reset {
+            background-color: #f1f1f1;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        
+        .checkmark {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: #00a67d;
+            font-size: 24px;
+        }
+        
+        .container-header {
+            position: relative;
+        }
+        
+        /* Responsive adjustments */
+         (max-width: 768px) {
+            .form-row {
+                flex-wrap: wrap;
+            }
+            .form-group {
+                flex-basis: calc(50% - 5px);
+            }
+        }
+        
+        (max-width: 480px) {
+            .form-group {
+                flex-basis: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-panel">
+        <div class="content-wrapper">
+            <div class="row">
+                <div class="col-md-12 mt-3">
+                    <div class="card">
+                        <div class="header">
+            <h1>Bill Report</h1>
+            <div class="checkmark">✓</div>
+        </div>
+        
+        <form id="billReportForm">
+            <!-- First row: 5 equal columns -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="branch">Branch</label>
+                    <select id="branch" name="branch">
+                        <option>Head Office</option>
+                        <option>Branch 1</option>
+                        <option>Branch 2</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="billType">Bill Type</label>
+                    <select id="billType" name="billType">
+                        <option>Select</option>
+                        <option>Invoice</option>
+                        <option>Receipt</option>
+                        <option>Statement</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="clientName">Client Name</label>
+                    <input type="text" id="clientName" name="clientName">
+                </div>
+                
+                <div class="form-group">
+                    <label for="billDateFrom">Bill Date (From)</label>
+                    <div class="date-input">
+                        <input type="date" id="billDateFrom" name="billDateFrom" value="2022-04-01">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="billDateTo">Bill Date (To)</label>
+                    <div class="date-input">
+                        <input type="date" id="billDateTo" name="billDateTo">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Second row: 4 equal columns -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="billNoFrom">Bill No. (From)</label>
+                    <input type="text" id="billNoFrom" name="billNoFrom" placeholder="Bill No From">
+                </div>
+                
+                <div class="form-group">
+                    <label for="billNoTo">Bill No. (To)</label>
+                    <input type="text" id="billNoTo" name="billNoTo" placeholder="Bill No To">
+                </div>
+                
+                <div class="form-group">
+                    <label for="grNoFrom">GR No. (From)</label>
+                    <input type="text" id="grNoFrom" name="grNoFrom" placeholder="GR No From">
+                </div>
+                
+                <div class="form-group">
+                    <label for="grNoTo">GR No. (To)</label>
+                    <input type="text" id="grNoTo" name="grNoTo" placeholder="Gr No To">
+                </div>
+            </div>
+            
+            <!-- Third row: 4 equal columns -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="grDateFrom">GR Date (From)</label>
+                    <div class="date-input">
+                        <input type="date" id="grDateFrom" name="grDateFrom">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="grDateTo">GR Date (To)</label>
+                    <div class="date-input">
+                        <input type="date" id="grDateTo" name="grDateTo">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="ownedBy">Owned By</label>
+                    <select id="ownedBy" name="ownedBy">
+                        <option>Select</option>
+                        <option>Owner 1</option>
+                        <option>Owner 2</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="vehicleNo">Vehicle No</label>
+                    <input type="text" id="vehicleNo" name="vehicleNo">
+                </div>
+            </div>
+            
+            <!-- Fourth row: 4 equal columns -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="placeFrom">Place From</label>
+                    <input type="text" id="placeFrom" name="placeFrom">
+                </div>
+                
+                <div class="form-group">
+                    <label for="placeTo">Place To</label>
+                    <input type="text" id="placeTo" name="placeTo">
+                </div>
+                
+                <div class="form-group">
+                    <label for="status">Status</label>
+                    <select id="status" name="status">
+                        <option>All</option>
+                        <option>Pending</option>
+                        <option>Completed</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="billStatus">Bill Status</label>
+                    <select id="billStatus" name="billStatus">
+                        <option>All</option>
+                        <option>Paid</option>
+                        <option>Unpaid</option>
+                    </select>
+                </div>
+            </div>
+                            <!-- Fifth row: Report by (half width) -->
+                            <div class="form-row">
+                                <div class="form-group" style="flex: 0.5;">
+                                    <label for="reportBy">Report Type</label>
+                                    <select id="reportBy" name="reportBy">
+                                        <option>Date Wise</option>
+                                        <option>Date Wise Detailed</option>
+                                        <option>Client Wise</option>
+                                        <option>Vehicle Wise</option>
+                                        <option>Bill Submission Wise</option>
+                                        <option>Bill Covering Letter</option>
+                                    </select>
+                                </div>
+                            </div>
+
+            
+           
+            
+            <div class="action-buttons">
+                <button type="submit" class="btn btn-search">Search</button>
+                <button type="reset" class="btn btn-reset">Reset</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Format dates for display (will use browser's native date picker)
+            const formatDateForDisplay = (date) => {
+                if (!date) return '';
+                const d = new Date(date);
+                const day = String(d.getDate()).padStart(2, '0');
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const year = d.getFullYear();
+                return `${day}-${month}-${year}`;
+            };
+
+            // Set initial date values
+            document.getElementById('billDateFrom').value = '2022-04-01';
+            
+            // Reset button functionality
+            document.querySelector('.btn-reset').addEventListener('click', function() {
+                document.getElementById('billReportForm').reset();
+                // Reset specific fields to default values
+                document.getElementById('billDateFrom').value = '2022-04-01';
+            });
+            
+            // Form submission
+            document.getElementById('billReportForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                alert('Form submitted! (This is a demo)');
+            });
+        });
+    </script>
+</body>
+</html>

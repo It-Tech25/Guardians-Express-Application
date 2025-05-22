@@ -1,0 +1,207 @@
+﻿@model IEnumerable<GuardiansExpress.Models.DTOs.LedgerMasterDTO>
+
+@{
+    ViewData["Title"] = "Ledger Report";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+}
+
+<style>
+    .dropdown-menu {
+        width: 100%;
+    }
+</style>
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="container-full">
+            <div class="content">
+                <div class="row">
+                    <div class="col-md-12 mt-3">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h4 class="card-title">Ledger Report</h4>
+                                <div>
+                                    <a asp-action="ExportToExcel" asp-controller="LedgerReport" class="btn btn-success">Export to Excel</a>
+                                    <a asp-action="ExportToPdf" asp-controller="LedgerReport" class="btn btn-danger">Export to PDF</a>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                                <form asp-action="Search" method="post" id="searchForm">
+                                    <div class="row g-3">
+                                        <!-- Type -->
+                                        <div class="col-md-2">
+                                            <label>Type</label>
+                                            <input type="text" name="Type" class="form-control" value="@Context.Request.Query["Type"]" />
+                                        </div>
+
+                                        <!-- Branch -->
+                                        <div class="col-md-2">
+                                            <label>Branch</label>
+                                            <input type="text" name="Branch" class="form-control" value="@Context.Request.Query["Branch"]" />
+                                        </div>
+
+                                        <!-- Date Range -->
+                                        <div class="col-md-2">
+                                            <label>From Date</label>
+                                            <input type="date" name="FromDate" class="form-control" value="@Context.Request.Query["FromDate"]" />
+                                        </div>
+
+                                        <div class="col-md-2">
+                                            <label>To Date</label>
+                                            <input type="date" name="ToDate" class="form-control" value="@Context.Request.Query["ToDate"]" />
+                                        </div>
+
+                                        <!-- Column Selector -->
+                                        <div class="col-md-3">
+                                            <label>Columns</label>
+                                            <div class="dropdown">
+                                                <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown">
+                                                    Select Columns
+                                                </button>
+                                                <ul class="dropdown-menu p-2" style="max-height: 300px; overflow-y: auto;">
+                                                    @foreach (var column in ViewBag.TableColumns as List<string>)
+                                                    {
+                                                        <li>
+                                                            <div class="form-check">
+                                                                <input class="form-check-input column-checkbox" type="checkbox"
+                                                                       name="SelectedColumns" value="@column" id="chk_@column"
+                                                                @(ViewBag.SelectedColumns?.Contains(column) ?? false ? "checked" : "") />
+
+                                                                <label class="form-check-label" for="chk_@column">@column</label>
+                                                            </div>
+                                                        </li>
+                                                    }
+                                                </ul>
+                                            </div>
+                                        </div>
+
+                                        <!-- Action Buttons -->
+                                        <div class="text-end mt-3">
+                                            <button type="submit" class="btn btn-success me-2">
+                                                <i class="fa fa-search"></i> Search
+                                            </button>
+                                            <button type="reset" class="btn btn-outline-secondary" onclick="resetForm()">
+                                                <i class="fa fa-refresh"></i> Reset
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+
+                                @if (Model != null && Model.Any())
+                                {
+                                    <div class="table-responsive mt-4">
+                                        <table class="table table-bordered table-striped">
+                                            <thead>
+                                                <tr>
+                                                    @foreach (var column in ViewBag.SelectedColumns as List<string>)
+                                                    {
+                                                        <th>@column</th>
+                                                    }
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var item in Model)
+                                                {
+                                                    <tr>
+                                                        @foreach (var column in ViewBag.SelectedColumns as List<string>)
+                                                        {
+                                                            <td>
+                                                                @{
+                                                                    object? value = null;
+
+                                                                    if (column == "LedgerId") value = item.LedgerId;
+                                                                    else if (column == "subgroupName") value = item.subgroupName;
+                                                                    else if (column == "AccHead") value = item.AccHead;
+                                                                    else if (column == "Email") value = item.Email;
+                                                                    else if (column == "Mobile") value = item.Mobile;
+                                                                    else if (column == "BalanceOpening") value = item.BalanceOpening;
+                                                                    else if (column == "AccGroup") value = item.AccGroup;
+                                                                    else if (column == "Status") value = item.Status;
+                                                                    else if (column == "IsActive") value = item.IsActive;
+                                                                    else if (column == "BankAccount") value = item.BankAccount;
+                                                                    else if (column == "TaxLedger") value = item.TaxLedger;
+                                                                    else if (column == "Taxable") value = item.Taxable;
+                                                                    else if (column == "VehicleExpense") value = item.VehicleExpense;
+                                                                    else if (column == "TDSPercent") value = item.TDSPercent;
+                                                                    else if (column == "BalanceIn") value = item.BalanceIn;
+                                                                    else if (column == "OpeningBalance") value = item.OpeningBalance;
+                                                                    else if (column == "UserName") value = item.UserName;
+                                                                    else if (column == "ContactPerson") value = item.ContactPerson;
+                                                                    else if (column == "AltMobile") value = item.AltMobile;
+                                                                    else if (column == "TelNo") value = item.TelNo;
+                                                                    else if (column == "RefID") value = item.RefID;
+                                                                    else if (column == "CCEmailId") value = item.CCEmailId;
+                                                                    else if (column == "OtherEmailId") value = item.OtherEmailId;
+                                                                    else if (column == "VendorCode") value = item.VendorCode;
+                                                                    else if (column == "Address1") value = item.Address1;
+                                                                    else if (column == "Address2") value = item.Address2;
+                                                                    else if (column == "City") value = item.City;
+                                                                    else if (column == "State") value = item.State;
+                                                                    else if (column == "Country") value = item.Country;
+                                                                    else if (column == "RegistrationType") value = item.RegistrationType;
+                                                                    else if (column == "PartyType") value = item.PartyType;
+                                                                    else if (column == "CINNo") value = item.CINNo;
+                                                                    else if (column == "GSTIN") value = item.GSTIN;
+                                                                    else if (column == "PANNo") value = item.PANNo;
+                                                                    else if (column == "AAdharNumber") value = item.AAdharNumber;
+                                                                    else if (column == "Pincode") value = item.Pincode;
+                                                                    else if (column == "AccHolderName") value = item.AccHolderName;
+                                                                    else if (column == "BankName") value = item.BankName;
+                                                                    else if (column == "BankAccNo") value = item.BankAccNo;
+                                                                    else if (column == "BankBranch") value = item.BankBranch;
+                                                                    else if (column == "IFSCCode") value = item.IFSCCode;
+                                                                    else if (column == "PaymentTerm") value = item.PaymentTerm;
+                                                                    else if (column == "DueDays") value = item.DueDays;
+                                                                    else if (column == "Agent") value = item.Agent;
+                                                                    else if (column == "Password") value = item.Password;
+                                                                    else if (column == "BranchName") value = item.BranchName;
+                                                                    else if (column == "NameAddressMobile") value = item.NameAddressMobile;
+                                                                    else if (column == "Address") value = item.Address;
+                                                                    else if (column == "CityStatePincode") value = item.CityStatePincode;
+                                                                    else if (column == "WalkinLedger") value = item.WalkinLedger;
+                                                                    else if (column == "CreatedOn") value = item.CreatedOn?.ToString("dd-MM-yyyy");
+                                                                    else if (column == "CreatedBy") value = item.CreatedBy;
+                                                                    else if (column == "UpdatedOn") value = item.UpdatedOn?.ToString("dd-MM-yyyy");
+                                                                    else if (column == "UpdatedBy") value = item.UpdatedBy;
+                                                                    else if (column == "IsDeleted") value = item.IsDeleted;
+
+                                                                    @value
+                                                                }
+                                                            </td>
+                                                        }
+                                                    </tr>
+                                                }
+
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <p class="mt-4 text-muted">No ledger entries found.</p>
+                                }
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function resetForm() {
+            document.querySelectorAll('input[type="text"], input[type="date"]').forEach(input => {
+                input.value = '';
+            });
+            document.querySelectorAll('.column-checkbox').forEach(cb => {
+                cb.checked = true;
+            });
+            document.getElementById('searchForm').submit();
+        }
+    </script>
+}

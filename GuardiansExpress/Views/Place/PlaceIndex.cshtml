@@ -1,0 +1,298 @@
+﻿@model IEnumerable<GuardiansExpress.Models.Entity.Place>
+@{
+    int rCnt = 1;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="row">
+            <div class="col-md-12 mt-3">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4 class="card-title mb-0">Place List</h4>
+                        <a href="javascript:void(0);" onclick="addPlaceModal();" class="btn btn-success btn-sm">
+                            <i class="fa fa-plus" aria-hidden="true"></i> Add Place
+                        </a>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table id="placesTable" class="table table-bordered table-hover" style="width:100%">
+                                <thead>
+                                    <tr class="text-dark">
+                                        <th>S.No</th>
+                                        <th>Place Name</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var place in Model)
+                                    {
+                                        <tr>
+                                            <td>@(rCnt++)</td>
+                                            <td>
+                                                <a href="#" onclick="EditPlace(@place.Id, '@place.PlaceName')" title="Edit">
+                                                    @place.PlaceName
+                                                </a>
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="btn-group" role="group">
+                                                  
+                                                    <button onclick="DeletePlace(@place.Id)" class="btn btn-danger btn-sm" title="Delete">
+                                                        <i class="fa fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Place Modal -->
+<div class="modal fade" id="addPlaceModal" tabindex="-1" aria-labelledby="addPlaceModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addPlaceModalLabel">Add Place</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="placeForm" action="@Url.Action("PlaceAdd", "Place")" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <h5 class="mb-3 p-2 bg-light text-dark text-uppercase">Place Details</h5>
+                        </div>
+                        <div class="col-lg-12">
+                            <label for="PlaceName" class="form-label">Place Name *</label>
+                            <input type="text" class="form-control" id="PlaceName" name="PlaceName"
+                                   required pattern="^[A-Za-z\s]{1,20}$" maxlength="20"
+                                   title="Enter alphabets only (up to 20 characters)">
+                            <div class="invalid-feedback">Please enter a valid place name.</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Place Modal -->
+<div class="modal fade" id="editPlaceModal" tabindex="-1" aria-labelledby="editPlaceModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editPlaceModalLabel">Edit Place</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editPlaceForm" action="@Url.Action("PlaceUpdate", "Place")" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="Id" id="editPlaceId" value="" />
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <h5 class="mb-3 p-2 bg-light text-dark text-uppercase">Place Details</h5>
+                        </div>
+                        <div class="col-lg-12">
+                            <label for="editPlaceName" class="form-label">Place Name *</label>
+                            <input type="text" class="form-control" id="editPlaceName" name="PlaceName"
+                                   required pattern="^[A-Za-z\s]{1,20}$" maxlength="20"
+                                   title="Enter alphabets only (up to 20 characters)">
+                            <div class="invalid-feedback">Please enter a valid place name.</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Update</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Initialize DataTable
+            $('#placesTable').DataTable({
+                responsive: true,
+                pageLength: 10,
+                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]]
+            });
+
+            // Add Place Form Submit
+            $('#placeForm').on('submit', function (e) {
+                e.preventDefault();
+                var form = $(this);
+
+                if (this.checkValidity() === false) {
+                    e.stopPropagation();
+                    form.addClass('was-validated');
+                    return;
+                }
+
+                var formData = new FormData(this);
+                $.ajax({
+                    url: '@Url.Action("PlaceAdd", "Place")',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Success!',
+                                text: 'Place added successfully.',
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error!',
+                                text: response.message || 'Failed to add place.'
+                            });
+                        }
+                    },
+                    error: function (xhr) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: xhr.responseText || 'An error occurred while processing your request.'
+                        });
+                    }
+                });
+            });
+
+            // Edit Place Form Submit
+            $('#editPlaceForm').on('submit', function (e) {
+                e.preventDefault();
+                var form = $(this);
+
+                if (this.checkValidity() === false) {
+                    e.stopPropagation();
+                    form.addClass('was-validated');
+                    return;
+                }
+
+                var formData = new FormData(this);
+                $.ajax({
+                    url: '@Url.Action("PlaceUpdate", "Place")',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Updated!',
+                                text: 'Place updated successfully.',
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error!',
+                                text: response.message || 'Failed to update place.'
+                            });
+                        }
+                    },
+                    error: function (xhr) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: xhr.responseText || 'An error occurred while processing your request.'
+                        });
+                    }
+                });
+            });
+        });
+
+        // Functions for Add, Edit, Delete modals
+        function addPlaceModal() {
+            $('#placeForm').removeClass('was-validated');
+            $('#addPlaceModal').modal('show');
+        }
+
+        function EditPlace(id, placeName) {
+            $('#editPlaceId').val(id);
+            $('#editPlaceName').val(placeName);
+            $('#editPlaceForm').removeClass('was-validated');
+            $('#editPlaceModal').modal('show');
+        }
+
+        function DeletePlace(id) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: 'You won\'t be able to revert this!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '@Url.Action("Delete", "Place")/' + id,
+                        type: 'POST',
+                        headers: {
+                            'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Deleted!',
+                                    text: 'Place has been deleted.',
+                                    timer: 1500,
+                                    showConfirmButton: false
+                                }).then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error!',
+                                    text: response.message || 'Failed to delete place.'
+                                });
+                            }
+                        },
+                        error: function (xhr) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error!',
+                                text: xhr.responseText || 'An error occurred while processing your request.'
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+}

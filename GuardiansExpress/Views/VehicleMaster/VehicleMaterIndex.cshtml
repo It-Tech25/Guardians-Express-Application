@@ -1,0 +1,412 @@
+﻿@model IEnumerable<GuardiansExpress.Models.DTOs.VehicleMasterDTO>
+@{
+    int rCnt = 1;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="row">
+            <div class="col-md-12 mt-3">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4 class="card-title mb-0">Vehicle Master List</h4>
+                        <button type="button"
+                                onclick="addVehicleMasterModal();"
+                                class="btn btn-success btn-sm d-flex align-items-center px-3">
+                            <i class="fa fa-plus me-2"></i> Add Vehicle Master
+                        </button>
+                    </div>
+                    <div class="box-body">
+                        <div class="table-responsive">
+                            <table id="example1" class="text-fade table table-bordered" style="width:100%">
+                                <thead>
+                                    <tr class="text-dark">
+                                        <th>S.No</th>
+                                        <th>Vehicle No</th>
+                                        <th>Branch</th>
+                                        <th>Owned By</th>
+                                        <th>Transporter</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var v in Model)
+                                    {
+                                        <tr>
+                                            <td scope="row">@(rCnt++)</td>
+                                            <td><a href="#" onclick="EditVehicleMaster(@v.VehicleId, '@v.VehicleNo', '@v.BranchId', '@v.VehicleTypeId', '@v.BodyTypeId', '@v.DisplayVehicleNo', '@v.Weight', '@v.OwnedBy', '@v.Transporter', '@v.MaxWeightAllowed', '@v.Status')" class="btn btn-link p-0" title="Edit">@v.VehicleNo</a></td>
+                                            <td>@v.BranchName</td>
+                                            <td>@v.OwnedBy</td>
+                                            <td>@v.Transporter</td>
+                                            <td>@v.Status</td>
+                                            <td>
+                                                <a href="#" onclick="DeleteVehicleMaster(@v.VehicleId)" class="btn btn-link p-0" title="Delete">
+                                                    <button type="button" class="waves-effect waves-circle btn btn-circle btn-danger btn-xs"><i class="fa fa-trash"></i></button>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Vehicle Master Modal -->
+<div class="modal fade" id="addVehicleMasterModal" tabindex="-1" role="dialog" aria-labelledby="addVehicleMasterModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl custom-modal" width="95" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addVehicleMasterModalLabel">Add Vehicle Master</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="VehicleMasterSetupForm" action="@Url.Action("CreateVehicleMaster", "VehicleMaster")" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <label for="VehicleNo">Vehicle No *</label>
+                            <input type="text" class="form-control" id="VehicleNo" name="VehicleNo" maxlength="10" required>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Branch *</label>
+                            <select class="form-control" name="BranchId" id="BranchId">
+                                @foreach (var t in ViewBag.b)
+                                {
+                                    <option value="@t.id">@t.BranchName</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Vehicle Type *</label>
+                            <select class="form-control" name="VehicleTypeId" id="VehicleTypeId">
+                                @foreach (var t in ViewBag.v)
+                                {
+                                    <option value="@t.Id">@t.VehicleType</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Body Type *</label>
+                            <select class="form-control" name="BodyTypeId" id="BodyTypeId">
+                                @foreach (var t in ViewBag.bt)
+                                {
+                                    <option value="@t.Id">@t.Bodytype</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-lg-6">
+                            <label for="DisplayVehicleNo">Display Vehicle No *</label>
+                            <input type="text" class="form-control" id="DisplayVehicleNo" name="DisplayVehicleNo" maxlength="10" required>
+                        </div>
+
+                        <div class="col-lg-6">
+                            <label for="Weight">Weight *</label>
+                            <input type="text" class="form-control" id="Weight" name="Weight" required>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Owned By *</label>
+                            <select class="form-control" name="OwnedBy" required>
+                                <option value="Own">Own</option>
+                                <option value="Market">Market</option>
+                                <option value="Attach">Attach</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Transporter *</label>
+                            <select class="form-control" name="Transporter" required>
+                                <option value="ICICI">ICICI</option>
+                                <option value="Test">Test</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-6">
+                            <label for="MaxWeightAllowed">Max Weight Allowed *</label>
+                            <input type="number" class="form-control" id="MaxWeightAllowed" name="MaxWeightAllowed" required>
+                        </div>
+                        <div class="col-lg-6">
+                            <label for="LRDate">LR Date  *</label>
+                            <input type="date" class="form-control" id="LRDate" name="LRDate" required>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Status *</label>
+                            <select class="form-control" name="Status" required>
+                                <option value="true">Active</option>
+                                <option value="false">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <table class="table table-bordered mt-3">
+                        <thead>
+                            <tr>
+                                <th>Document Type</th>
+                                <th>Start Date</th>
+                                <th>Expiry Date</th>
+                                <th>Amount</th>
+                                <th>Remarks</th>
+                                <th>Uploads</th>
+                                <th>Docs</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="documentTableBody">
+                            <tr>
+                                <td><input type="text" class="form-control" name="DocumentType[]" required></td>
+                                <td><input type="date" class="form-control" name="StartDate[]" required></td>
+                                <td><input type="date" class="form-control" name="ExpiryDate[]" required></td>
+                                <td><input type="number" class="form-control" name="Amount[]" step="0.01" value="0.00" required></td>
+                                <td><input type="text" class="form-control" name="Remarks[]" placeholder="Enter remarks"></td>
+                                <td><input type="file" name="Uploads" multiple required></td>
+                                <td><input type="text" class="form-control" name="Docs[]" required></td>
+                                <td><button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">✖</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <button type="button" class="btn btn-primary" onclick="addMoreRows()">Add More</button>
+
+                    <div class="row mt-3">
+                        <div class="col-md-12 text-left">
+                            <button type="submit" class="btn btn-success">Save</button>
+                            <button type="reset" class="btn btn-secondary">Reset</button>
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Vehicle Master Modal -->
+<div class="modal fade" id="editVehicleMasterModal" tabindex="-1" role="dialog" aria-labelledby="editVehicleMasterModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editVehicleMasterModalLabel">Edit Vehicle Master</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editSetupForm" action="@Url.Action("editVehicleMater", "VehicleMaster")" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="VehicleId" id="editVehicleId" value="" />
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <label for="VehicleNo">Vehicle No *</label>
+                            <input type="text" class="form-control" id="editVehicleNo" name="VehicleNo" required>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Branch *</label>
+                            <select class="form-control" name="BranchId" id="editBranchId">
+                                @foreach (var t in ViewBag.b)
+                                {
+                                    <option value="@t.id">@t.BranchName</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Vehicle Type *</label>
+                            <select class="form-control" name="VehicleTypeId" id="editVehicleTypeId">
+                                @foreach (var t in ViewBag.v)
+                                {
+                                    <option value="@t.Id">@t.VehicleType</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Body Type *</label>
+                            <select class="form-control" name="BodyTypeId" id="editBodyTypeId">
+                                @foreach (var t in ViewBag.bt)
+                                {
+                                    <option value="@t.Id">@t.Bodytype</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-lg-6">
+                            <label for="DisplayVehicleNo">Display Vehicle No *</label>
+                            <input type="text" class="form-control" id="editDisplayVehicleNo" name="DisplayVehicleNo" required>
+                        </div>
+                        <div class="col-lg-6">
+                            <label for="Weight">Weight *</label>
+                            <input type="text" class="form-control" id="editWeight" name="Weight" required>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Owned By *</label>
+                            <select class="form-control" name="OwnedBy" id="editOwnedBy" required>
+                                <option value="Own">Own</option>
+                                <option value="Market">Market</option>
+                                <option value="Attach">Attach</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Transporter *</label>
+                            <select class="form-control" name="Transporter" id="editTransporter" required>
+                                <option value="ICICI">ICICI</option>
+                                <option value="Test">Test</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-6">
+                            <label for="MaxWeightAllowed">Max Weight Allowed *</label>
+                            <input type="number" class="form-control" id="editMaxWeightAllowed" name="MaxWeightAllowed" required>
+                        </div>
+                        <div class="col-lg-6">
+                            <label for="LRDate">LR Date  *</label>
+                            <input type="date" class="form-control" id="editLRDate" name="LRDate" required>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Status *</label>
+                            <select class="form-control" name="Status" id="editStatus" required>
+                                <option value="true">Active</option>
+                                <option value="false">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-12 text-left">
+                            <button type="submit" class="btn btn-success">Update</button>
+                            <button type="reset" class="btn btn-secondary">Reset</button>
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('#example1').DataTable();
+
+        $('#VehicleMasterSetupForm').submit(function (e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+
+            $.ajax({
+                url: '/VehicleMaster/CreateVehicleMaster',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire("Success!", "Vehicle Master added successfully.", "success")
+                            .then(() => {
+                                window.location.reload();
+                            });
+                    } else {
+                        Swal.fire("Error!", response.message || "There was an issue adding the Vehicle Master.", "error");
+                    }
+                },
+                error: function () {
+                    Swal.fire("Error!", "There was an error processing your request.", "error");
+                }
+            });
+        });
+
+        $('#editSetupForm').submit(function (e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+            $.ajax({
+                url: '/VehicleMaster/editVehicleMater',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire("Success!", "Vehicle Master updated successfully.", "success")
+                            .then(() => {
+                                window.location.reload();
+                            });
+                    } else {
+                        Swal.fire("Error!", response.message || "There was an issue updating the Vehicle Master.", "error");
+                    }
+                },
+                error: function () {
+                    Swal.fire("Error!", "There was an error processing your request.", "error");
+                }
+            });
+        });
+    });
+
+    // Add this missing function
+    function addVehicleMasterModal() {
+        $('#addVehicleMasterModal').modal('show');
+    }
+
+    function EditVehicleMaster(vehicleId, vehicleNo, branchId, vehicleTypeId, bodyTypeId, displayVehicleNo, weight, ownedBy, transporter, maxWeightAllowed, status) {
+        $('#editVehicleId').val(vehicleId);
+        $('#editVehicleNo').val(vehicleNo);
+        $('#editBranchId').val(branchId);
+        $('#editVehicleTypeId').val(vehicleTypeId);
+        $('#editBodyTypeId').val(bodyTypeId);
+        $('#editDisplayVehicleNo').val(displayVehicleNo);
+        $('#editWeight').val(weight);
+        $('#editOwnedBy').val(ownedBy);
+        $('#editTransporter').val(transporter);
+        $('#editMaxWeightAllowed').val(maxWeightAllowed);
+        $('#editStatus').val(status);
+        $('#editVehicleMasterModal').modal('show');
+    }
+
+    function DeleteVehicleMaster(vehicleId) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/VehicleMaster/Delete/' + vehicleId,
+                    type: 'POST',
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire("Deleted!", "Vehicle Master has been deleted.", "success")
+                                .then(() => {
+                                    window.location.reload();
+                                });
+                        } else {
+                            Swal.fire("Error!", response.message || "There was an issue deleting the Vehicle Master.", "error");
+                        }
+                    },
+                    error: function () {
+                        Swal.fire("Error!", "There was an error processing your request.", "error");
+                    }
+                });
+            }
+        });
+    }
+
+    function addMoreRows() {
+        var newRow = `<tr>
+                            <td><input type="text" class="form-control" name="DocumentType[]" required></td>
+                            <td><input type="date" class="form-control" name="StartDate[]" required></td>
+                            <td><input type="date" class="form-control" name="ExpiryDate[]" required></td>
+                            <td><input type="number" class="form-control" name="Amount[]" step="0.01" value="0.00" required></td>
+                            <td><input type="text" class="form-control" name="Remarks[]" placeholder="Enter remarks"></td>
+                            <td><input type="file" class="form-control" name="Uploads[]" multiple required></td>
+                            <td><input type="text" class="form-control" name="Docs[]" required></td>
+                            <td><button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">✖</button></td>
+                          </tr>`;
+        $('#documentTableBody').append(newRow);
+    }
+
+    function removeRow(button) {
+        $(button).closest('tr').remove();
+    }
+</script>

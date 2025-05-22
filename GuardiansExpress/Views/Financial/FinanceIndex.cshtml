@@ -1,0 +1,494 @@
+﻿@model IEnumerable<GuardiansExpress.Models.DTOs.FinancialyearDto>
+@{
+    int rCnt = 1;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="content-wrapper">
+    <div class="container-full">
+        <!-- Display any validation error messages -->
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <!-- Display any success messages -->
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                @TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <!-- Display validation summary errors -->
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger">
+                <ul>
+                    @foreach (var modelState in ViewData.ModelState.Values)
+                    {
+                        foreach (var error in modelState.Errors)
+                        {
+                            <li>@error.ErrorMessage</li>
+                        }
+                    }
+                </ul>
+            </div>
+        }
+
+        <section class="content">
+            <div class="col-md-12 mt-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Financial Year</h4>
+                        <button type="button" class="btn btn-primary">
+                            <a href="javascript:void(0);" onclick="openPopups();" class="text-white">
+                                <i class="fa fa-plus" aria-hidden="true"></i> Add Financial Year
+                            </a>
+                        </button>
+                    </div>
+                    <div class="box">
+                        <div class="box-body">
+                            <div class="table-responsive">
+                                <table id="example1" class="text-fade table table-bordered" style="width:100%">
+                                    <thead>
+                                        <tr class="text-dark">
+                                            <th>S.No</th>
+                                            <th>Financial Year</th>
+                                            <th>Start Date</th>
+                                            <th>End Date</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var company in Model)
+                                        {
+                                            <tr>
+                                                <th scope="row">@(rCnt++)</th>
+                                                <td>
+                                                    <!-- Make Financial Year Clickable -->
+                                                    <a href="javascript:void(0);" onclick="fetchAndEdit(@company.FinancialYearId)">
+                                                        @company.FromYear - @company.ToYear
+                                                    </a>
+                                                </td>
+                                                <td>@(company.StartDate?.ToString("yyyy-MM-dd") ?? "N/A")</td>
+                                                <td>@(company.EndDate?.ToString("yyyy-MM-dd") ?? "N/A")</td>
+                                                <td>
+                                                    <!-- Keep only the Delete button -->
+                                                    <a href="#" onclick="Delete(@company.FinancialYearId)" title="Delete">
+                                                        <button type="button" class="waves-effect waves-circle btn btn-circle btn-danger btn-xs">
+                                                            <i class="fa fa-trash"></i>
+                                                        </button>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal fade" id="companyModal" tabindex="-1" aria-labelledby="addCompanyModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-xl" style="max-width: 95%; width: 95%;">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="companyModal">Financial Year</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form id="companySettingsForm" action="@Url.Action("AddFinance", "Financial")" method="post" enctype="multipart/form-data" novalidate>
+                            <div class="modal-body">
+                                @Html.AntiForgeryToken()
+                                <div class="card mb-3">
+                                    <div class="card-header">Financial Year</div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-lg-6 mb-3">
+                                                <label for="fromyear">FromYear <span class="required">*</span></label>
+                                                <input class="form-control" id="fromyear" name="fromyear" maxlength="50" placeholder="FromYear" type="number" required />
+                                                <div class="invalid-feedback">
+                                                    FromYear is required.
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-6 mb-3">
+                                                <label for="toyear">ToYear <span class="required">*</span></label>
+                                                <input class="form-control" id="toyear" name="toyear" maxlength="50" placeholder="ToYear" type="number" required />
+                                                <div class="invalid-feedback">
+                                                    ToYear is required.
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-6 mb-3">
+                                                <label for="startdate">StartDate <span class="required">*</span></label>
+                                                <input class="form-control" id="startdate" name="startdate" maxlength="50" placeholder="StartDate" type="date" required />
+                                                <div class="invalid-feedback">
+                                                    StartDate is required.
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-6 mb-3">
+                                                <label for="enddate">EndDate <span class="required">*</span></label>
+                                                <input class="form-control" id="enddate" name="enddate" maxlength="50" placeholder="EndDate" type="date" required />
+                                                <div class="invalid-feedback">
+                                                    EndDate is required.
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-2">
+                                                <div class="form-check">
+                                                    <input type="hidden" name="IsDefault" value="false" />
+                                                    <input class="form-check-input" type="checkbox" name="IsDefault" id="IsDefault" value="true" />
+                                                    <label class="form-check-label" for="IsDefault"> Is Default </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row mt-4">
+                                            <div class="col-lg-6">
+                                                <!-- Add this to the form to store serialized invoice and bill data -->
+                                                <input type="hidden" id="serializedInvoiceData" name="serializedInvoiceData" />
+                                                <input type="hidden" id="serializedBillData" name="serializedBillData" />
+
+                                                <!-- First table (Invoice Types) -->
+                                                <div class="table-responsive">
+                                                    <table id="example2" class="text-fade table table-bordered table-sm" style="width:100%">
+                                                        <thead>
+                                                            <tr class="text-dark" style="background-color: #4CAF50; color: white;">
+                                                                <th>S.No</th>
+                                                                <th>Branch</th>
+                                                                <th>Invoice Type</th>
+                                                                <th>Invoice Series(MaxLength 15)</th>
+                                                            </tr>
+                                                            <tr>
+                                                                <td colspan="4" align="right">
+                                                                    <p style="margin:0; font-size:12px; color:#aaa;">{M} - JUN, {m} - 06, {Y} - 2017, {y} - 17,{Y+1} - 2018, {y+1} - 18</p>
+                                                                </td>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @{
+                                                                int invoiceRowCnt = 1;
+                                                            }
+                                                            @foreach (var company in ViewBag.invoicetype)
+                                                            {
+                                                                <tr>
+                                                                    <th scope="row">@(invoiceRowCnt++)</th>
+                                                                    <td>GXPL HYD</td>
+                                                                    <td>@company.InvoiceType</td>
+                                                                    <td>
+                                                                        <input class="form-control form-control-sm" id="InvoiceSeries_@company.Id" name="InvoiceSeries_@company.Id" maxlength="15" type="text" />
+                                                                        <input type="hidden" name="InvoiceTypeId_@company.Id" value="@company.Id" />
+                                                                    </td>
+                                                                </tr>
+                                                            }
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <!-- Second table (Bill Types) -->
+                                                <div class="table-responsive">
+                                                    <table id="example3" class="text-fade table table-bordered table-sm" style="width:100%">
+                                                        <thead>
+                                                            <tr class="text-dark" style="background-color: #4CAF50; color: white;">
+                                                                <th>S.No</th>
+                                                                <th>Branch</th>
+                                                                <th>Bill Type</th>
+                                                                <th>Bill Series(MaxLength 15)</th>
+                                                            </tr>
+                                                            <tr>
+                                                                <td colspan="4" align="right">
+                                                                    <p style="margin:0; font-size:12px; color:#aaa;">{M} - JUN, {m} - 06, {Y} - 2017, {y} - 17,{Y+1} - 2018, {y+1} - 18</p>
+                                                                </td>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @{
+                                                                int billRowCnt = 1;
+                                                            }
+                                                            @foreach (var company in ViewBag.Billtype)
+                                                            {
+                                                                <tr>
+                                                                    <th scope="row">@(billRowCnt++)</th>
+                                                                    <td>GXPL HYD</td>
+                                                                    <td>@company.BillType</td>
+                                                                    <td>
+                                                                        <input class="form-control form-control-sm" id="BillSeries_@company.Id" name="BillSeries_@company.Id" maxlength="15" type="text" />
+                                                                        <input type="hidden" name="BillTypeId_@company.Id" value="@company.Id" />
+                                                                    </td>
+                                                                </tr>
+                                                            }
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-8 mt-4">
+                                    <button type="button" class="btn btn-primary" id="saveButton" onclick="submitForm()">Save</button>
+                                    <button type="reset" class="btn btn-secondary" id="resetButton">Reset</button>
+                                    <button type="button" class="btn btn-danger" id="cancelButton" data-bs-dismiss="modal">Cancel</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#example1').DataTable();
+            $('#companyModal').on('hidden.bs.modal', function () {
+                $('#companySettingsForm')[0].reset();
+                // Clear validation styles
+                $('.is-invalid').removeClass('is-invalid');
+            });
+            $('#cancelButton').on('click', function () {
+                $('#companyModal').modal('hide');
+            });
+
+            // Initialize form validation
+            initializeFormValidation();
+        });
+
+        function initializeFormValidation() {
+            // Add form validation event listeners
+            const form = document.getElementById('companySettingsForm');
+
+            // Remove previous validation listeners to avoid duplicates
+            const clonedForm = form.cloneNode(true);
+            form.parentNode.replaceChild(clonedForm, form);
+
+            // Add event listeners to required fields
+            const requiredFields = ['fromyear', 'toyear', 'startdate', 'enddate'];
+            requiredFields.forEach(function (fieldId) {
+                const field = document.getElementById(fieldId);
+                field.addEventListener('blur', function () {
+                    validateField(field);
+                });
+                field.addEventListener('input', function () {
+                    if (field.classList.contains('is-invalid')) {
+                        validateField(field);
+                    }
+                });
+            });
+        }
+
+        function validateField(field) {
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid');
+                return false;
+            } else {
+                field.classList.remove('is-invalid');
+                return true;
+            }
+        }
+
+        function collectInvoiceData() {
+            let invoiceData = [];
+            $("#example2 tbody tr").each(function () {
+                let invoiceTypeId = $(this).find("input[name^='InvoiceTypeId_']").val();
+                let invoiceSeries = $(this).find("input[name^='InvoiceSeries_']").val();
+
+                if (invoiceTypeId && invoiceSeries) {
+                    invoiceData.push({
+                        InvoiceTypeId: invoiceTypeId,
+                        InvoiceSeries: invoiceSeries
+                    });
+                }
+            });
+            return invoiceData;
+        }
+
+        function collectBillData() {
+            let billData = [];
+            $("#example3 tbody tr").each(function () {
+                let billTypeId = $(this).find("input[name^='BillTypeId_']").val();
+                let billSeries = $(this).find("input[name^='BillSeries_']").val();
+
+                if (billTypeId && billSeries) {
+                    billData.push({
+                        BillTypeId: billTypeId,
+                        BillSeries: billSeries
+                    });
+                }
+            });
+            return billData;
+        }
+
+        function submitForm() {
+            // Validate all required fields
+            const requiredFields = ['fromyear', 'toyear', 'startdate', 'enddate'];
+            let isValid = true;
+
+            // Check each required field
+            requiredFields.forEach(function (fieldId) {
+                const field = document.getElementById(fieldId);
+                if (!validateField(field)) {
+                    isValid = false;
+                }
+            });
+
+            if (!isValid) {
+                // Show error message
+                alert('Please fill in all required fields.');
+                return false; // Stop form submission
+            }
+
+            // Additional validation for year fields
+            const fromYear = parseInt(document.getElementById('fromyear').value);
+            const toYear = parseInt(document.getElementById('toyear').value);
+
+            if (fromYear <= 0 || toYear <= 0) {
+                alert('Year values must be positive numbers.');
+                return false;
+            }
+
+            if (toYear <= fromYear) {
+                alert('ToYear must be greater than FromYear.');
+                document.getElementById('toyear').classList.add('is-invalid');
+                return false;
+            }
+
+            // If all validations pass, collect data and submit
+            let invoiceData = collectInvoiceData();
+            let billData = collectBillData();
+
+            if (invoiceData.length === 0 || billData.length === 0) {
+                alert('Please fill in at least one Invoice Series and one Bill Series.');
+                return false;
+            }
+
+            $('#serializedInvoiceData').val(JSON.stringify(invoiceData));
+            $('#serializedBillData').val(JSON.stringify(billData));
+
+            console.log("Serialized Invoice Data:", $('#serializedInvoiceData').val());
+            console.log("Serialized Bill Data:", $('#serializedBillData').val());
+
+            // Submit the form
+            $('#companySettingsForm').submit();
+        }
+
+        function openPopups() {
+            // Clear any previous validation styling
+            $('.is-invalid').removeClass('is-invalid');
+            // Reset form
+            $('#companySettingsForm')[0].reset();
+            // Update form title and action
+            $('#companyModal .modal-title').text('Add Financial Year');
+            $('#companySettingsForm').attr('action', '@Url.Action("AddFinance", "Financial")');
+            // Remove any existing ID field
+            $('#FinancialYearId').remove();
+            // Show modal
+            $('#companyModal').modal('show');
+        }
+
+        function fetchAndEdit(financialYearId) {
+            $.ajax({
+                url: '@Url.Action("EditFinancialYear", "Financial")',
+                type: 'GET',
+                data: { id: financialYearId },
+                success: function (response) {
+                    console.log("Data fetched successfully:", response);
+
+                    // Clear previous validation styling
+                    $('.is-invalid').removeClass('is-invalid');
+
+                    var company = response.financialYear;
+                    var finvoice = response.finvoice;
+                    var fbill = response.fbill;
+
+                    // Populate the modal fields
+                    $('#fromyear').val(company.FromYear);
+                    $('#toyear').val(company.ToYear);
+                    $('#startdate').val(formatDate(company.StartDate));
+                    $('#enddate').val(formatDate(company.EndDate));
+                    $('#IsDefault').prop('checked', company.IsDefault);
+
+                    // Set invoice data
+                    if (finvoice && finvoice.length > 0) {
+                        finvoice.forEach(function (invoice) {
+                            $('#InvoiceSeries_' + invoice.InvoiceTypeId).val(invoice.InvoiceSeries);
+                        });
+                    }
+
+                    // Set bill data
+                    if (fbill && fbill.length > 0) {
+                        fbill.forEach(function (bill) {
+                            $('#BillSeries_' + bill.BillTypeId).val(bill.BillSeries);
+                        });
+                    }
+
+                    // Update form action and hidden field for FinancialYearId
+                    $('#companySettingsForm').attr('action', '@Url.Action("UpdateFinance", "Financial")');
+                    if ($('#FinancialYearId').length === 0) {
+                        $('<input>').attr({
+                            type: 'hidden',
+                            id: 'FinancialYearId',
+                            name: 'FinancialYearId',
+                            value: company.FinancialYearId
+                        }).appendTo('#companySettingsForm');
+                    } else {
+                        $('#FinancialYearId').val(company.FinancialYearId);
+                    }
+
+                    // Show the modal
+                    $('#companyModal .modal-title').text('Edit Financial Year');
+                    $('#companyModal').modal('show');
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error fetching data:", error);
+                    alert('An error occurred while fetching the financial year data.');
+                }
+            });
+        }
+
+        // Helper function to format date
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function Delete(id) {
+            Swal.fire({
+                title: "Are you sure?",
+                text: "Do You Want to Delete This Financial Year?", // Updated text to match what's being deleted
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonClass: "btn btn-danger",
+                confirmButtonText: "Yes, delete it!",
+                cancelButtonText: "Cancel",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "/Financial/DeleteFinance", // Updated to match the controller action name
+                        type: 'POST',
+                        data: { id: id },
+                        success: function (response) {
+                            if (response.success) {
+                                Swal.fire("Deleted!", "Your Financial Year has been deleted.", "success").then(() => {
+                                    window.location.reload();
+                                });
+                            } else {
+                                Swal.fire("Error!", response.message || "Failed to delete the Financial Year.", "error");
+                            }
+                        },
+                        error: function () {
+                            Swal.fire("Error!", "There was an issue deleting the Financial Year.", "error");
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+}

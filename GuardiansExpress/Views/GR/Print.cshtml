@@ -1,0 +1,739 @@
+﻿@model GuardiansExpress.Models.DTOs.ConsignmentNote
+
+@{
+    Layout = null;
+    ViewData["Title"] = "Consignment Note";
+    var copies = new[] { "ORIGINAL", "CONSIGNOR COPY", "CONSIGNEE COPY", "TRANSPORTER COPY" };
+}
+
+
+<div style="max-width: 900px;margin: auto;padding: 16px;border: 1px solid #eee;font-size: 16px;line-height: 24px;font-family: 'Inter', sans-serif;color: #555;background-color: #F9FAFC;">
+    <table cellpadding="0" cellspacing="0" width="100%" border="1" bordercolor="#222" style="font-size: 12px; line-height: 20px; width: 100%; background-color: #fff;">
+        <!-- Header Section -->
+        <tr>
+            <td style="text-align: center; border:1px solid #000; font-weight: bold; font-size: 18px;">CONSIGNMENT NOTE</td>
+        </tr>
+
+        <!-- Company Info Section -->
+        <tr>
+            <td>
+                <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td width="10%" style="border-right:1px solid #222;">
+                            <div>
+                                <img src="~/Resources/images/single-logo.jpg" />
+                            </div>
+                        </td>
+                        <td style="text-align: center;border-right:1px solid #222;" width="45%">
+                            <h4 style="color:red; font-weight: bold; font-size: 18px; margin:0;">GUARDIANS XPRESS PRIVATE LIMITED</h4>
+                            <p>Plot No 1/124 Main Village Budwel, Rajendra Nagar, Dist. Ranga Reddy, Hyderabad (Telangana) - 500030</p>
+                            <p>Contact: +91 91543 12592 Email: info@gaurdiansxpress.com, logistics@guardiansgroup.in</p>
+                            <p>
+                                <table>
+                                    <tr> <td><strong>TRANSPORTER ID:</strong> 36AAKCG8619C1ZI</td></tr>
+                                    <tr><td><strong>PAN:</strong> AAKCG8619C</td></tr>
+                                </table>
+                                 
+                            </p>
+                        </td>
+                        <td width="30%" valign="top">
+                            <div style="line-height: 30px">
+                                <p style="margin:0; padding:0; text-align: center; font-weight: bold; background-color: aliceblue; border-bottom: 1px solid #222;">CONSIGNOR COPY</p>
+                                <div style="display: flex;">
+                                    <div style="flex:1; border-right:1px solid #222; padding-left:5px; font-weight:bold; border-bottom:1px solid #222;">R No</div>
+                                    <div style="flex:1; padding-left:5px; font-weight:bold; color:red; border-bottom:1px solid #222;">@Model.LrNumber</div>
+                                </div>
+                                <div style="display: flex;">
+                                    <div style="flex:1; border-right:1px solid #222; padding-left:5px; font-weight:bold; border-bottom:1px solid #222;">LR Date</div>
+                                    <div style="flex:1; padding-left:5px; border-bottom:1px solid #222;">@Model.LrDate</div>
+                                </div>
+                                <div style="display: flex;">
+                                    <div style="flex:1; border-right:1px solid #222; padding-left:5px; font-weight:bold; border-bottom:1px solid #222;">Truck No.</div>
+                                    <div style="flex:1; padding-left:5px; border-bottom:1px solid #222;">@Model.TruckNumber</div>
+                                </div>
+                                <div style="display: flex;">
+                                    <div style="flex:1; border-right:1px solid #222; padding-left:5px; font-weight:bold; border-bottom:1px solid #222;">Truck Type</div>
+                                    <div style="flex:1; padding-left:5px; border-bottom:1px solid #222;">@Model.TruckType</div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+     
+
+        <!-- Consignor/Consignee Section -->
+        <tr>
+            <td>
+                <table width="100%" border="1" cellpadding="5" cellspacing="0">
+                    <tr>
+                        <td width="50%" style="border-right:1px solid #000; vertical-align: top;">
+                            <strong>Consignor Name & Address</strong><br>
+                            <h4 style="margin:5px 0; font-size:14px;">@Model.ConsignorName.</h4>
+                            @Model.ConsignorAddress<br>
+                            <strong>State: @Model.ConsignorState</strong>
+                            <span style="float:right"><strong>GSTIN: @Model.ConsignorGSTIN</strong></span>
+                        </td>
+                        <td width="50%" style="vertical-align: top;">
+                            <strong>Consignee Name & Address</strong><br>
+                            <h4 style="margin:5px 0; font-size:14px;">@Model.ConsigneeName.</h4>
+                            @Model.ConsigneeAddress<br>
+                            <strong>State: @Model.ConsigneeState</strong>
+                            <span style="float:right"><strong>GSTIN: @Model.ConsigneeGSTIN</strong></span>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <!-- Packages Section -->
+        <tr>
+            <td>
+                <table width="100%" border="1" cellpadding="5" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th width="15%" style="border:1px solid #000;">NO. OF PKGS</th>
+                            <th width="25%" style="border:1px solid #000;">DESCRIPTION</th>
+                            
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="2" style="border:1px solid #000; vertical-align: top;">
+                                @(Model.NoOfPackages.HasValue ? Model.NoOfPackages.Value.ToString() : "Loose")
+                            </td>
+
+                            <td rowspan="2" style="border:1px solid #000; vertical-align: top;">@Model.Description</td>
+                            <td colspan="2" style="border:1px solid #000;">
+                                <table>
+                                    <tr>
+                                        <td>
+                                            <div style="display: flex; justify-content: space-between;">
+                                                Gross Weight -<strong> @Model.GrossWeight MT</strong>
+
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div style="display: flex; justify-content: space-between;">
+                                                Load Weight -   <strong>@Model.GrossWeight MT</strong>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
+                                
+                            </td>
+                            <td colspan="2" style="border:1px solid #000; text-align: right;">
+                                <strong>Invoice Value @Model.InvoiceValue</strong>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td colspan="2" style="border:1px solid #000;">
+                                Invoice No &amp; Date: <strong>@Model.InvoiceNumber </strong>
+                            </td>
+                            <td colspan="4" style="border:1px solid #000;">
+                                <table>
+                                    <tr>
+                                        <div style="display: flex; justify-content: space-between;">
+                                            <span><strong>E-Way Bill No/Date:</strong> @Model.EWayBillNumber/@Model.EWayBillDate</span>
+                                            
+                                        </div>
+                                    </tr>
+                                    <tr>
+                                        <div style="display: flex; justify-content: space-between;">
+                                            <span><strong>Exp Date:</strong> @Model.ExpiryDate</span>
+
+                                        </div>
+                                    </tr>
+                                </table>
+                               
+                            </td>
+                        </tr>
+                    </tbody>
+
+                </table>
+            </td>
+        </tr>
+
+        <!-- Declaration Section -->
+        <tr>
+            <td style="padding:8px; border:1px solid #000;">
+                <p style="margin:4px 0;"><strong>Declaration: GST to be paid by</strong></p>
+                <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+                    <div style="flex:1;">
+                        □ Consignor □ Consignee ☑ Transporter
+                    </div>
+                    <div style="text-align:right;">
+                        <p style="margin:4px 0;">For GUARDIANS XPRESS PRIVATE LIMITED</p>
+                        <div style="border-bottom:1px solid #000; width:200px; margin-top:20px;"></div>
+                        <span>Booking Incharge Sign</span>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    <table cellpadding="0" cellspacing="0" width="100%" border="1" bordercolor="#222" style="font-size: 12px; line-height: 20px; width: 100%; background-color: #fff;">
+        <!-- Header Section -->
+        <tr>
+            <td style="text-align: center; border:1px solid #000; font-weight: bold; font-size: 18px;">CONSIGNMENT NOTE</td>
+        </tr>
+
+        <!-- Company Info Section -->
+        <tr>
+            <td>
+                <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td width="10%" style="border-right:1px solid #222;">
+                            <div>
+                                <img src="~/Resources/images/single-logo.jpg" />
+                            </div>
+                        </td>
+                        <td style="text-align: center;border-right:1px solid #222;" width="45%">
+                            <h4 style="color:red; font-weight: bold; font-size: 18px; margin:0;">GUARDIANS XPRESS PRIVATE LIMITED</h4>
+                            <p>Plot No 1/124 Main Village Budwel, Rajendra Nagar, Dist. Ranga Reddy, Hyderabad (Telangana) - 500030</p>
+                            <p>Contact: +91 91543 12592 Email: info@gaurdiansxpress.com, logistics@guardiansgroup.in</p>
+                            <p>
+                                <table>
+                                    <tr> <td><strong>TRANSPORTER ID:</strong> 36AAKCG8619C1ZI</td></tr>
+                                    <tr><td><strong>PAN:</strong> AAKCG8619C</td></tr>
+                                </table>
+
+                            </p>
+                        </td>
+                        <td width="30%" valign="top">
+                            <div style="line-height: 30px">
+                                <p style="margin:0; padding:0; text-align: center; font-weight: bold; background-color: aliceblue; border-bottom: 1px solid #222;">CONSIGNOR COPY</p>
+                                <div style="display: flex;">
+                                    <div style="flex:1; border-right:1px solid #222; padding-left:5px; font-weight:bold; border-bottom:1px solid #222;">R No</div>
+                                    <div style="flex:1; padding-left:5px; font-weight:bold; color:red; border-bottom:1px solid #222;">@Model.LrNumber</div>
+                                </div>
+                                <div style="display: flex;">
+                                    <div style="flex:1; border-right:1px solid #222; padding-left:5px; font-weight:bold; border-bottom:1px solid #222;">LR Date</div>
+                                    <div style="flex:1; padding-left:5px; border-bottom:1px solid #222;">@Model.LrDate</div>
+                                </div>
+                                <div style="display: flex;">
+                                    <div style="flex:1; border-right:1px solid #222; padding-left:5px; font-weight:bold; border-bottom:1px solid #222;">Truck No.</div>
+                                    <div style="flex:1; padding-left:5px; border-bottom:1px solid #222;">@Model.TruckNumber</div>
+                                </div>
+                                <div style="display: flex;">
+                                    <div style="flex:1; border-right:1px solid #222; padding-left:5px; font-weight:bold; border-bottom:1px solid #222;">Truck Type</div>
+                                    <div style="flex:1; padding-left:5px; border-bottom:1px solid #222;">@Model.TruckType</div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+
+
+        <!-- Consignor/Consignee Section -->
+        <tr>
+            <td>
+                <table width="100%" border="1" cellpadding="5" cellspacing="0">
+                    <tr>
+                        <td width="50%" style="border-right:1px solid #000; vertical-align: top;">
+                            <strong>Consignor Name & Address</strong><br>
+                            <h4 style="margin:5px 0; font-size:14px;">@Model.ConsignorName.</h4>
+                            @Model.ConsignorAddress<br>
+                            <strong>State: @Model.ConsignorState</strong>
+                            <span style="float:right"><strong>GSTIN: @Model.ConsignorGSTIN</strong></span>
+                        </td>
+                        <td width="50%" style="vertical-align: top;">
+                            <strong>Consignee Name & Address</strong><br>
+                            <h4 style="margin:5px 0; font-size:14px;">@Model.ConsigneeName.</h4>
+                            @Model.ConsigneeAddress<br>
+                            <strong>State: @Model.ConsigneeState</strong>
+                            <span style="float:right"><strong>GSTIN: @Model.ConsigneeGSTIN</strong></span>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <!-- Packages Section -->
+        <tr>
+            <td>
+                <table width="100%" border="1" cellpadding="5" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th width="15%" style="border:1px solid #000;">NO. OF PKGS</th>
+                            <th width="25%" style="border:1px solid #000;">DESCRIPTION</th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="2" style="border:1px solid #000; vertical-align: top;">
+                                @(Model.NoOfPackages.HasValue ? Model.NoOfPackages.Value.ToString() : "Loose")
+                            </td>
+
+                            <td rowspan="2" style="border:1px solid #000; vertical-align: top;">@Model.Description</td>
+                            <td colspan="2" style="border:1px solid #000;">
+                                <table>
+                                    <tr>
+                                        <td>
+                                            <div style="display: flex; justify-content: space-between;">
+                                                Gross Weight -<strong> @Model.GrossWeight MT</strong>
+
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div style="display: flex; justify-content: space-between;">
+                                                Load Weight -   <strong>@Model.GrossWeight MT</strong>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                            </td>
+                            <td colspan="2" style="border:1px solid #000; text-align: right;">
+                                <strong>Invoice Value @Model.InvoiceValue</strong>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td colspan="2" style="border:1px solid #000;">
+                                Invoice No &amp; Date: <strong>@Model.InvoiceNumber </strong>
+                            </td>
+                            <td colspan="4" style="border:1px solid #000;">
+                                <table>
+                                    <tr>
+                                        <div style="display: flex; justify-content: space-between;">
+                                            <span><strong>E-Way Bill No/Date:</strong> @Model.EWayBillNumber/@Model.EWayBillDate</span>
+
+                                        </div>
+                                    </tr>
+                                    <tr>
+                                        <div style="display: flex; justify-content: space-between;">
+                                            <span><strong>Exp Date:</strong> @Model.ExpiryDate</span>
+
+                                        </div>
+                                    </tr>
+                                </table>
+
+                            </td>
+                        </tr>
+                    </tbody>
+
+                </table>
+            </td>
+        </tr>
+
+        <!-- Declaration Section -->
+        <tr>
+            <td style="padding:8px; border:1px solid #000;">
+                <p style="margin:4px 0;"><strong>Declaration: GST to be paid by</strong></p>
+                <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+                    <div style="flex:1;">
+                        □ Consignor □ Consignee ☑ Transporter
+                    </div>
+                    <div style="text-align:right;">
+                        <p style="margin:4px 0;">For GUARDIANS XPRESS PRIVATE LIMITED</p>
+                        <div style="border-bottom:1px solid #000; width:200px; margin-top:20px;"></div>
+                        <span>Booking Incharge Sign</span>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    <table cellpadding="0" cellspacing="0" width="100%" border="1" bordercolor="#222" style="font-size: 12px; line-height: 20px; width: 100%; background-color: #fff;">
+        <!-- Header Section -->
+        <tr>
+            <td style="text-align: center; border:1px solid #000; font-weight: bold; font-size: 18px;">CONSIGNMENT NOTE</td>
+        </tr>
+
+        <!-- Company Info Section -->
+        <tr>
+            <td>
+                <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td width="10%" style="border-right:1px solid #222;">
+                            <div>
+                                <img src="~/Resources/images/single-logo.jpg" />
+                            </div>
+                        </td>
+                        <td style="text-align: center;border-right:1px solid #222;" width="45%">
+                            <h4 style="color:red; font-weight: bold; font-size: 18px; margin:0;">GUARDIANS XPRESS PRIVATE LIMITED</h4>
+                            <p>Plot No 1/124 Main Village Budwel, Rajendra Nagar, Dist. Ranga Reddy, Hyderabad (Telangana) - 500030</p>
+                            <p>Contact: +91 91543 12592 Email: info@gaurdiansxpress.com, logistics@guardiansgroup.in</p>
+                            <p>
+                                <table>
+                                    <tr> <td><strong>TRANSPORTER ID:</strong> 36AAKCG8619C1ZI</td></tr>
+                                    <tr><td><strong>PAN:</strong> AAKCG8619C</td></tr>
+                                </table>
+
+                            </p>
+                        </td>
+                        <td width="30%" valign="top">
+                            <div style="line-height: 30px">
+                                <p style="margin:0; padding:0; text-align: center; font-weight: bold; background-color: aliceblue; border-bottom: 1px solid #222;">CONSIGNOR COPY</p>
+                                <div style="display: flex;">
+                                    <div style="flex:1; border-right:1px solid #222; padding-left:5px; font-weight:bold; border-bottom:1px solid #222;">R No</div>
+                                    <div style="flex:1; padding-left:5px; font-weight:bold; color:red; border-bottom:1px solid #222;">@Model.LrNumber</div>
+                                </div>
+                                <div style="display: flex;">
+                                    <div style="flex:1; border-right:1px solid #222; padding-left:5px; font-weight:bold; border-bottom:1px solid #222;">LR Date</div>
+                                    <div style="flex:1; padding-left:5px; border-bottom:1px solid #222;">@Model.LrDate</div>
+                                </div>
+                                <div style="display: flex;">
+                                    <div style="flex:1; border-right:1px solid #222; padding-left:5px; font-weight:bold; border-bottom:1px solid #222;">Truck No.</div>
+                                    <div style="flex:1; padding-left:5px; border-bottom:1px solid #222;">@Model.TruckNumber</div>
+                                </div>
+                                <div style="display: flex;">
+                                    <div style="flex:1; border-right:1px solid #222; padding-left:5px; font-weight:bold; border-bottom:1px solid #222;">Truck Type</div>
+                                    <div style="flex:1; padding-left:5px; border-bottom:1px solid #222;">@Model.TruckType</div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+
+
+        <!-- Consignor/Consignee Section -->
+        <tr>
+            <td>
+                <table width="100%" border="1" cellpadding="5" cellspacing="0">
+                    <tr>
+                        <td width="50%" style="border-right:1px solid #000; vertical-align: top;">
+                            <strong>Consignor Name & Address</strong><br>
+                            <h4 style="margin:5px 0; font-size:14px;">@Model.ConsignorName.</h4>
+                            @Model.ConsignorAddress<br>
+                            <strong>State: @Model.ConsignorState</strong>
+                            <span style="float:right"><strong>GSTIN: @Model.ConsignorGSTIN</strong></span>
+                        </td>
+                        <td width="50%" style="vertical-align: top;">
+                            <strong>Consignee Name & Address</strong><br>
+                            <h4 style="margin:5px 0; font-size:14px;">@Model.ConsigneeName.</h4>
+                            @Model.ConsigneeAddress<br>
+                            <strong>State: @Model.ConsigneeState</strong>
+                            <span style="float:right"><strong>GSTIN: @Model.ConsigneeGSTIN</strong></span>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <!-- Packages Section -->
+        <tr>
+            <td>
+                <table width="100%" border="1" cellpadding="5" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th width="15%" style="border:1px solid #000;">NO. OF PKGS</th>
+                            <th width="25%" style="border:1px solid #000;">DESCRIPTION</th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="2" style="border:1px solid #000; vertical-align: top;">
+                                @(Model.NoOfPackages.HasValue ? Model.NoOfPackages.Value.ToString() : "Loose")
+                            </td>
+
+                            <td rowspan="2" style="border:1px solid #000; vertical-align: top;">@Model.Description</td>
+                            <td colspan="2" style="border:1px solid #000;">
+                                <table>
+                                    <tr>
+                                        <td>
+                                            <div style="display: flex; justify-content: space-between;">
+                                                Gross Weight -<strong> @Model.GrossWeight MT</strong>
+
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div style="display: flex; justify-content: space-between;">
+                                                Load Weight -   <strong>@Model.GrossWeight MT</strong>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                            </td>
+                            <td colspan="2" style="border:1px solid #000; text-align: right;">
+                                <strong>Invoice Value @Model.InvoiceValue</strong>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td colspan="2" style="border:1px solid #000;">
+                                Invoice No &amp; Date: <strong>@Model.InvoiceNumber </strong>
+                            </td>
+                            <td colspan="4" style="border:1px solid #000;">
+                                <table>
+                                    <tr>
+                                        <div style="display: flex; justify-content: space-between;">
+                                            <span><strong>E-Way Bill No/Date:</strong> @Model.EWayBillNumber/@Model.EWayBillDate</span>
+
+                                        </div>
+                                    </tr>
+                                    <tr>
+                                        <div style="display: flex; justify-content: space-between;">
+                                            <span><strong>Exp Date:</strong> @Model.ExpiryDate</span>
+
+                                        </div>
+                                    </tr>
+                                </table>
+
+                            </td>
+                        </tr>
+                    </tbody>
+
+                </table>
+            </td>
+        </tr>
+
+        <!-- Declaration Section -->
+        <tr>
+            <td style="padding:8px; border:1px solid #000;">
+                <p style="margin:4px 0;"><strong>Declaration: GST to be paid by</strong></p>
+                <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+                    <div style="flex:1;">
+                        □ Consignor □ Consignee ☑ Transporter
+                    </div>
+                    <div style="text-align:right;">
+                        <p style="margin:4px 0;">For GUARDIANS XPRESS PRIVATE LIMITED</p>
+                        <div style="border-bottom:1px solid #000; width:200px; margin-top:20px;"></div>
+                        <span>Booking Incharge Sign</span>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    <table cellpadding="0" cellspacing="0" width="100%" border="1" bordercolor="#222" style="font-size: 12px; line-height: 20px; width: 100%; background-color: #fff;">
+        <!-- Header Section -->
+        <tr>
+            <td style="text-align: center; border:1px solid #000; font-weight: bold; font-size: 18px;">CONSIGNMENT NOTE</td>
+        </tr>
+
+        <!-- Company Info Section -->
+        <tr>
+            <td>
+                <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td width="10%" style="border-right:1px solid #222;">
+                            <div>
+                                <img src="~/Resources/images/single-logo.jpg" />
+                            </div>
+                        </td>
+                        <td style="text-align: center;border-right:1px solid #222;" width="45%">
+                            <h4 style="color:red; font-weight: bold; font-size: 18px; margin:0;">GUARDIANS XPRESS PRIVATE LIMITED</h4>
+                            <p>Plot No 1/124 Main Village Budwel, Rajendra Nagar, Dist. Ranga Reddy, Hyderabad (Telangana) - 500030</p>
+                            <p>Contact: +91 91543 12592 Email: info@gaurdiansxpress.com, logistics@guardiansgroup.in</p>
+                            <p>
+                                <table>
+                                    <tr> <td><strong>TRANSPORTER ID:</strong> 36AAKCG8619C1ZI</td></tr>
+                                    <tr><td><strong>PAN:</strong> AAKCG8619C</td></tr>
+                                </table>
+
+                            </p>
+                        </td>
+                        <td width="30%" valign="top">
+                            <div style="line-height: 30px">
+                                <p style="margin:0; padding:0; text-align: center; font-weight: bold; background-color: aliceblue; border-bottom: 1px solid #222;">CONSIGNOR COPY</p>
+                                <div style="display: flex;">
+                                    <div style="flex:1; border-right:1px solid #222; padding-left:5px; font-weight:bold; border-bottom:1px solid #222;">R No</div>
+                                    <div style="flex:1; padding-left:5px; font-weight:bold; color:red; border-bottom:1px solid #222;">@Model.LrNumber</div>
+                                </div>
+                                <div style="display: flex;">
+                                    <div style="flex:1; border-right:1px solid #222; padding-left:5px; font-weight:bold; border-bottom:1px solid #222;">LR Date</div>
+                                    <div style="flex:1; padding-left:5px; border-bottom:1px solid #222;">@Model.LrDate</div>
+                                </div>
+                                <div style="display: flex;">
+                                    <div style="flex:1; border-right:1px solid #222; padding-left:5px; font-weight:bold; border-bottom:1px solid #222;">Truck No.</div>
+                                    <div style="flex:1; padding-left:5px; border-bottom:1px solid #222;">@Model.TruckNumber</div>
+                                </div>
+                                <div style="display: flex;">
+                                    <div style="flex:1; border-right:1px solid #222; padding-left:5px; font-weight:bold; border-bottom:1px solid #222;">Truck Type</div>
+                                    <div style="flex:1; padding-left:5px; border-bottom:1px solid #222;">@Model.TruckType</div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+
+
+        <!-- Consignor/Consignee Section -->
+        <tr>
+            <td>
+                <table width="100%" border="1" cellpadding="5" cellspacing="0">
+                    <tr>
+                        <td width="50%" style="border-right:1px solid #000; vertical-align: top;">
+                            <strong>Consignor Name & Address</strong><br>
+                            <h4 style="margin:5px 0; font-size:14px;">@Model.ConsignorName.</h4>
+                            @Model.ConsignorAddress<br>
+                            <strong>State: @Model.ConsignorState</strong>
+                            <span style="float:right"><strong>GSTIN: @Model.ConsignorGSTIN</strong></span>
+                        </td>
+                        <td width="50%" style="vertical-align: top;">
+                            <strong>Consignee Name & Address</strong><br>
+                            <h4 style="margin:5px 0; font-size:14px;">@Model.ConsigneeName.</h4>
+                            @Model.ConsigneeAddress<br>
+                            <strong>State: @Model.ConsigneeState</strong>
+                            <span style="float:right"><strong>GSTIN: @Model.ConsigneeGSTIN</strong></span>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <!-- Packages Section -->
+        <tr>
+            <td>
+                <table width="100%" border="1" cellpadding="5" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th width="15%" style="border:1px solid #000;">NO. OF PKGS</th>
+                            <th width="25%" style="border:1px solid #000;">DESCRIPTION</th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="2" style="border:1px solid #000; vertical-align: top;">
+                                @(Model.NoOfPackages.HasValue ? Model.NoOfPackages.Value.ToString() : "Loose")
+                            </td>
+
+                            <td rowspan="2" style="border:1px solid #000; vertical-align: top;">@Model.Description</td>
+                            <td colspan="2" style="border:1px solid #000;">
+                                <table>
+                                    <tr>
+                                        <td>
+                                            <div style="display: flex; justify-content: space-between;">
+                                                Gross Weight -<strong> @Model.GrossWeight MT</strong>
+
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div style="display: flex; justify-content: space-between;">
+                                                Load Weight -   <strong>@Model.GrossWeight MT</strong>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                            </td>
+                            <td colspan="2" style="border:1px solid #000; text-align: right;">
+                                <strong>Invoice Value @Model.InvoiceValue</strong>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td colspan="2" style="border:1px solid #000;">
+                                Invoice No &amp; Date: <strong>@Model.InvoiceNumber </strong>
+                            </td>
+                            <td colspan="4" style="border:1px solid #000;">
+                                <table>
+                                    <tr>
+                                        <div style="display: flex; justify-content: space-between;">
+                                            <span><strong>E-Way Bill No/Date:</strong> @Model.EWayBillNumber/@Model.EWayBillDate</span>
+
+                                        </div>
+                                    </tr>
+                                    <tr>
+                                        <div style="display: flex; justify-content: space-between;">
+                                            <span><strong>Exp Date:</strong> @Model.ExpiryDate</span>
+
+                                        </div>
+                                    </tr>
+                                </table>
+
+                            </td>
+                        </tr>
+                    </tbody>
+
+                </table>
+            </td>
+        </tr>
+
+        <!-- Declaration Section -->
+        <tr>
+            <td style="padding:8px; border:1px solid #000;">
+                <p style="margin:4px 0;"><strong>Declaration: GST to be paid by</strong></p>
+                <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+                    <div style="flex:1;">
+                        □ Consignor □ Consignee ☑ Transporter
+                    </div>
+                    <div style="text-align:right;">
+                        <p style="margin:4px 0;">For GUARDIANS XPRESS PRIVATE LIMITED</p>
+                        <div style="border-bottom:1px solid #000; width:200px; margin-top:20px;"></div>
+                        <span>Booking Incharge Sign</span>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+
+</div>
+
+@*  <table width="100%" style="border:1px solid #222;" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td width="10%" style="border-right: 1px solid #222; font-weight: bold; border-bottom: 1px solid #222;">
+                            NO. OF PKGS
+                        </td>
+                        <td width="40%" style="border-right: 1px solid #222; font-weight: bold; border-bottom: 1px solid #222;">DESCRIPTION</td>
+                        <td width="60%" style="font-weight: bold; border-bottom: 1px solid #222;">Receiving Details</td>
+                    </tr>
+                    <tr>
+                        <td style="border-right:1px solid #222;border-bottom: 1px solid #222;">367</td>
+                        <td style="border-right:1px solid #222;border-bottom: 1px solid #222;">Bucket</td>
+                        <td style="border-bottom: 1px solid #222;">
+                            <table width="100%">
+                                <tr>
+                                    <td width="50%">Truck Reporting Date</td>
+                                    <td width="50%">Truck Reporting Time</td>
+                                </tr>
+                                <tr>
+                                    <td>Truck Unloading Date</td>
+                                    <td>Truck Unloading Time</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</div> *@
+<style>
+    .section-box {
+        border: 1px solid #000;
+        padding: 10px;
+        margin-bottom: 15px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    td, th {
+        padding: 8px;
+        border: 1px solid #000;
+    }
+</style>

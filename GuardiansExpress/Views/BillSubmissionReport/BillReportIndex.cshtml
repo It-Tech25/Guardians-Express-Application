@@ -1,0 +1,107 @@
+﻿@model IEnumerable<GuardiansExpress.Models.DTOs.BillSubmissionReportDTO>
+
+@{
+    ViewBag.Title = "BillReport";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="row">
+            <div class="col-md-12 mt-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">GR Type List</h4>
+                    </div>
+
+                    <div class="box-body">
+                        <form method="get" asp-action="Index" class="mb-4">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <label>Submitted By</label>
+                                    @Html.DropDownList(
+                                             "submittedById",
+                                             ViewBag.Users as IEnumerable<SelectListItem>,
+                                             "-- All --",
+                                             new { @class = "form-control" }
+                                             )
+                                </div>
+                                <div class="col-md-3">
+                                    <label>Received By</label>
+                                    @Html.DropDownList(
+                                             "receivedById",
+                                             ViewBag.HandedList as IEnumerable<SelectListItem>,
+                                             "-- All --",
+                                             new { @class = "form-control" }
+                                             )
+                                </div>
+                                <div class="col-md-3">
+                                    <label>Handed Over By</label>
+                                    @Html.DropDownList(
+                                             "handedOverById",
+                                             ViewBag.HandedList as IEnumerable<SelectListItem>,
+                                             "-- All --",
+                                             new { @class = "form-control" }
+                                             )
+                                </div>
+                                <div class="col-md-3">
+                                    <label>Courier</label>
+                                    @Html.DropDownList(
+                                             "courierId",
+                                             ViewBag.CourierList as IEnumerable<SelectListItem>,
+                                             "-- All --",
+                                             new { @class = "form-control" }
+                                             )
+                                </div>
+                            </div>
+                            <br />
+                            <button type="submit" class="btn btn-primary">Filter</button>
+                        </form>
+
+                        <table class="table table-bordered table-striped">
+                            <thead class="thead-dark">
+                                <tr>
+                                    <th>Client Name</th>
+                                    <th>Bill No</th>
+                                    <th>Submission Date</th>
+                                    <th>Submitted By</th>
+                                    <th>Received By</th>
+                                    <th>Handed Over By</th>
+                                    <th>Docket No</th>
+                                    <th>Courier</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model != null && Model.Any())
+                                {
+                                    foreach (var item in Model)
+                                    {
+                                        <tr>
+                                            <td>@item.ClientName</td>
+                                            <td>@item.BillNo</td>
+                                            <td>@item.BillSubDate?.ToString("yyyy-MM-dd")</td>
+                                            <td>@item.BillSubmissionBy</td>
+                                            <td>@item.ReceivedBy</td>
+                                            <td>@item.HandedOverBy</td>
+                                            <td>@item.DocketNo</td>
+                                            <td>@item.CourierName</td>
+                                            <td>@(item.IsActive ? "Active" : "Inactive")</td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="9" class="text-center">No records found.</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

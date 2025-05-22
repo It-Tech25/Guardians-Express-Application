@@ -1,0 +1,545 @@
+﻿@model IEnumerable<GuardiansExpress.Models.DTOs.InvoiceReturnModel>
+@{
+    int rCnt = 1;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="row">
+            <div class="col-md-12 mt-3">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="col-md-4 text-right">
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addInvoiceReturnModal">
+                                <i class="fas fa-plus"></i> Add Invoice Return
+                            </button>
+                        </div>
+                    </div>
+                    <div class="box-body">
+                        <div class="table-responsive">
+                            <table id="example1" class="text-fade table table-bordered" style="width:100%">
+                                <thead>
+                                    <tr class="text-dark">
+                                        <th>S.No</th>
+                                        <th>Invoice Return Date</th>
+                                        <th>Branch</th>
+                                        <th>Account Head</th>
+                                        <th>Invoice No</th>
+                                        <th>Net Amount</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var ir in Model)
+                                    {
+                                        <tr>
+                                            <td scope="row">@(rCnt++)</td>
+                                            <td>@(ir.InvoiceReturnDate?.ToString("dd/MM/yyyy"))</td>
+                                            <td>@ir.BranchName</td>
+                                            <td>@ir.AccHead</td>
+                                            <td>@ir.InvoiceNo</td>
+                                            <td>@ir.NetAmount?.ToString("0.00")</td>
+                                            <td>@(ir.IsActive==true ? "Active" : "Inactive")</td>
+                                            <td>
+                                                <a href="#" onclick="DeleteInvoiceReturn(@ir.InvoiceReturnID)" class="btn btn-link p-0" title="Delete">
+                                                    <i class="fa fa-trash-alt text-danger"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Invoice Return Modal -->
+<div class="modal fade" id="addInvoiceReturnModal" tabindex="-1" role="dialog" aria-labelledby="addInvoiceReturnModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addInvoiceReturnModalLabel">Add Invoice Return</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="InvoiceReturnForm" action="@Url.Action("CreateInvoiceReturn", "InvoiceReturn")" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <label>Branch *</label>
+                            <select class="form-control" name="BranchID" id="BranchID">
+                                @foreach (var b in ViewBag.Branches)
+                                {
+                                    <option value="@b.id">@b.BranchName</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-lg-4">
+                            <label for="InvoiceReturnDate">Invoice Return Date *</label>
+                            <input type="date" class="form-control" id="InvoiceReturnDate" name="InvoiceReturnDate" required>
+                        </div>
+                        <div class="col-lg-4">
+                            <label for="AccHead">Account Head *</label>
+                            <input type="text" class="form-control" id="AccHead" name="AccHead" required>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-lg-4">
+                            <label for="InvoiceNo">Invoice No *</label>
+                            <input type="text" class="form-control" id="InvoiceNo" name="InvoiceNo" required>
+                        </div>
+                        <div class="col-lg-4">
+                            <label for="SalesType">Sales Type</label>
+                            <input type="text" class="form-control" id="SalesType" name="SalesType">
+                        </div>
+                        <div class="col-lg-4">
+                            <label for="InvoiceDate">Invoice Date *</label>
+                            <input type="date" class="form-control" id="InvoiceDate" name="InvoiceDate" required>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-lg-4">
+                            <label for="InvoiceAmount">Invoice Amount</label>
+                            <input type="number" class="form-control" id="InvoiceAmount" name="InvoiceAmount" step="0.01" value="0.00">
+                        </div>
+                        <div class="col-lg-4">
+                            <label for="Address">Address</label>
+                            <input type="text" class="form-control" id="Address" name="Address">
+                        </div>
+                        <div class="col-lg-4">
+                            <label for="AccGSTIN">GST IN</label>
+                            <input type="text" class="form-control" id="AccGSTIN" name="AccGSTIN">
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-lg-4">
+                            <label>Cost Center</label>
+                            <select class="form-control" name="CostCenter" id="CostCenter">
+                                @foreach (var cc in ViewBag.CostCenters)
+                                {
+                                    <option value="@cc.id">@cc.id</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-check mt-4">
+                                <input class="form-check-input" type="checkbox" id="NoGST" name="NoGST">
+                                <label class="form-check-label" for="NoGST">No GST</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-check mt-4">
+                                <input class="form-check-input" type="checkbox" id="DiscountOnMRP" name="DiscountOnMRP">
+                                <label class="form-check-label" for="DiscountOnMRP">Discount on MRP</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-lg-12">
+                            <label for="Notes">Notes</label>
+                            <textarea class="form-control" id="Notes" name="Notes" rows="2"></textarea>
+                        </div>
+                    </div>
+                    <input type="hidden" id="serializedvoucherData" name="serializedvoucherData" />
+                    <h5 class="mt-4">Return Items</h5>
+                    <table class="table table-bordered mt-3">
+                        <thead>
+                            <tr>
+                                <th style="width: 3%;">Item</th>
+                                <th style="width: 7%;">Description</th>
+                                <th style="width: 5%;">HSN/SAC</th>
+                                <th style="width: 7%;">Return Acc</th>
+                                <th style="width: 9%;">MRP</th>
+                                <th style="width: 9%;">Rate</th>
+                                <th style="width: 9%;">Qty</th>
+                                <th style="width: 8%;">Free Qty</th>
+                                <th style="width: 8%;">Unit</th>
+                                <th style="width: 8%;">Disc %</th>
+                                <th style="width: 7%;">Amount</th>
+                                <th style="width: 9%;">Tax %</th>
+                                <th style="width: 8%;">Tax Amt</th>
+                                <th style="width: 8%;">Total</th>
+                                <th style="width: 3%;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="returnItemsTableBody">
+                            <tr>
+                                <td><input type="text" class="form-control item-name" name="Items[0].ItemDescription" required style="width: 100%;"></td>
+                                <td><input type="text" class="form-control" name="Items[0].ItemDescription" style="width: 100%;"></td>
+                                <td><input type="text" class="form-control" name="Items[0].HSN_SAC" style="width: 100%;"></td>
+                                <td><input type="text" class="form-control" name="Items[0].InvReturnAcc" style="width: 100%;"></td>
+                                <td><input type="text" class="form-control item-mrp" name="Items[0].MRP" value="0.00" style="width: 100%;"></td>
+                                <td><input type="text" class="form-control item-rate" name="Items[0].Rate" value="0.00" onchange="calculateItemAmount(this)" style="width: 100%;"></td>
+                                <td><input type="text" class="form-control item-qty" name="Items[0].Qty" value="1" onchange="calculateItemAmount(this)" style="width: 100%;"></td>
+                                <td><input type="text" class="form-control" name="Items[0].FreeQty" value="0" style="width: 100%;"></td>
+                                <td><input type="text" class="form-control" name="Items[0].Unit" value="Nos" style="width: 100%;"></td>
+                                <td><input type="text" class="form-control item-disc" name="Items[0].DiscountPercentage" value="0.00" onchange="calculateItemAmount(this)" style="width: 100%;"></td>
+                                <td><input type="text" class="form-control item-amount" name="Items[0].Amount" value="0.00" readonly style="width: 100%;"></td>
+                                <td><input type="text" class="form-control item-tax-percent" name="Items[0].TaxPercentage" value="0.00" onchange="calculateItemAmount(this)" style="width: 100%;"></td>
+                                <td><input type="text" class="form-control item-tax-amount" name="Items[0].TaxAmount" value="0.00" readonly style="width: 100%;"></td>
+                                <td><input type="text" class="form-control item-total" name="Items[0].Total" value="0.00" readonly style="width: 100%;"></td>
+                                <td><button type="button" class="btn btn-danger btn-sm" onclick="removeReturnItem(this)">✖</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <button type="button" class="btn btn-primary" onclick="addReturnItem()">Add Item</button>
+
+
+                    <div class="row mt-4">
+                        <div class="col-lg-6">
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="row mb-2">
+                                <div class="col-md-6 text-right">
+                                    <strong>Gross Amount:</strong>
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="number" class="form-control" id="GrossAmount" name="GrossAmount" step="0.01" value="0.00" readonly>
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-md-6 text-right">
+                                    <strong>Discount:</strong>
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="number" class="form-control" id="Discount" name="Discount" step="0.01" value="0.00" readonly>
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-md-6 text-right">
+                                    <strong>Tax:</strong>
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="number" class="form-control" id="Tax" name="Tax" step="0.01" value="0.00" readonly>
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-md-6 text-right">
+                                    <strong>Round Off:</strong>
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="number" class="form-control" id="RoundOff" name="RoundOff" step="0.01" value="0.00" onchange="calculateFinalAmount()">
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-md-6 text-right">
+                                    <strong>Net Amount:</strong>
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="number" class="form-control" id="NetAmount" name="NetAmount" step="0.01" value="0.00" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-12 text-left">
+                            <button type="submit" class="btn btn-success">Save</button>
+                            <button type="reset" class="btn btn-secondary">Reset</button>
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Global variables
+    let itemCounter = 1; // Start from 1 since we already have 0 in the template
+
+    // Function to add a new return item row
+    function addReturnItem() {
+        const tableBody = document.getElementById('returnItemsTableBody');
+        const newRow = document.createElement('tr');
+
+        newRow.innerHTML = `
+            <td><input type="text" class="form-control item-name" name="Items[${itemCounter}].ItemDescription" required style="width: 100%;"></td>
+            <td><input type="text" class="form-control" name="Items[${itemCounter}].ItemDescription" style="width: 100%;"></td>
+            <td><input type="text" class="form-control" name="Items[${itemCounter}].HSN_SAC" style="width: 100%;"></td>
+            <td><input type="text" class="form-control" name="Items[${itemCounter}].InvReturnAcc" style="width: 100%;"></td>
+            <td><input type="text" class="form-control item-mrp" name="Items[${itemCounter}].MRP" value="0.00" style="width: 100%;"></td>
+            <td><input type="text" class="form-control item-rate" name="Items[${itemCounter}].Rate" value="0.00" onchange="calculateItemAmount(this)" style="width: 100%;"></td>
+            <td><input type="text" class="form-control item-qty" name="Items[${itemCounter}].Qty" value="1" onchange="calculateItemAmount(this)" style="width: 100%;"></td>
+            <td><input type="text" class="form-control" name="Items[${itemCounter}].FreeQty" value="0" style="width: 100%;"></td>
+            <td><input type="text" class="form-control" name="Items[${itemCounter}].Unit" value="Nos" style="width: 100%;"></td>
+            <td><input type="text" class="form-control item-disc" name="Items[${itemCounter}].DiscountPercentage" value="0.00" onchange="calculateItemAmount(this)" style="width: 100%;"></td>
+            <td><input type="text" class="form-control item-amount" name="Items[${itemCounter}].Amount" value="0.00" readonly style="width: 100%;"></td>
+            <td><input type="text" class="form-control item-tax-percent" name="Items[${itemCounter}].TaxPercentage" value="0.00" onchange="calculateItemAmount(this)" style="width: 100%;"></td>
+            <td><input type="text" class="form-control item-tax-amount" name="Items[${itemCounter}].TaxAmount" value="0.00" readonly style="width: 100%;"></td>
+            <td><input type="text" class="form-control item-total" name="Items[${itemCounter}].Total" value="0.00" readonly style="width: 100%;"></td>
+            <td><button type="button" class="btn btn-danger btn-sm" onclick="removeReturnItem(this)">✖</button></td>
+        `;
+
+        tableBody.appendChild(newRow);
+        itemCounter++;
+    }
+
+    // Function to remove a return item row
+    function removeReturnItem(button) {
+        const row = button.closest('tr');
+        if (document.getElementById('returnItemsTableBody').rows.length > 1) {
+            row.remove();
+            // Recalculate totals
+            calculateOrderTotals();
+        } else {
+            alert('At least one item is required!');
+        }
+    }
+
+
+    function serializeVoucherData() {
+        // Create an array to store item data
+        var returnItems = [];
+
+        // Iterate through all rows in the return items table
+        $("#returnItemsTableBody tr").each(function (index, row) {
+            var itemData = {
+                ItemDescription: $(row).find('input[name^="Items[' + index + '].ItemDescription"]').val(),
+                HSN_SAC: $(row).find('input[name^="Items[' + index + '].HSN_SAC"]').val(),
+                InvReturnAcc: $(row).find('input[name^="Items[' + index + '].InvReturnAcc"]').val(),
+                MRP: parseFloat($(row).find('input[name^="Items[' + index + '].MRP"]').val()),
+                Rate: parseFloat($(row).find('input[name^="Items[' + index + '].Rate"]').val()),
+                Qty: parseInt($(row).find('input[name^="Items[' + index + '].Qty"]').val()),
+                FreeQty: parseInt($(row).find('input[name^="Items[' + index + '].FreeQty"]').val()),
+                Unit: $(row).find('input[name^="Items[' + index + '].Unit"]').val(),
+                DiscountPercentage: parseFloat($(row).find('input[name^="Items[' + index + '].DiscountPercentage"]').val()),
+                Amount: parseFloat($(row).find('input[name^="Items[' + index + '].Amount"]').val()),
+                TaxPercentage: parseFloat($(row).find('input[name^="Items[' + index + '].TaxPercentage"]').val()),
+                TaxAmount: parseFloat($(row).find('input[name^="Items[' + index + '].TaxAmount"]').val()),
+                Total: parseFloat($(row).find('input[name^="Items[' + index + '].Total"]').val())
+            };
+
+            returnItems.push(itemData);
+        });
+
+        // Set serialized data into the hidden input field
+        $("#serializedvoucherData").val(JSON.stringify(returnItems));
+    }
+
+    // Function to calculate amount for a single item
+    function calculateItemAmount(input) {
+        const row = input.closest('tr');
+
+        const rate = parseFloat(row.querySelector('.item-rate').value) || 0;
+        const quantity = parseInt(row.querySelector('.item-qty').value) || 0;
+        const discountPercent = parseFloat(row.querySelector('.item-disc').value) || 0;
+        const taxPercent = parseFloat(row.querySelector('.item-tax-percent').value) || 0;
+
+        // Calculate the amount (rate * quantity)
+        let amount = rate * quantity;
+
+        // Apply discount if any
+        const discountAmount = (amount * discountPercent) / 100;
+        amount = amount - discountAmount;
+
+        // Calculate tax amount
+        const taxAmount = (amount * taxPercent) / 100;
+
+        // Calculate total amount (amount + tax)
+        const totalAmount = amount + taxAmount;
+
+        // Update the fields
+        row.querySelector('.item-amount').value = amount.toFixed(2);
+        row.querySelector('.item-tax-amount').value = taxAmount.toFixed(2);
+        row.querySelector('.item-total').value = totalAmount.toFixed(2);
+
+        // Recalculate order totals
+        calculateOrderTotals();
+    }
+
+    // Function to calculate order totals
+    function calculateOrderTotals() {
+        let grossAmount = 0;
+        let totalDiscount = 0;
+        let totalTax = 0;
+
+        // Get all rows
+        const rows = document.getElementById('returnItemsTableBody').querySelectorAll('tr');
+
+        // Calculate totals from each row
+        rows.forEach(row => {
+            const rate = parseFloat(row.querySelector('.item-rate').value) || 0;
+            const quantity = parseInt(row.querySelector('.item-qty').value) || 0;
+            const discountPercent = parseFloat(row.querySelector('.item-disc').value) || 0;
+            const taxAmount = parseFloat(row.querySelector('.item-tax-amount').value) || 0;
+
+            const subtotal = rate * quantity;
+            const discountAmount = (subtotal * discountPercent) / 100;
+
+            grossAmount += subtotal;
+            totalDiscount += discountAmount;
+            totalTax += taxAmount;
+        });
+
+        // Update summary fields
+        document.getElementById('GrossAmount').value = grossAmount.toFixed(2);
+        document.getElementById('Discount').value = totalDiscount.toFixed(2);
+        document.getElementById('Tax').value = totalTax.toFixed(2);
+
+        // Calculate final amount
+        calculateFinalAmount();
+    }
+
+    // Function to calculate the final amount with round off
+    function calculateFinalAmount() {
+        const grossAmount = parseFloat(document.getElementById('GrossAmount').value) || 0;
+        const discount = parseFloat(document.getElementById('Discount').value) || 0;
+        const tax = parseFloat(document.getElementById('Tax').value) || 0;
+        const roundOff = parseFloat(document.getElementById('RoundOff').value) || 0;
+
+        const netAmount = grossAmount - discount + tax + roundOff;
+        document.getElementById('NetAmount').value = netAmount.toFixed(2);
+    }
+
+    // Function to initialize the form
+    function initForm() {
+        // Set invoice return date to today by default
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('InvoiceReturnDate').value = today;
+        document.getElementById('InvoiceDate').value = today;
+
+        // Calculate initial values for the first row
+        const firstItemRateInput = document.querySelector('#returnItemsTableBody tr:first-child .item-rate');
+        if (firstItemRateInput) {
+            calculateItemAmount(firstItemRateInput);
+        }
+
+        // Add form submission handler
+        document.getElementById('InvoiceReturnForm').addEventListener('submit', function(event) {
+            if (!validateForm()) {
+                event.preventDefault();
+            } else {
+                // Serialize voucher data before form submission
+                serializeVoucherData();
+                // Form will submit normally after this
+            }
+        });
+
+        // Add NoGST checkbox event handler
+        document.getElementById('NoGST').addEventListener('change', function() {
+            const isNoGST = this.checked;
+            const rows = document.getElementById('returnItemsTableBody').querySelectorAll('tr');
+
+            // If NoGST is checked, set all tax percentages to 0
+            rows.forEach(row => {
+                const taxPercentInput = row.querySelector('.item-tax-percent');
+                if (isNoGST) {
+                    taxPercentInput.value = '0.00';
+                    taxPercentInput.disabled = true;
+                } else {
+                    taxPercentInput.disabled = false;
+                }
+                calculateItemAmount(taxPercentInput);
+            });
+        });
+    }
+
+    // Validate form before submission
+    function validateForm() {
+        const accHead = document.getElementById('AccHead').value.trim();
+        const invoiceReturnDate = document.getElementById('InvoiceReturnDate').value;
+        const invoiceNo = document.getElementById('InvoiceNo').value.trim();
+        const branchID = document.getElementById('BranchID').value;
+
+        if (!accHead) {
+            alert('Please enter Account Head');
+            return false;
+        }
+
+        if (!invoiceReturnDate) {
+            alert('Please select Invoice Return Date');
+            return false;
+        }
+
+        if (!invoiceNo) {
+            alert('Please enter Invoice No');
+            return false;
+        }
+
+        if (!branchID) {
+            alert('Please select Branch');
+            return false;
+        }
+
+        // Check if at least one item is entered
+        const itemNames = document.querySelectorAll('.item-name');
+        let itemsValid = false;
+
+        for (let i = 0; i < itemNames.length; i++) {
+            if (itemNames[i].value.trim()) {
+                itemsValid = true;
+                break;
+            }
+        }
+
+        if (!itemsValid) {
+            alert('Please add at least one item');
+            return false;
+        }
+
+        return true;
+    }
+
+    // Function to delete an invoice return
+    function DeleteInvoiceReturn(invoiceReturnID) {
+        if (confirm('Are you sure you want to delete this Invoice Return?')) {
+            // Send AJAX request to delete the invoice return
+            fetch(`/InvoiceReturn/DeleteInvoiceReturn/${invoiceReturnID}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // Include anti-forgery token if needed
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Reload the page or update the table
+                    window.location.reload();
+                } else {
+                    alert('Failed to delete the invoice return');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while deleting the invoice return');
+            });
+        }
+    }
+
+    // Initialize the form when the document is loaded
+    document.addEventListener('DOMContentLoaded', initForm);
+
+    // Initialize DataTable for the invoice returns list
+    document.addEventListener('DOMContentLoaded', function() {
+        $('#example1').DataTable({
+            "responsive": true,
+            "lengthChange": true,
+            "autoWidth": false,
+            "ordering": true,
+            "paging": true,
+            "info": true,
+            "language": {
+                "search": "Search:",
+                "lengthMenu": "Show _MENU_ entries",
+                "info": "Showing _START_ to _END_ of _TOTAL_ entries",
+                "infoEmpty": "Showing 0 to 0 of 0 entries",
+                "infoFiltered": "(filtered from _MAX_ total entries)"
+            }
+        });
+    });
+</script>

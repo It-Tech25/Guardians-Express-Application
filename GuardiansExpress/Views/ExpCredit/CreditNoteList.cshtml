@@ -1,0 +1,326 @@
+﻿@model IEnumerable<GuardiansExpress.Models.DTOs.Exp_credit>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var searchTerm = ViewData["SearchTerm"] as string;
+    int currentPage = ViewData["CurrentPage"] as int? ?? 1;
+    int totalPages = ViewData["TotalPages"] as int? ?? 1;
+    int pageSize = ViewData["PageSize"] as int? ?? 10;
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+}
+
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="container-full">
+            <section class="content">
+                <div class="row">
+                    <div class="col-md-12 mt-3">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Expense Credit List</h4>
+                                <a href="javascript:void(0);" onclick="openAddModal();" class="btn btn-success btn-xs" style="height: 100%; display: flex; justify-content: center; align-items: center; padding: 0 10px;">
+                                    <i class="fa fa-plus" aria-hidden="true"></i> Add Expense Credit
+                                </a>
+                            </div>
+
+                            <div class="box-body">
+                                <div class="table-responsive">
+                                    <table id="expCreditTable" class="text-fade table table-bordered" style="width:100%">
+                                        <thead>
+                                            <tr class="text-dark">
+                                                <th>S.No</th>
+                                                <th>Branch</th>
+                                                <th>Note Date</th>
+                                                <th>Invoice No</th>
+                                                <th>Account Head</th>
+                                                <th>Cost Center</th>
+                                                <th>Remarks</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @{
+                                                int rCnt = 1;
+                                            }
+                                            @foreach (var note in Model)
+                                            {
+                                                <tr>
+                                                    <td scope="row">@(rCnt++)</td>
+                                                    <td> <a href="#" onclick="EditExpCredit(@note.ExpenceId, '@note.BranchName', '@note.NoteDate', '@note.InvoiceNo', '@note.AccHead', '@note.CostCenter', '@note.Remarks')" title="Edit">@note.BranchName</a></td>
+                                                    <td>@note.NoteDate?.ToString("yyyy-MM-dd")</td>
+                                                    <td>@note.InvoiceNo</td>
+                                                    <td>@note.AccHead</td>
+                                                    <td>@note.CostCenter</td>
+                                                    <td>@note.Remarks</td>
+                                                    <td>
+                                                        <a href="#" onclick="DeleteExpCredit(@note.ExpenceId)" title="Delete">
+                                                            <button type="button" class="waves-effect waves-circle btn btn-circle btn-danger btn-xs">
+                                                                <i class="fa fa-trash"></i>
+                                                            </button>
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+
+<!-- Add Expense Credit Modal -->
+<div class="modal fade" id="addExpCreditModal" tabindex="-1" aria-labelledby="addExpCreditModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addExpCreditModalLabel">Add Expense Credit</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addExpCreditForm" action="@Url.Action("AddOrUpdateCreditNote", "ExpCredit")" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="ExpenceId" id="ExpenceId" />
+                    <div class="row">
+                        <div class="col-lg-2">
+                            <label>Branch</label>
+                            <select class="form-control" id="Branch" name="Branch" required onchange="fetchBranchDetails(this.value)">
+                                <option value="">Select Branch</option>
+                                @foreach (var item in ViewBag.s)
+                                {
+                                    <option value="@item.id" data-code="@item.BranchCode">@item.BranchName</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-lg-2">
+                            <label>Date</label>
+                            <input class="form-control" name="NoteDate" id="NoteDate" type="date" required>
+                        </div>
+                        <div class="col-lg-2">
+                            <label>Invoice No</label>
+                            <input class="form-control" name="InvoiceNo" id="InvoiceNo" type="text" required>
+                        </div>
+                        <div class="col-lg-2">
+                            <label>Account Head</label>
+                            <input class="form-control" name="AccHead" id="AccHead" type="text" required>
+                        </div>
+                        <div class="col-lg-2">
+                            <label>Cost Center</label>
+                            <select class="form-control" name="CostCenter" id="CostCenter" required>
+                                <option value="">Select</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-lg-12 mt-3">
+                        <h5>Ledger Details</h5>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Acc. Desc</th>
+                                    <th>Particular</th>
+                                    <th>Amount</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ledgerTable">
+                                <tr>
+                                    <td><input type="text" class="form-control" name="AccDesc[]"></td>
+                                    <td><input type="text" class="form-control" name="Particular[]"></td>
+                                    <td><input type="number" class="form-control text-right amount" name="Amount[]" step="0.01" value="0.00"></td>
+                                    <td>
+                                        <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">✖</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <button type="button" class="btn btn-primary" onclick="addMoreRows()">Add More</button>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-lg-9">
+                            <label>Remarks</label>
+                            <textarea class="form-control" name="Remarks" id="Remarks"></textarea>
+                        </div>
+                        <div class="col-lg-3 d-flex align-items-end justify-content-end">
+                            <div>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-primary">Save</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Expense Credit Modal -->
+<div class="modal fade" id="editExpCreditModal" tabindex="-1" aria-labelledby="editExpCreditModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editExpCreditModalLabel">Edit Expense Credit</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editExpCreditForm" action="@Url.Action("AddOrUpdateCreditNote", "ExpCredit")" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="ExpenceId" id="editExpenceId" />
+                    <div class="row">
+                        <div class="col-lg-2">
+                            <label>Branch</label>
+                            <select class="form-control" id="editBranch" name="Branch" required>
+                                <option value="">Select Branch</option>
+                                @foreach (var item in ViewBag.s)
+                                {
+                                    <option value="@item.id">@item.BranchName</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-lg-2">
+                            <label>Date</label>
+                            <input class="form-control" name="NoteDate" id="editNoteDate" type="date" required>
+                        </div>
+                        <div class="col-lg-2">
+                            <label>Invoice No</label>
+                            <input class="form-control" name="InvoiceNo" id="editInvoiceNo" type="text" required>
+                        </div>
+                        <div class="col-lg-2">
+                            <label>Account Head</label>
+                            <input class="form-control" name="AccHead" id="editAccHead" type="number" required>
+                        </div>
+                        <div class="col-lg-2">
+                            <label>Cost Center</label>
+                            <select class="form-control" name="CostCenter" id="editCostCenter" required>
+                                <option value="">Select</option>
+                                <option value="CC1">CC1</option>
+                                <!-- Add more options as needed -->
+                            </select>
+                        </div>
+                    </div>     <div class="col-lg-12 mt-3">
+                        <h5>Ledger Details</h5>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Acc. Desc</th>
+                                    <th>Particular</th>
+                                    <th>Amount</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ledgerTable">
+                                <tr>
+                                    <td><input type="text" class="form-control" name="AccDesc[]"></td>
+                                    <td><input type="text" class="form-control" name="Particular[]"></td>
+                                    <td><input type="number" class="form-control text-right amount" name="Amount[]" step="0.01" value="0.00"></td>
+                                    <td>
+                                        <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">✖</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <button type="button" class="btn btn-primary" onclick="addMoreRows()">Add More</button>
+                    </div>
+                    <div class="row">
+                        <!-- Remarks Textarea -->
+                        <div class="col-lg-9 mt-3">
+                            <label>Remarks</label>
+                            <textarea class="form-control" name="Remarks" id="editRemarks"></textarea>
+                        </div>
+
+                        <!-- Modal Footer Buttons -->
+                        <div class="col-lg-3 mt-3 d-flex align-items-end justify-content-end">
+                            <div class="modal-footer p-0">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-primary">Update</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    // Open Add Modal
+    function openAddModal() {
+        $('#addExpCreditModal').modal('show');
+    }
+
+    // Edit Button Click Handler
+    function EditExpCredit(id, branchName, noteDate, invoiceNo, accHead, costCenter, remarks) {
+        console.log("Editing Expense Credit:", id, branchName, noteDate, invoiceNo, accHead, costCenter, remarks); // Debugging log
+
+        $('#editExpenceId').val(id);
+        $('#editBranch').val(branchName);
+        $('#editNoteDate').val(noteDate);
+        $('#editInvoiceNo').val(invoiceNo);
+        $('#editAccHead').val(accHead);
+        $('#editCostCenter').val(costCenter);
+        $('#editRemarks').val(remarks);
+        $('#editExpCreditModal').modal('show');
+    }
+
+    // Delete Button Click Handler
+    function DeleteExpCredit(id) {
+        if (confirm("Are you sure you want to delete this record?")) {
+            $.ajax({
+                url: '@Url.Action("Delete", "ExpCredit")',
+                type: 'POST',
+                data: { id: id },
+                success: function (response) {
+                    if (response.success) {
+                        location.reload(); // Reload the page to reflect changes
+                    } else {
+                        alert("Failed to delete the record.");
+                    }
+                }
+            });
+        }
+    }
+
+    // Add More Rows for Ledger Details
+    function addMoreRows() {
+        var row = `
+            <tr>
+                <td><input type="text" class="form-control" name="AccDesc[]"></td>
+                <td><input type="text" class="form-control" name="Particular[]"></td>
+                <td><input type="number" class="form-control text-right amount" name="Amount[]" step="0.01" value="0.00"></td>
+                <td><button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">✖</button></td>
+            </tr>`;
+        $('#ledgerTable').append(row);
+    }
+    function fetchBranchDetails(branchId) {
+        if (!branchId) return;
+
+        $.ajax({
+            url: '@Url.Action("GetBranchDetails", "ExpCredit")',
+            type: 'GET',
+            data: { branchId: branchId },
+            success: function (response) {
+                if (response) {
+                    $('#BranchCode').val(response.branchCode); // Set Branch Code
+                    $('#CostCenter').html('<option value="">Select</option>'); // Reset cost center dropdown
+
+                    // Populate Cost Center dropdown
+                    response.costCenters.forEach(center => {
+                        $('#CostCenter').append(`<option value="${center}">${center}</option>`);
+                    });
+                }
+            },
+            error: function () {
+                alert("Error fetching branch details.");
+            }
+        });
+    }
+
+    // Remove Row from Ledger Details
+    function removeRow(button) {
+        $(button).closest('tr').remove();
+    }
+</script>

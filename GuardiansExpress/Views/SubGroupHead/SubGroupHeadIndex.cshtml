@@ -1,0 +1,343 @@
+﻿@model IEnumerable<GuardiansExpress.Models.DTOs.SubGroupHeadDTO>
+@{
+    int rCnt = 1;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="content">
+            <div class="row">
+                <div class="col-md-12 mt-3">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">SubGroup Head</h4>
+                            <button type="button" class="btn btn-primary">
+                                <a href="javascript:void(0);" onclick="openAddModal();" class="text-white">
+                                    <i class="fa fa-plus" aria-hidden="true"></i> Add SubGroup
+                                </a>
+                            </button>
+                        </div>
+                        <div class="box-body">
+                            <div class="table-responsive">
+                                <table id="example1" class="text-fade table table-bordered" style="width:100%">
+                                    <thead>
+                                        <tr class="text-dark">
+                                            <th>S.No</th>
+                                            <th>SubGroup Name</th>
+                                            <th>ID</th>
+                                            <th>Group</th>
+                                            <th>Behaviour</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var v in Model)
+                                        {
+                                            <tr>
+                                                <th scope="row">@(rCnt++)</th>
+                                                <td>
+                                                    <a href="#" onclick="EditSubGroup(
+                        @v.subgroupId, '@v.SubGroupName', @v.GroupId, '@v.Behaviour',
+                        '@v.Detailed', '@v.AcceptAddress', '@v.Employee', '@v.BalanceDashboard', '@v.orderin')">
+                                                        @v.SubGroupName
+                                                    </a>
+                                                </td>
+                                                <td>#@v.subgroupId</td>
+                                                <td>@v.Group</td>
+                                                <td>@v.Behaviour</td>
+                                                <td>
+                                                    <a href="#" onclick="DeleteSubGroup(@v.subgroupId)" title="Delete">
+                                                        <button type="button" class="waves-effect waves-circle btn btn-circle btn-danger btn-xs">
+                                                            <i class="fa fa-trash"></i>
+                                                        </button>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+<!-- Add SubGroup Modal -->
+<div class="modal fade" id="addSubGroupModal" tabindex="-1" aria-labelledby="addSubGroupModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addSubGroupModalLabel">Add SubGroup</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="subGroupForm" action="@Url.Action("SubGroupHeadAdd", "SubGroupHead")" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <label>SubGroup Name *</label>
+                            <input class="form-control" name="SubGroupName" type="text" required maxlength="30">
+                            <div class="invalid-feedback">SubGroup Name must be 30 characters or fewer.</div>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Group *</label>
+                            <select class="form-control" id="GroupId" name="GroupId" required>
+                                <option value="">Select Group</option>
+                                @foreach (var item in ViewBag.GroupHead)
+                                {
+                                    <option value="@item.Id">@item.GroupHeadName</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Checkbox Row -->
+                    <div class="row mt-2">
+                        <div class="col-lg-3">
+                            <input type="checkbox" class="form-check-input" name="Detailed" id="detailedInPLBS">
+                            <label class="form-check-label" for="detailedInPLBS">Detailed in P&L/BS</label>
+                        </div>
+                        <div class="col-lg-3">
+                            <input type="checkbox" class="form-check-input" name="AcceptAddress" id="acceptAddress">
+                            <label class="form-check-label" for="acceptAddress">Accept Address</label>
+                        </div>
+                        <div class="col-lg-3">
+                            <input type="checkbox" class="form-check-input" name="Employee" id="isEmployee">
+                            <label class="form-check-label" for="isEmployee">Is Employee</label>
+                        </div>
+                        <div class="col-lg-3">
+                            <input type="checkbox" class="form-check-input" name="BalanceDashboard" id="balanceDashboard">
+                            <label class="form-check-label" for="balanceDashboard">Balance Dashboard</label>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-lg-4">
+                            <label>Order in P&L/BS</label>
+                            <input class="form-control" name="OrderIn" type="text" maxlength="11">
+                            <div class="invalid-feedback">SubGroup Name must be 11 characters or fewer.</div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-lg-12">
+                            <button type="submit" class="btn btn-primary me-2">Save</button>
+                            <button type="reset" class="btn btn-success me-2">Reset</button>
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit SubGroup Modal -->
+<div class="modal fade" id="editSubGroupModal" tabindex="-1" aria-labelledby="editSubGroupModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editSubGroupModalLabel">Edit SubGroup</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editSubGroupForm" action="@Url.Action("SubGroupHeadUpdate", "SubGroupHead")" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="subgroupId" id="editId">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <label>SubGroup Name *</label>
+                            <input class="form-control" name="SubGroupName" id="editSubGroupName" type="text" required maxlength="30">
+                            <div class="invalid-feedback">SubGroup Name must be 30 characters or fewer.</div>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Group *</label>
+                            <select class="form-control" id="editGroupId" name="GroupId" required>
+                                <option value="">Select Group</option>
+                                @foreach (var item in ViewBag.GroupHead)
+                                {
+                                    <option value="@item.Id">@item.GroupHeadName</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Checkbox Row -->
+                    <div class="row mt-2">
+                        <div class="col-lg-3">
+                            <input type="checkbox" class="form-check-input edit-checkbox" name="Detailed" id="editDetailed">
+                            <label class="form-check-label" for="editDetailed">Detailed in P&L/BS</label>
+                        </div>
+                        <div class="col-lg-3">
+                            <input type="checkbox" class="form-check-input edit-checkbox" name="AcceptAddress" id="editAcceptAddress">
+                            <label class="form-check-label" for="editAcceptAddress">Accept Address</label>
+                        </div>
+                        <div class="col-lg-3">
+                            <input type="checkbox" class="form-check-input edit-checkbox" name="Employee" id="editEmployee">
+                            <label class="form-check-label" for="editEmployee">Is Employee</label>
+                        </div>
+                        <div class="col-lg-3">
+                            <input type="checkbox" class="form-check-input edit-checkbox" name="BalanceDashboard" id="editBalanceDashboard">
+                            <label class="form-check-label" for="editBalanceDashboard">Balance Dashboard</label>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-lg-4">
+                            <label>Order in P&L/BS</label>
+                            <input class="form-control" name="OrderIn" id="editOrderIn" type="text" maxlength="11">
+                            <div class="invalid-feedback">SubGroup Name must be 11 characters or fewer.</div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-lg-12">
+                            <button type="submit" class="btn btn-primary me-2">Update</button>
+                            <button type="reset" class="btn btn-success me-2">Reset</button>
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    // Function to open the Add SubGroup modal
+    function openAddModal() {
+        $('#addSubGroupModal').modal('show');
+    }
+
+    // Function to open the Edit SubGroup modal and populate it with data
+    function EditSubGroup(id, name, groupId, behaviour, detailed, acceptAddress, employee, balanceDashboard, orderIn) {
+        $('#editId').val(id);
+        $('#editSubGroupName').val(name);
+        $('#editGroupId').val(groupId);
+        $('#editBehaviour').val(behaviour);
+        $('#editDetailed').prop('checked', detailed === "true").val(detailed === "true" ? "true" : "false");
+        $('#editAcceptAddress').prop('checked', acceptAddress === "true").val(acceptAddress === "true" ? "true" : "false");
+        $('#editEmployee').prop('checked', employee === "true").val(employee === "true" ? "true" : "false");
+        $('#editBalanceDashboard').prop('checked', balanceDashboard === "true").val(balanceDashboard === "true" ? "true" : "false");
+        $('#editOrderIn').val(orderIn);
+
+        $('#editSubGroupModal').modal('show');
+    }
+
+    // Function to delete a SubGroup
+    function DeleteSubGroup(id) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "Do You Want to Delete This SubGroup?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/SubGroupHead/SubGroupHeadDelete',
+                    type: 'POST',
+                    data: { id: id },
+                    success: function (response) {
+                        Swal.fire("Deleted!", "Your SubGroup has been deleted.", "success").then(() => {
+                            window.location.reload();
+                        });
+                    },
+                    error: function () {
+                        Swal.fire("Error!", "There was an issue deleting the SubGroup.", "error");
+                    }
+                });
+            }
+        });
+    }
+
+    // Handle form submission for Add SubGroup
+    $('#subGroupForm').submit(function (e) {
+        e.preventDefault();
+        var formData = new FormData(this);
+
+        $.ajax({
+            url: '/SubGroupHead/SubGroupHeadAdd',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                if (response.success) {
+                    Swal.fire("Success!", "SubGroup added successfully.", "success").then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire("Error!", response.message || "There was an issue adding the SubGroup.", "error");
+                }
+            },
+            error: function () {
+                Swal.fire("Error!", "There was an error processing your request.", "error");
+            }
+        });
+    });
+
+    // Handle form submission for Edit SubGroup
+    $('#editSubGroupForm').submit(function (e) {
+        e.preventDefault();
+        var formData = new FormData(this);
+
+        $.ajax({
+            url: '/SubGroupHead/SubGroupHeadUpdate',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                if (response.success) {
+                    Swal.fire("Updated!", "SubGroup updated successfully.", "success").then(() => {
+                        $('#editSubGroupModal').modal('hide');
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire("Error!", response.message || "Failed to update SubGroup.", "error");
+                }
+            },
+            error: function () {
+                Swal.fire("Error!", "An error occurred while updating the SubGroup.", "error");
+            }
+        });
+    });
+
+    // Search functionality
+    function searchTable() {
+        var idInput = document.getElementById("searchId").value.toLowerCase();
+        var nameInput = document.getElementById("searchName").value.toLowerCase();
+        var table = document.getElementById("dataTable");
+        var rows = table.getElementsByTagName("tr");
+
+        for (var i = 1; i < rows.length; i++) { // Skip the header row
+            var idColumn = rows[i].getElementsByTagName("td")[1]; // ID column
+            var nameColumn = rows[i].getElementsByTagName("td")[0]; // SubGroup Name column
+
+            if (idColumn && nameColumn) {
+                var idText = idColumn.textContent.toLowerCase();
+                var nameText = nameColumn.textContent.toLowerCase();
+
+                // Show the row only if both inputs match
+                if (idText.includes(idInput) && nameText.includes(nameInput)) {
+                    rows[i].style.display = "";
+                } else {
+                    rows[i].style.display = "none";
+                }
+            }
+        }
+    }
+
+    // Attach search functionality to input fields
+    $('#searchId, #searchName').on('keyup', searchTable);
+</script>

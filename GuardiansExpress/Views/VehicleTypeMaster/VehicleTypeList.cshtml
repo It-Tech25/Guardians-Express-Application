@@ -1,0 +1,386 @@
+﻿@model IEnumerable<GuardiansExpress.Models.Entity.VehicleTypeEntity>
+@{
+    int rCnt = 1;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var searchTerm = ViewData["SearchTerm"] as string;
+    int currentPage = ViewData["CurrentPage"] as int? ?? 1;
+    int totalPages = ViewData["TotalPages"] as int? ?? 1;
+    int pageSize = ViewData["PageSize"] as int? ?? 10;
+}
+@{
+    var successMessage = TempData.Peek("SuccessMessage") as string;
+    var errorMessage = TempData.Peek("ErrorMessage") as string;
+}
+<!-- Required Scripts and Styles -->
+
+
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="row">
+            <div class="col-md-12 mt-3">
+                <!-- Tabs to switch between Add and List Group Heads -->
+                <div class="card">
+                    <div class="card-header">
+                        @if (!string.IsNullOrEmpty(successMessage))
+                        {
+                            <div class="alert alert-success">
+                                <p>@successMessage</p>
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(errorMessage))
+                        {
+                            <div class="alert alert-danger">
+                                <p>@errorMessage</p>
+                            </div>
+                        }
+                        <ul class="nav nav-tabs" id="myTab" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="add-tab" data-bs-toggle="tab" href="#add" role="tab">Add VehicleType</a>
+                            </li>
+                            <li class="nav-item d-none" id="editTabItem">
+                                <a class="nav-link" id="edit-tab" data-bs-toggle="tab" href="#edit" role="tab">Edit VehicleType</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="list-tab" data-bs-toggle="tab" href="#list" role="tab">List of VehicleType</a>
+                            </li>
+                        </ul>
+
+                    </div>
+                    <div class="card-body">
+                        <div class="tab-content">
+                            <!-- Add VehicleType  Tab -->
+                            <div class="tab-pane fade show active" id="add" role="tabpanel">
+                                <form id="VehicleTypeForm" action="@Url.Action("AddorUpdateVehicleType", "VehicleTypeMaster")" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <div class="row">
+                                        <div class="col-lg-6">
+                                            <label>VehicleType</label><span class="text-danger">*</span>
+                                            <input class="form-control" name="VehicleType" type="text" required>
+                                        </div>
+                                        <!-- Image Upload Field -->
+                                        <div class="col-lg-6">
+                                            <div class="form-group">
+                                                <label class="main-content-label tx-13 tx-medium tx-gray-600">Upload Image</label><span class="text-danger">*</span>
+                                                <input type="file" id="VehicleImage" name="VehicleImage" class="form-control" accept="image/*" onchange="previewImage(event)" required>
+                                                <img id="VehicleImagePreview" src="#" alt="Image Preview" style="max-width: 100px; max-height: 100px; display: none;" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mt-3">
+                                            <button type="submit" class="btn btn-primary">Save</button>
+                                        </div>
+                                        <div class="col-md-6 mt-3">
+                                            <button type="reset" class="btn btn-success">Reset</button>
+                                            <button type="button" class="btn btn-danger" onclick="window.location.href='/VehicleTypeMaster/VehicleTypeList'">Cancel</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+
+@*                             edit VehicleType
+ *@        <div class="tab-pane fade" id="edit" role="tabpanel">
+                                <form id="editvehicleForm" action="@Url.Action("AddorUpdateVehicleType", "VehicleTypeMaster")" method="post" enctype="multipart/form-data">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="Id" id="editId" value="" />
+                                    <div class="row">
+                                        <div class="col-lg-6">
+                                            <label>VehicleType</label><span class="text-danger">*</span>
+                                            <input class="form-control" name="VehicleType" id="editVehicleType" type="text" required>
+                                        </div>
+
+                                        <!-- File Upload Field -->
+                                        <div class="col-lg-6 mt-3">
+                                            <label>Upload Image</label><span class="text-danger">*</span>
+                                            <input type="file" class="form-control" name="VehicleImage" id="editVehicleimage" accept="image/*" onchange="previewImage(event)">
+                                        
+                                            <img id="editVehicleImagePreview" src="#" alt="Image Preview" style="max-width: 100px; max-height: 100px; display: none;" />
+                                        </div>
+
+                                        <div class="col-md-6 mt-3">
+                                            <button type="submit" class="btn btn-primary">Update</button>
+                                        </div>
+                                        <div class="col-md-6 mt-3">
+                                            <button type="reset" class="btn btn-success">Reset</button>
+                                            <button type="button" class="btn btn-danger" onclick="window.location.href='/VehicleTypeMaster/VehicleTypeList'">Cancel</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+
+
+
+                            <div class="tab-pane fade" id="list" role="tabpanel">
+                                <div class="card-header">
+                                    <h4>Vehicle Type</h4>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row mb-3">
+                                        <div class="col-md-4">
+                                            <h5> <label>Search</label></h5>
+                                            <input type="text" id="searchId" class="form-control" placeholder="Vehicle Type" onkeyup="searchTable()">
+
+
+                                           
+                                        </div>
+                                        <div class="col-lg-12">
+                                            <div class="pull-right">
+                                                <form method="get" action="@Url.Action("TaxIndex", "TaxMaster")" style="width:250px">
+                                                    <div class="input-group">
+                                                        <label class="mt-2 mr-1">No. of records:</label>
+                                                        <select name="pageSize" id="PageSize" class="form-select" onchange="this.form.submit()">
+                                                            <option value="10" selected="@(pageSize == 10)">50</option>
+                                                            <option value="25" selected="@(pageSize == 100)">100</option>
+                                                            <option value="50" selected="@(pageSize == 500)">500</option>
+                                                            <option value="100" selected="@(pageSize == 1000)">1000</option>
+                                                        </select>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="table-responsive">
+                                    <table id="dataTable" class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>S.No</th>
+                                                <th>VehicleType</th>
+                                                <th>Image</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var v in Model)
+                                            {
+                                                <tr>
+                                                    <th scope="row">@(rCnt++)</th>
+                                                    <td>@v.VehicleType</td>
+                                                    <td>
+                                                        <img src="~/UploadedImagesUrl/@v.VehicleImage" alt="Vehicle Image" style="max-width: 100px; max-height: 100px;" />
+                                                    </td>
+                                                    <td>
+                                                        <a href="#" onclick="Edit(@v.Id, '@Html.Raw(v.VehicleType)')" class="btn btn-primary">Edit</a>
+
+                                                        <a href="#" onclick="DeleteType(@v.Id)" class="btn btn-danger">Delete</a>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <nav>
+                                    <ul class="pagination">
+                                        @if (currentPage > 1)
+                                        {
+                                            <li class="page-item">
+                                                <a class="page-link" href="@Url.Action("TaxIndex", new { searchTerm = searchTerm, pageNumber = currentPage - 1 })">Previous</a>
+                                            </li>
+                                        }
+                                        @for (int i = 1; i <= totalPages; i++)
+                                        {
+                                            <li class="page-item @(i == currentPage ? "active" : "")">
+                                                <a class="page-link" href="@Url.Action("TaxIndex", new { searchTerm = searchTerm, pageNumber = i })">@i</a>
+                                            </li>
+                                        }
+                                        @if (currentPage < totalPages)
+                                        {
+                                            <li class="page-item">
+                                                <a class="page-link" href="@Url.Action("TaxIndex", new { searchTerm = searchTerm, pageNumber = currentPage + 1 })">Next</a>
+                                            </li>
+                                        }
+                                    </ul>
+                                </nav>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    $(document).ready(function () {
+        // Handle the form submission using AJAX
+        $('#VehicleTypeForm').submit(function (e) {
+            e.preventDefault(); // Prevent normal form submission
+
+            var formData = new FormData(this); // Use FormData to include files
+
+            $.ajax({
+                url: '/VehicleTypeMaster/AddorUpdateVehicleType',  // Your controller action URL
+                type: 'POST',
+                data: formData,  // Send FormData
+                processData: false, // Don't process the data
+                contentType: false, // Don't set content type
+                success: function (response) {
+                    // Check if the response is successful
+                    if (response.success) {
+                        Swal.fire(
+                            "Success!",
+                            "VehicleType added successfully.",
+                            "success"
+                        ).then(() => {
+                            window.location.reload();  // Reload page to reflect changes
+                        });
+                    } else {
+                        Swal.fire(
+                            "Error!",
+                            response.message || "There was an issue adding the VehicleType.",
+                            "error"
+                        );
+                    }
+                },
+                error: function () {
+                    Swal.fire(
+                        "Error!",
+                        "There was an error processing your request.",
+                        "error"
+                    );
+                }
+            });
+        });
+    });
+
+
+    function GetGroupDetails(id) {
+        $("#UpdateBt").show();
+        $("#AddBt").hide();
+
+        $.ajax({
+            url: GlobalUrl + "VehicleTypeMaster/VehicleTypeById",
+            type: 'post',
+            data: { id: id },
+            success: function (result) {
+                $("#VehicleType").val(result.VehicleType);
+                $("#Id").val(result.Id);
+                $("#UpdateBt").show();
+            }
+        });
+    }
+
+      function Edit(Id, VehicleType, VehicleImage) {
+        console.log("Editing ID:", Id, "VehicleType:", VehicleType, "VehicleImage:", VehicleImage); 
+
+        $('#editId').val(Id); 
+        $('#editVehicleType').val(VehicleType); 
+
+        if (VehicleImage) {
+            var imagePath = '/UploadedImagesUrl/' + VehicleImage; 
+            $('#editVehicleImagePreview').attr('src', imagePath).show(); 
+        }
+        $('#add-tab').parent().addClass('d-none'); 
+        $('#editTabItem').removeClass('d-none'); 
+        $('#edit-tab').tab('show');
+    }
+
+
+    $('#editVehicleForm').submit(function (e) {
+        e.preventDefault();
+
+        var formData = new FormData(this);
+
+        $.ajax({
+            url: '/VehicleTypeMaster/AddorUpdateVehicleType',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                if (response.success) {
+                    Swal.fire("Updated!", "VehicleType updated successfully.", "success").then(() => {
+                        // Reset to default state
+                        $('#editTabItem').addClass('d-none');
+                        $('#add-tab').parent().removeClass('d-none');
+                        $('#add-tab').tab('show');
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire("Error!", response.message || "Failed to update VehicleType.", "error");
+                }
+            },
+            error: function () {
+                Swal.fire("Error!", "An error occurred while updating the VehicleType.", "error");
+            }
+        });
+    });
+
+
+
+    var GlobalUrl = "http://localhost:33907/"
+
+    function DeleteType(Id) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "Do You Want To Delete Vehicle Type!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: "/VehicleTypeMaster/DeleteVehicleType",
+                    type: 'POST',
+                    contentType: "application/json", // Set JSON content type
+                    data: JSON.stringify({ id: Id }), // Convert data to JSON
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire("Deleted!", "Your Vehicle Group has been deleted.", "success")
+                                .then(() => {
+                                    window.location.reload();
+                                });
+                        } else {
+                            Swal.fire("Error!", response.message || "Deletion failed.", "error");
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error:", error);
+                        Swal.fire("Error!", "There was an error deleting the Vehicle Type.", "error");
+                    }
+                });
+
+            }
+        });
+    }
+
+                 function searchTable() {
+        var input = document.getElementById("searchId").value.toLowerCase(); // Get search input
+        var table = document.getElementById("dataTable"); // Get table
+        var rows = table.getElementsByTagName("tr"); // Get all table rows
+
+        console.log("Search Input: ", input); // Debugging log
+
+        for (var i = 1; i < rows.length; i++) { // Start from 1 to skip the header row
+            var cells = rows[i].getElementsByTagName("td"); // Get row's <td> cells
+
+            if (cells.length >= 2) { // Ensure row has enough columns
+                var vehicleTypeText = cells[0].textContent.trim().toLowerCase(); // Vehicle Type column (td[1])
+
+                console.log("Row " + i + ": ", vehicleTypeText); // Debugging log
+
+                if (input === "" || vehicleTypeText.includes(input)) {
+                    rows[i].style.display = ""; // Show row if matches search
+                } else {
+                    rows[i].style.display = "none"; // Hide row if no match
+                }
+            }
+        }
+    }
+           setTimeout(function () {
+        let alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => alert.style.display = 'none');
+
+        // Send AJAX request to clear TempData after 30 seconds
+        fetch('/TaxMaster/ClearTempData', { method: 'POST' });
+
+    }, 10000); // 10 seconds (10000 ms)
+
+
+
+</script>
+

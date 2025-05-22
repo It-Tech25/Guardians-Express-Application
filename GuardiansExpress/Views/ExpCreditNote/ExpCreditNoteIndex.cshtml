@@ -1,0 +1,162 @@
+﻿@model List<GuardiansExpress.Models.DTOs.Exp_credit>
+@{
+    ViewBag.Title = "Exp / Credit Note Register";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="content-wrapper">
+    <div class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1 class="m-0">@ViewBag.Title</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="content">
+        <div class="container-fluid">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Search Filters</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" asp-action="Search" asp-controller="ExpCreditNote">
+                        <div class="row">
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label for="Branch">Branch</label>
+                                    <select name="Branch" id="Branch" class="form-control select2">
+                                        <option value="">All</option>
+                                        @foreach (var item in ViewBag.BranchList as List<SelectListItem>)
+                                        {
+                                            <option value="@item.Value">@item.Text</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label for="FromDate">From Date</label>
+                                    <input type="date" name="FromDate" id="FromDate" class="form-control" value="@ViewBag.FromDate" />
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label for="ToDate">To Date</label>
+                                    <input type="date" name="ToDate" id="ToDate" class="form-control" value="@ViewBag.ToDate" />
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>&nbsp;</label>
+                                    <button type="submit" class="btn btn-success btn-block">
+                                        <i class="fas fa-search"></i> Search
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            @if (Model != null && Model.Any())
+            {
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Exp / Credit Note Register Results</h3>
+                        <div class="card-tools">
+                            <a href="@Url.Action("ExportToPdf", "ExpCreditNote")" class="btn btn-danger btn-sm">
+                                <i class="fas fa-file-pdf"></i> Export to PDF
+                            </a>
+                            <a href="@Url.Action("ExportToExcel", "ExpCreditNote")" class="btn btn-success btn-sm">
+                                <i class="fas fa-file-excel"></i> Export to Excel
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped" id="expCreditTable">
+                                <thead>
+                                    <tr>
+                                        <th>Expense ID</th>
+                                        <th>Branch</th>
+                                        <th>Note Date</th>
+                                        <th>Invoice No</th>
+                                        <th>Cost Center</th>
+                                        <th>Particular</th>
+                                        <th>Amount</th>
+                                        <th>Total</th>
+                                        <th>ACCDEC</th>
+                                        <th>Remarks</th>
+                                        <th>Active</th>
+                                        <th>Created On</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model)
+                                    {
+                                        <tr>
+                                            <td>@item.ExpenceId</td>
+                                            <td>@item.BranchName</td>
+                                            <td>@(item.NoteDate?.ToString("dd/MM/yyyy") ?? "-")</td>
+                                            <td>@item.InvoiceNo</td>
+                                            <td>@item.CostCenter</td>
+                                            <td>@item.Particular</td>
+                                            <td class="text-right">@(item.Amount?.ToString("N2") ?? "-")</td>
+                                            <td class="text-right">@(item.Total?.ToString("N2") ?? "-")</td>
+                                            <td>@item.ACCDEC</td>
+                                            <td>@item.Remarks</td>
+                                            <td>@(item.IsActive == true ? "Yes" : "No")</td>
+                                            <td>@(item.CreatedOn?.ToString("dd/MM/yyyy") ?? "-")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (ViewBag.SearchPerformed == true)
+            {
+                <div class="card">
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> No records found for the selected criteria.
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Initialize DataTable with export buttons
+            $('#expCreditTable').DataTable({
+                "responsive": true,
+                "lengthChange": true,
+                "autoWidth": false,
+                "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"],
+                "dom": 'Bfrtip',
+                "pageLength": 50
+            }).buttons().container().appendTo('#expCreditTable_wrapper .col-md-6:eq(0)');
+
+            // Initialize Select2
+            $('.select2').select2({
+                theme: 'bootstrap4'
+            });
+
+            // Set default dates if not already set
+            if (!$('#FromDate').val()) {
+                $('#FromDate').val('@DateTime.Now.ToString("yyyy-MM-dd")');
+            }
+            if (!$('#ToDate').val()) {
+                $('#ToDate').val('@DateTime.Now.ToString("yyyy-MM-dd")');
+            }
+        });
+    </script>
+}

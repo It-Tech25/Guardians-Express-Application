@@ -1,0 +1,2067 @@
+﻿@model IEnumerable<GuardiansExpress.Models.DTOs.GRDTOs>
+@{
+    @Html.AntiForgeryToken()
+    int rCnt = 1;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var searchTerm = ViewData["SearchTerm"] as string;
+    int currentPage = ViewData["CurrentPage"] as int? ?? 1;
+    int totalPages = ViewData["TotalPages"] as int? ?? 1;
+    int pageSize = ViewData["PageSize"] as int? ?? 10;
+    var vehicleNos = ViewBag.VehicleNo as List<string>;
+    var GRNos = ViewBag.LastGRBySeries as List<string>;
+}
+
+<style>
+    .required {
+        color: red;
+    }
+
+    .modal-dialog {
+        max-width: 90%;
+        width: 90%;
+    }
+
+    #DueDays::-webkit-outer-spin-button,
+    #DueDays::-webkit-inner-spin-button,
+    #TDSPercent::-webkit-outer-spin-button,
+    #TDSPercent::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    /* For Firefox */
+    #DueDays,
+    #TDSPercent {
+        -moz-appearance: textfield;
+    }
+    /* Target specific inputs by ID */
+    #GrossWeight::-webkit-outer-spin-button,
+    #GrossWeight::-webkit-inner-spin-button,
+    #LoadWeight::-webkit-outer-spin-button,
+    #LoadWeight::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    #GrossWeight,
+    #LoadWeight {
+        -moz-appearance: textfield;
+    }
+
+
+    /* Hide arrows for all number inputs */
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    /* Firefox */
+    input[type="number"] {
+        -moz-appearance: textfield;
+    }
+
+</style>
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="row">
+            <div class="col-md-12 mt-3">
+                <div class="card">
+                    @* <div class="col-lg-12">
+                        <div class="pull-right">
+                            <form method="get" action="@Url.Action("GRIndex", "GR")" style="width:250px">
+                                <div class="input-group">
+                                    <label class="mt-2 mr-1">No. of records:</label>
+                                    <select name="pageSize" id="PageSize" class="form-select" onchange="this.form.submit()">
+                                        <option value="10" selected="@(pageSize == 10)">50</option>
+                                        <option value="25" selected="@(pageSize == 100)">100</option>
+                                        <option value="50" selected="@(pageSize == 500)">500</option>
+                                        <option value="100" selected="@(pageSize == 1000)">1000</option>
+                                    </select>
+                                </div>
+                            </form>
+                        </div>
+                    </div> *@
+                    <div class="card-header">
+                        <h4 class="card-title">GR List</h4>
+                        <button type="button" onclick="openAddModal()" class="btn btn-primary" data-toggle="modal" data-target="#addModal">
+                            <i class="fa fa-plus"></i> Add GR
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="tab-content">
+                            <!-- List of GR -->
+                            <div class="tab-pane fade show active" id="list" role="tabpanel">
+                                @*      <!-- Single Search Field -->
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <label>Search</label>
+                                        <input type="text" id="searchInput" class="form-control" placeholder="Search everything..." onkeyup="searchTable()">
+                                    </div>
+                                </div>
+ *@
+                                <!-- Table -->
+                                <div class="table-responsive">
+                                    <table id="grList" class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>S.No</th>
+                                                <th>GR No</th>
+                                                <th>Rec Date</th>
+                                                <th>Branch</th>
+                                                <th>Vehicle No</th>
+                                                <th>Client Name</th>
+                                                <th>Transporter</th>
+                                                <th>From Place</th>
+                                                <th>To Place</th>
+                                                <th>Bill Amount</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var grType in Model)
+                                            {
+                                                <tr>
+                                                    <td scope="row">@(rCnt++)</td>
+                                                    <td>
+                                                        <a href="#" onclick="EditGR(
+    '@grType.GRId',
+    '@grType.GRNo',
+    '@grType.GRDate',
+    '@grType.Grtype',
+'@grType.GrossWeight',
+'@grType.LoadWeight',
+    '@grType.Branch',
+    '@grType.VehicleNo',
+    '@grType.ClientName',
+    '@grType.Transporter',
+    '@grType.StatesFromPlace',
+    '@grType.States',
+    '@grType.FreightAmount',
+    '@grType.Consigner',
+    '@grType.Consignee',
+    '@grType.ItemDescription',
+    '@grType.HireRate',
+    '@grType.Quantity'
+)" style="text-decoration: none; color: blue;">
+                                                            @grType.GRNo
+                                                        </a>
+                                                    </td>
+                                                    <td>@grType.GRDate</td>
+                                                    <td>@grType.Branch</td>
+                                                    <td>@grType.VehicleNo</td>
+                                                    <td>@grType.ClientName</td>
+                                                    <td>@grType.Transporter</td>
+                                                    <td>@grType.StatesFromPlace</td>
+                                                    <td>@grType.States</td>
+                                                    <td>@grType.HireRate</td>
+                                                    <td>
+
+
+                                                        <a href="#" onclick="document.getElementById('deleteForm-@grType.GRId').submit(); return false;" class="btn btn-sm btn-danger">
+                                                            <i class="fa fa-trash"></i>
+                                                        </a>
+
+                                                        <form id="deleteForm-@grType.GRId" action="@Url.Action("DeleteGRs", "GR", new { id = grType.GRId })" method="post" style="display: none;">
+                                                            @Html.AntiForgeryToken()
+                                                        </form>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Add GR Modal -->
+<div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl custom-modal" role="document">
+        <!-- Added modal-xl and custom class -->
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addModalLabel">Add GR</h5>
+            </div>
+            <div class="modal-body">
+                <form id="grForm" action="@Url.Action("GRAdd", "GR")" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+
+                    <!-- Vehicle Details Section -->
+                    <div class="row mt-3">
+                        <div class="col-md-2">
+                            <label for="Branch">Branch<span class="required">*</span></label>
+                            <select class="form-control" id="Branch" name="Branch" required>
+                                <option value="">Select Branch</option>
+                                @foreach (var item in ViewBag.Branch)
+                                {
+                                    <option value="@item.BranchName" data-taxname="@item.BranchName">@item.BranchName</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label for="GrNo">GR No <span class="required">*</span></label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="GrNo" name="GrNo" required value="@ViewBag.Id" list="seriesSuggestions" onchange="generateGRNo()" />
+
+                                <datalist id="seriesSuggestions">
+                                    @foreach (dynamic item in ViewBag.LastGRBySeries)
+                                    {
+                                        <option value="@item.Series"></option>
+                                    }
+                                </datalist>
+
+                                <div class="input-group-append">
+                                    <button type="button" onclick="openAddGRNoModal()" class="btn btn-success btn-xs">
+                                        <i class="fa fa-plus" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="col-md-2">
+                            <label for="vehicleNo">Vehicle No <span class="required">*</span></label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="vehicleNo" id="vehicleNo" list="vehicleSuggestions" required />
+
+                                <datalist id="vehicleSuggestions">
+                                    @foreach (var vehicleNo in vehicleNos)
+                                    {
+                                        <option value="@vehicleNo"></option>
+                                    }
+                                </datalist>
+
+                                <div class="input-group-append">
+                                    <button type="button" onclick="openAddVehicleMasterModal()" class="btn btn-success btn-xs">
+                                        <i class="fa fa-plus" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+                        <div class="col-md-3">
+                            <label for="GRType">GR Type<span class="required">*</span></label>
+                            <div class="input-group">
+                                <select class="form-control" id="Grtype" name="Grtype" required>
+                                    <option value="">Select GRType</option>
+                                    @foreach (var item in ViewBag.Grtype)
+                                    {
+                                        <option value="@item.TypeName" data-taxname="@item.TypeName">@item.TypeName</option>
+                                    }
+                                </select>
+                                <div class="input-group-append">
+                                    <button type="button" onclick="openAddGRTypeMasterModal()" class="btn btn-success btn-xs">
+                                        <i class="fa fa-plus" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label for="OwnedBy">Owned By<span class="required">*</span></label>
+                            <select class="form-control" id="OwnedBy" name="OwnedBy" required>
+                                <option value="--Select--" selected>--Select--</option>
+                                <option value="OWN">OWN</option>
+                                <option value="Market">Market</option>
+                                <option value="Attach">Attach</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="GRDate">GR Date<span class="required">*</span></label>
+                            <div class="input-group">
+                                <input type="date" class="form-control" id="GRDate" name="GRDate" required>
+                            </div>
+                        </div>
+
+
+                        <div class="col-md-2">
+                            <label for="ClientName">Bill To Party<span class="required">*</span></label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="ClientName" name="ClientName" oninput="updateConsignee()" required>
+                            </div>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label for="BillingAddress">Billing Address<span class="required">*</span></label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="BillingAddress" name="BillingAddress" required>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-2">
+                            <label for="FreightAmount">Freight Amount</label>
+                            <input type="number" step="0.01" class="form-control" id="FreightAmount" name="FreightAmount">
+                        </div>
+
+
+                        <div class="col-lg-2">
+                            <label for="GrossWeight">Gross Weight (Metric Tons)</label>
+                            <input type="number" class="form-control" id="GrossWeight" name="GrossWeight"
+                                   placeholder="e.g., 1.25" required>
+                            <small class="form-text text-muted">Enter value in metric tons</small>
+                        </div>
+
+                        <div class="col-lg-2">
+                            <label for="LoadWeight">Net Weight (Metric Tons)</label>
+                            <input type="number" class="form-control" id="LoadWeight" name="LoadWeight"
+                                   placeholder="e.g., 2.50" required>
+                            <small class="form-text text-muted">Enter value in metric tons</small>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <h5 class="mb-3" style="background-color: whitesmoke; color: black; padding: 10px; text-transform: uppercase;">Client Details</h5>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="row mt-3">
+                            <!-- Consigner Field -->
+                            <div class="col-lg-6 col-md-6">
+                                <label for="Consigner">Consignor<span class="required">*</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="Consigner" name="Consigner" oninput="updateFromPlaceDropdown()" required>
+                                    <div class="input-group-append">
+                                        <button type="button" onclick="openAddAddressBookModal()" class="btn btn-success btn-xs">
+                                            <i class="fa fa-plus" aria-hidden="true"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- From Place (Dropdown for States related to Consigner) -->
+                            <div class="col-lg-6 col-md-6">
+                                <label for="fromPlace">From Place<span class="required">*</span></label>
+                                <div class="input-group">
+                                    <select class="form-control" id="StatesFromPlace" name="StatesFromPlace" required>
+                                        <option value="">Select State</option> <!-- Default Select State Option -->
+                                    </select>
+                                    <div class="input-group-append">
+                                        <button type="button" onclick="openAddPlaceModal()" class="btn btn-success btn-xs">
+                                            <i class="fa fa-plus" aria-hidden="true"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-lg-6 col-md-6">
+                                <label for="Consignee">Consignee<span class="required">*</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="Consignee" name="Consignee" required>
+                                    <div class="input-group-append">
+                                        <button type="button" onclick="openAddAddressBookModal()" class="btn btn-success btn-xs">
+                                            <i class="fa fa-plus" aria-hidden="true"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- To Place (Dropdown for States) -->
+                            <div class="col-lg-6 col-md-6">
+                                <label for="toPlace">To Place<span class="required">*</span></label>
+
+                                <div class="d-flex">
+                                    <!-- Dropdown for States will be appended here dynamically -->
+                                    <select class="form-control" id="States" name="States" required>
+                                        <option value="">Select State</option> <!-- Default Select State Option -->
+                                    </select>
+
+                                    <!-- + button placed side by side with the dropdown -->
+                                    <button type="button" onclick="openAddPlaceModal()" class="btn btn-success btn-xs ml-2">
+                                        <i class="fa fa-plus" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <h5 class="mb-3" style="background-color: whitesmoke; color: black; padding: 10px; text-transform: uppercase;">Transporter Details</h5>
+                            </div>
+                        </div>
+                        <div class="col-lg-2">
+                            <label for="Transporter">Transporter</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="Transporter" name="Transporter" readonly>
+                                <div class="input-group-append">
+                                    <a onclick="openAddLedgerMasterModal()" class="btn btn-success btn-xs" style="height: 100%; padding: 0 10px;">
+                                        <i class="fa fa-plus" aria-hidden="true"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-2">
+                            <label for="HireRate">Hire Rate</label>
+                            <input type="number" step="0.01" class="form-control" id="HireRate" name="HireRate">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <h5 class="mb-3" style="background-color: whitesmoke; color: black; padding: 10px; text-transform: uppercase;">Insurence Details</h5>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-lg-12 d-flex align-items-center">
+                            <label class="me-2 mb-0">Insurance Required?</label>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="toggleInsurance">
+                                <label class="form-check-label" for="toggleInsurance"></label>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="row mt-3" id="insuranceDetails" style="display: none;">
+                        <div class="col-lg-6 col-md-6">
+                            <label for="InsuredBy">Insured By</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="InsuredBy" name="InsuredBy">
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6">
+                            <label for="InsurenceNo">Insurance Number</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="InsurenceNo" name="InsurenceNo">
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <h5 class="mb-3" style="background-color: whitesmoke; color: black; padding: 10px; text-transform: uppercase;">Consignment Details</h5>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+
+                        <div class="col-lg-4">
+                            <label for="ItemDescription" class="d-inline-block text-nowrap">
+                                Item Description/ Material Description
+                                <span class="required">*</span>
+                            </label>
+
+                            <textarea class="form-control" id="ItemDescription" name="ItemDescription" rows="3" required></textarea>
+                        </div>
+                        <div class="col-lg-12 mb-3">
+                            <div class="btn-group" role="group">
+                                <button type="button"
+                                        class="btn btn-outline-primary active"
+                                        onclick="toggleMaterialType('loose')"
+                                        id="looseBtn">
+                                    Loose
+                                </button>
+                                <button type="button"
+                                        class="btn btn-outline-primary"
+                                        onclick="toggleMaterialType('packages')"
+                                        id="packagesBtn">
+                                    Packages
+                                </button>
+                            </div>
+
+                            <!-- This value gets submitted to your model -->
+                            <input type="hidden" id="materialType" name="LoadType" value="Loose">
+                        </div>
+
+
+                        <!-- Quantity Field (Initially Hidden) -->
+                        <div class="col-lg-2 d-none" id="quantityField">
+                            <label for="Quantity">Quantity<span class="required">*</span></label>
+                            <input type="number" step="0.01" class="form-control"
+                                   id="Quantity" name="Quantity">
+                        </div>
+
+                    </div>
+
+                    <div class="container mt-3">
+                        <input type="hidden" id="serializedInvoiceData" name="serializedInvoiceData" />
+                        <table class="table table-bordered" id="invoiceTable">
+                            <thead class="thead-dark">
+                                <tr>
+                                    <th>Invoice No</th>
+                                    <th>Invoice Date</th>
+                                    <th>Invoice Value</th>
+                                    <th>E-Way Bill No</th>
+                                    <th>E-Way Expire Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><input type="text" class="form-control" name="InvoiceNo[]"></td>
+                                    <td><input type="date" class="form-control" name="InvoiceDate[]"></td>
+                                    <td><input type="number" step="0.01" class="form-control" name="BillAmt[]"></td>
+                                    <td><input type="text" class="form-control" name="BillNo[]"></td>
+                                    <td><input type="date" class="form-control" name="EWayBillExpireddate[]"></td>
+                                    <td>
+                                        <button type="button" class="btn btn-danger btn-sm removeRow">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+
+                            </tbody>
+                        </table>
+                        <button type="button" class="btn btn-success btn-sm" id="addRow">
+                            <i class="fa fa-plus"></i> Add More
+                        </button>
+                    </div>
+
+
+                    <!-- In both addModal and editModal footer sections -->
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary" onclick="submitForm(false)">Save</button>
+                        <button type="button" class="btn btn-info" onclick="submitForms(true)">Save & Print</button>
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl custom-modal" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">Edit GR</h5>
+            </div>
+            <div class="modal-body">
+                <form id="editGRForm" action="@Url.Action("UpdateGR", "GR")" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="GRId" id="editGRId" />
+
+                    <!-- Vehicle Details Section -->
+                    <div class="row mt-3">
+                        <div class="col-md-2">
+                            <label for="editBranch">Branch<span class="required">*</span></label>
+                            <select class="form-control" id="editBranch" name="Branch" required>
+                                <option value="">Select Branch</option>
+                                @foreach (var item in ViewBag.Branch)
+                                {
+                                    <option value="@item.BranchName" data-taxname="@item.BranchName">@item.BranchName</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label for="editGrNo">GR No<span class="required">*</span></label>
+                            <input type="number" class="form-control" id="editGrNo" name="GrNo" required>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label for="editVehicleNo">Vehicle No <span class="required">*</span></label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="VehicleNo" id="editVehicleNo" list="vehicleSuggestions" required />
+
+                                <datalist id="vehicleSuggestions">
+                                    @foreach (var vehicleNo in vehicleNos)
+                                    {
+                                        <option value="@vehicleNo"></option>
+                                    }
+                                </datalist>
+
+                                <div class="input-group-append">
+                                    <button type="button" onclick="openAddVehicleMasterModal()" class="btn btn-success btn-xs">
+                                        <i class="fa fa-plus" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="col-md-3">
+                            <label for="editGRType">GR Type<span class="required">*</span></label>
+                            <div class="input-group">
+                                <select class="form-control" id="editGRType" name="Grtype" required>
+                                    <option value="">Select GRType</option>
+                                    @foreach (var item in ViewBag.Grtype)
+                                    {
+                                        <option value="@item.TypeName" data-taxname="@item.TypeName">@item.TypeName</option>
+                                    }
+                                </select>
+                                <div class="input-group-append">
+                                    <button type="button" onclick="openAddGRTypeMasterModal()" class="btn btn-success btn-xs">
+                                        <i class="fa fa-plus" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label for="editOwnedBy">Owned By<span class="required">*</span></label>
+                            <select class="form-control" id="editOwnedBy" name="OwnedBy" required>
+                                <option value="--Select--" selected>--Select--</option>
+                                <option value="OWN">OWN</option>
+                                <option value="Market">Market</option>
+                                <option value="Attach">Attach</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="editGRDate">GR Date<span class="required">*</span></label>
+                            <div class="input-group">
+                                <input type="date" class="form-control" id="editGRDate" name="GRDate" required>
+                            </div>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label for="editClientName">Bill To Party<span class="required">*</span></label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="editClientName" name="ClientName" required>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="editBillingAddress">Billing Address<span class="required">*</span></label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="editBillingAddress" name="BillingAddress" required>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-2">
+                            <label for="editFreightAmount">Freight Amount</label>
+                            <input type="number" step="0.01" class="form-control" id="editFreightAmount" name="FreightAmount">
+                        </div>
+                        <div class="col-lg-2">
+                            <label for="GrossWeight">Gross Weight</label>
+                            <input type="number" class="form-control" id="editGrossWeight" name="GrossWeight">
+                        </div>
+                          <div class="col-lg-2">
+                            <label for="LoadWeight">Net Weight</label>
+                            <input type="number" class="form-control" id="editLoadWeight" name="LoadWeight">
+                        </div>
+                    </div>
+
+                    <!-- Client Details Section -->
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <h5 class="mb-3" style="background-color: whitesmoke; color: black; padding: 10px; text-transform: uppercase;">Client Details</h5>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-lg-6 col-md-6">
+                            <label for="editConsigner">Consignor<span class="required">*</span></label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="editConsigner" name="Consigner" required>
+                                <div class="input-group-append">
+                                    <button type="button" onclick="openAddAddressBookModal()" class="btn btn-success btn-xs">
+                                        <i class="fa fa-plus" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="col-lg-6 col-md-6">
+                            <label for="editFromPlace">From Place<span class="required">*</span></label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="editFromPlace" name="StatesFromPlace" required>
+                                <div class="input-group-append">
+                                    <button type="button" onclick="openAddPlaceModal()" class="btn btn-success btn-xs">
+                                        <i class="fa fa-plus" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-lg-6 col-md-6">
+                            <label for="editConsignee">Consignee<span class="required">*</span></label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="editConsignee" name="Consignee" required>
+                                <div class="input-group-append">
+                                    <button type="button" onclick="openAddAddressBookModal()" class="btn btn-success btn-xs">
+                                        <i class="fa fa-plus" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-6 col-md-6">
+                            <label for="editToPlace">To Place<span class="required">*</span></label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="editToPlace" name="States" required>
+                                <div class="input-group-append">
+                                    <button type="button" onclick="createToPlace(this)" class="btn btn-success btn-xs">
+                                        <i class="fa fa-plus" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Transporter Details Section -->
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <h5 class="mb-3" style="background-color: whitesmoke; color: black; padding: 10px; text-transform: uppercase;">Transporter Details</h5>
+                        </div>
+                    </div>
+                    <div class="col-lg-2">
+                        <label for="editTransporter">Transporter</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="editTransporter" name="Transporter">
+                            <div class="input-group-append">
+                                <a onclick="openAddLedgerMasterModal()" class="btn btn-success btn-xs" style="height: 100%; padding: 0 10px;">
+                                    <i class="fa fa-plus" aria-hidden="true"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-2">
+                        <label for="editHireRate">Hire Rate</label>
+                        <input type="number" step="0.01" class="form-control" id="editHireRate" name="HireRate">
+                    </div>
+
+                    <!-- Insurance Details Section -->
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <h5 class="mb-3" style="background-color: whitesmoke; color: black; padding: 10px; text-transform: uppercase;">Insurance Details</h5>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-lg-12 d-flex align-items-center">
+                            <label class="me-2 mb-0">Insurance Required?</label>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="editToggleInsurance">
+                                <label class="form-check-label" for="editToggleInsurance"></label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3" id="editInsuranceDetails" style="display: none;">
+                        <div class="col-lg-6 col-md-6">
+                            <label for="editInsuredBy">Insured By</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="editInsuredBy" name="InsuredBy">
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6">
+                            <label for="editInsurenceNo">Insurance Number</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="editInsurenceNo" name="InsurenceNo">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Consignment Details Section -->
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <h5 class="mb-3" style="background-color: whitesmoke; color: black; padding: 10px; text-transform: uppercase;">Consignment Details</h5>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-lg-4">
+                            <label for="editItemDescription">Item Description<span class="required">*</span></label>
+                            <textarea class="form-control" id="editItemDescription" name="ItemDescription" rows="3" required></textarea>
+                        </div>
+                        <div class="col-lg-2">
+                            <label for="editQuantity">Quantity<span class="required">*</span></label>
+                            <input type="number" step="0.01" class="form-control" id="editQuantity" name="Quantity" required>
+                        </div>
+                    </div>
+
+                    <!-- Invoice Table Section -->
+                    <div class="container mt-3">
+                        <input type="hidden" id="editSerializedInvoiceData" name="serializedInvoiceData" />
+                        <table class="table table-bordered" id="editInvoiceTable">
+                            <thead class="thead-dark">
+                                <tr>
+                                    <th>Invoice No</th>
+                                    <th>Invoice Date</th>
+                                    <th>Invoice Value</th>
+                                    <th>E-Way Bill No</th>
+                                    <th>E-Way Expire Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><input type="text" class="form-control" name="InvoiceNo[]"></td>
+                                    <td><input type="date" class="form-control" name="InvoiceDate[]"></td>
+                                    <td><input type="number" step="0.01" class="form-control" name="BillAmt[]"></td>
+                                    <td><input type="text" class="form-control" name="BillNo[]"></td>
+                                    <td><input type="date" class="form-control" name="EWayBillExpireddate[]"></td>
+                                    <td>
+                                        <button type="button" class="btn btn-danger btn-sm removeRow">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <button type="button" class="btn btn-success btn-sm" id="editAddRow">
+                            <i class="fa fa-plus"></i> Add More
+                        </button>
+                    </div>
+
+                    <!-- Modal Footer -->
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" onclick="submitEditForm(false)">Update</button>
+                        <button type="button" class="btn btn-info" onclick="submitEditForm(true)">Update & Print</button>
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="addVehicleMasterModal" tabindex="-1" role="dialog" aria-labelledby="addVehicleMasterModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addVehicleMasterModalLabel">Add Vehicle Master</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="VehicleMasterSetupForm" action="@Url.Action("CreateVehicleMaster", "VehicleMaster")" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <label for="VehicleNo">Vehicle No *</label>
+                            <input type="text" class="form-control" id="VehicleNo" name="VehicleNo" maxlength="10" required>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Branch *</label>
+                            <select class="form-control" name="BranchId" id="BranchId">
+                                @foreach (var t in ViewBag.b)
+                                {
+                                    <option value="@t.id">@t.BranchName</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Vehicle Type *</label>
+                            <select class="form-control" name="VehicleTypeId" id="VehicleTypeId">
+                                @foreach (var t in ViewBag.v)
+                                {
+                                    <option value="@t.Id">@t.VehicleType</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Body Type *</label>
+                            <select class="form-control" name="BodyTypeId" id="BodyTypeId">
+                                @foreach (var t in ViewBag.bt)
+                                {
+                                    <option value="@t.Id">@t.Bodytype</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-lg-6">
+                            <label for="DisplayVehicleNo">Display Vehicle No *</label>
+                            <input type="text" class="form-control" id="DisplayVehicleNo" name="DisplayVehicleNo" maxlength="10" required>
+                        </div>
+
+                        <div class="col-lg-6">
+                            <label for="Weight">Weight *</label>
+                            <input type="text" class="form-control" id="Weight" name="Weight" required>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Owned By *</label>
+                            <select class="form-control" name="OwnedBy" required>
+                                <option value="Own">Own</option>
+                                <option value="Market">Market</option>
+                                <option value="Attach">Attach</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Transporter *</label>
+                            <select class="form-control" name="Transporter" required>
+                                <option value="ICICI">ICICI</option>
+                                <option value="Test">Test</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-6">
+                            <label for="MaxWeightAllowed">Max Weight Allowed *</label>
+                            <input type="number" class="form-control" id="MaxWeightAllowed" name="MaxWeightAllowed" required>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Status *</label>
+                            <select class="form-control" name="Status" required>
+                                <option value="true">Active</option>
+                                <option value="false">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <table class="table table-bordered mt-3">
+                        <thead>
+                            <tr>
+                                <th>Document Type</th>
+                                <th>Start Date</th>
+                                <th>Expiry Date</th>
+                                <th>Amount</th>
+                                <th>Remarks</th>
+                                <th>Uploads</th>
+                                <th>Docs</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="documentTableBody">
+                            <tr>
+                                <td><input type="text" class="form-control" name="DocumentType[]" required></td>
+                                <td><input type="date" class="form-control" name="StartDate[]" required></td>
+                                <td><input type="date" class="form-control" name="ExpiryDate[]" required></td>
+                                <td><input type="number" class="form-control" name="Amount[]" step="0.01" value="0.00" required></td>
+                                <td><input type="text" class="form-control" name="Remarks[]" placeholder="Enter remarks"></td>
+                                <td><input type="file" name="Uploads" multiple required></td>
+                                <td><input type="text" class="form-control" name="Docs[]" required></td>
+                                <td><button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">✖</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <button type="button" class="btn btn-primary" onclick="addMoreRows()">Add More</button>
+
+                    <div class="row mt-3">
+                        <div class="col-md-12 text-left">
+                            <button type="submit" class="btn btn-success">Save</button>
+                            <button type="reset" class="btn btn-secondary">Reset</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Add GR Type Modal -->
+<div class="modal fade" id="addGRTypeModal" tabindex="-1" role="dialog" aria-labelledby="addGRTypeModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addGRTypeModalLabel">Add GR Type</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="grTypeForm" action="@Url.Action("GRTypeAdd", "GRType")" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <h5 class="mb-3" style="background-color: whitesmoke; color: black; padding: 10px; text-transform: uppercase;">GR Type Details</h5>
+                        </div>
+                        <div class="col-lg-6">
+                            <label for="TypeName">Type Name <span class="required">*</span></label>
+                            <input type="text" class="form-control" id="TypeName" name="TypeName" maxlength="50" required>
+                        </div>
+                        <div class="col-lg-6 mt-3">
+                            <!-- Hidden input to submit 'false' if the checkbox is unchecked -->
+                            <input type="hidden" name="IsDefault" value="false" />
+
+                            <!-- Checkbox input for 'IsDefault' -->
+                            <input type="checkbox" id="IsDefault" name="IsDefault" value="true">
+                            <label for="IsDefault">Is Default</label>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <button type="submit" class="btn btn-primary">Save</button>
+                            <button type="reset" class="btn btn-success">Reset</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Add Address Book Modal -->
+<div class="modal fade" id="addAddressBookModal" tabindex="-1" aria-labelledby="addAddressBookModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addAddressBookModalLabel">Add Address Book</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addressBookForm" action="@Url.Action("AddContact", "AddressBookMaster")" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <div class="row">
+                        <!-- Client Name -->
+                        <div class="col-lg-6">
+                            <label for="ClientName">Client Name *</label>
+                            <input type="text" class="form-control" id="ClientName" name="ClientName" required>
+                        </div>
+                        <!-- Bill Party -->
+                        <div class="col-lg-6">
+                            <label for="BillParty">Bill Party</label>
+                            <input type="text" class="form-control" id="BillParty" name="BillParty">
+                        </div>
+                    </div>
+                    <!-- First Group -->
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <label for="ContactPersonName">Contact Person Name</label>
+                            <input type="text" class="form-control" id="ContactPersonName" name="ContactPersonName">
+                        </div>
+                        <div class="col-lg-4">
+                            <label for="Mobile">Mobile</label>
+                            <input type="number" class="form-control" id="Mobile" name="Mobile">
+                        </div>
+                        <div class="col-lg-4">
+                            <label for="Email">Email</label>
+                            <input type="email" class="form-control" id="Email" name="Email">
+                        </div>
+                    </div>
+                    <!-- Second Group -->
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <label for="Address">Address</label>
+                            <textarea class="form-control" id="Address" name="Address" rows="3"></textarea>
+                        </div>
+                        <div class="col-lg-4">
+                            <label for="City">City</label>
+                            <input type="text" class="form-control" id="City" name="City">
+                        </div>
+                        <div class="col-lg-4">
+                            <label for="State">State</label>
+                            <input type="text" class="form-control" id="State" name="State">
+                        </div>
+                    </div>
+                    <!-- Third Group -->
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <label for="Country">Country</label>
+                            <input type="text" class="form-control" id="Country" name="Country">
+                        </div>
+                        <div class="col-lg-4">
+                            <label for="Pincode">Pincode</label>
+                            <input type="number" class="form-control" id="Pincode" name="Pincode">
+                        </div>
+                        <div class="col-lg-4">
+                            <label for="GSTNo">GST No</label>
+                            <input type="text" class="form-control" id="GSTNo" name="GSTNo">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Add Address Book</button>
+                        <button type="reset" class="btn btn-success">Reset</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Add Ledger Modal -->
+<div class="modal fade" id="addLedgerModal" tabindex="-1" aria-labelledby="addLedgerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addLedgerModalLabel">Add Ledger</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="ledgerForm" action="@Url.Action("AddorUpdateLedgerMaster", "LedgerMaster")" method="post">
+                    @Html.AntiForgeryToken()
+                    <fieldset class="border p-3 mb-3">
+                        <legend class="w-auto">Ledger Details</legend>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="AccGroup" class="form-label">Account Group <span class="text-danger">*</span></label>
+                                <select class="form-select" id="AccGroup" name="AccGroup" required>
+                                    <option value="">Select SubGroup</option>
+                                    @if (ViewBag.subgroup != null)
+                                    {
+                                        foreach (var item in ViewBag.subgroup)
+                                        {
+                                            <option value="@item.SubGroupName">@item.SubGroupName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="AccHead" class="form-label">Account Head <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="AccHead" name="AccHead" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="TDSPercent" class="form-label">TDS %</label>
+                                <input type="number" class="form-control" id="TDSPercent" name="TDSPercent" step="0.01" placeholder="0.00">
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-check form-check-inline">
+                                    <input type="checkbox" class="form-check-input" id="BankAccount" name="BankAccount" value="true">
+                                    <label for="BankAccount" class="form-check-label">Bank Account</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input type="checkbox" class="form-check-input" id="TaxLedger" name="TaxLedger" value="true">
+                                    <label for="TaxLedger" class="form-check-label">Tax Ledger</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input type="checkbox" class="form-check-input" id="Taxable" name="Taxable" value="true">
+                                    <label for="Taxable" class="form-check-label">Taxable</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input type="checkbox" class="form-check-input" id="VehicleExpense" name="VehicleExpense" value="true">
+                                    <label for="VehicleExpense" class="form-check-label">Vehicle Expense</label>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Contact & Address Details -->
+                    <fieldset class="border p-3 mt-3">
+                        <legend class="fw-bold d-flex justify-content-between align-items-center">
+                            Contact & Address Details
+                            <button type="button" class="btn btn-primary" id="addContactBtn">
+                                <i class="fas fa-plus"></i> Add
+                            </button>
+                        </legend>
+                        <div id="contactForm">
+                            <div class="contact-section border p-3 mb-2">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <label for="ContactPerson" class="form-label">Contact Person</label>
+                                        <input type="text" class="form-control" id="ContactPerson" name="ContactPerson[]">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="Mobile" class="form-label">Mobile</label>
+                                        <input type="number" class="form-control" id="Mobile" name="Mobile[]">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="AltMobile" class="form-label">Alt. Mobile</label>
+                                        <input type="number" class="form-control" id="AltMobile" name="AltMobile[]">
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-md-4">
+                                        <label for="Email" class="form-label">Email ID</label>
+                                        <input type="email" id="Email" class="form-control" name="Email[]">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="TelNo" class="form-label">Tel No</label>
+                                        <input type="number" id="TelNo" class="form-control" name="TelNo[]">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="RefID" class="form-label">Ref ID</label>
+                                        <input type="text" id="RefID" class="form-control" name="RefID[]">
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-md-4">
+                                        <label for="CCEmailId" class="form-label">CC Email ID</label>
+                                        <input type="email" id="CCEmailId" class="form-control" name="CCEmailId[]">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="OtherEmailId" class="form-label">Other Email ID</label>
+                                        <input type="email" id="OtherEmailId" class="form-control" name="OtherEmailId[]">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="VendorCode" class="form-label">Vendor Code</label>
+                                        <input type="text" id="VendorCode" class="form-control" name="VendorCode[]">
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-md-6">
+                                        <label for="Address1" class="form-label">Address 1</label>
+                                        <input type="text" id="Address1" class="form-control" name="Address1[]">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="Address2" class="form-label">Address 2</label>
+                                        <input type="text" id="Address2" class="form-control" name="Address2[]">
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-md-4">
+                                        <label for="City" class="form-label">City</label>
+                                        <input type="text" id="City" class="form-control" name="City[]">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="State" class="form-label">State*</label>
+                                        <select id="State" class="form-control" name="State[]">
+                                            <option value="Telangana" selected>Telangana</option>
+                                            <option value="Andhra Pradesh">Andhra Pradesh</option>
+                                            <option value="Karnataka">Karnataka</option>
+                                            <option value="Tamil Nadu">Tamil Nadu</option>
+                                            <option value="Maharashtra">Maharashtra</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="Pincode" class="form-label">Pincode</label>
+                                        <input type="number" id="Pincode" class="form-control" name="Pincode[]">
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-md-4">
+                                        <label for="Country" class="form-label">Country*</label>
+                                        <select class="form-select" id="Country" name="Country[]">
+                                            <option value="India" selected>India</option>
+                                            <option value="USA">USA</option>
+                                            <option value="UK">UK</option>
+                                            <option value="Canada">Canada</option>
+                                            <option value="Australia">Australia</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Document & Bank Details -->
+                    <fieldset class="border p-3 mt-3">
+                        <legend class="fw-bold">Document & Bank Details</legend>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label for="RegistrationType" class="form-label">Registration Type</label>
+                                <select class="form-select" id="RegistrationType" name="RegistrationType">
+                                    <option value="Composition">Composition</option>
+                                    <option value="Consumer">Consumer</option>
+                                    <option value="Regular">Regular</option>
+                                    <option value="Unregistered">Unregistered</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="PartyType" class="form-label">Party Type</label>
+                                <input type="text" class="form-control" id="PartyType" name="PartyType">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="CINNo" class="form-label">CIN No</label>
+                                <input type="number" class="form-control" id="CINNo" name="CINNo">
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-4">
+                                <label for="GSTIN" class="form-label">GSTIN</label>
+                                <input type="text" class="form-control" id="GSTIN" name="GSTIN">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="PANNo" class="form-label">PAN No</label>
+                                <input type="text" class="form-control" id="PANNo" name="PANNo">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="AAdharNumber" class="form-label">Aadhar No</label>
+                                <input type="number" class="form-control" id="AAdharNumber" name="AAdharNumber">
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-4">
+                                <label for="AccHolderName" class="form-label">Acc. Holder Name</label>
+                                <input type="text" class="form-control" id="AccHolderName" name="AccHolderName">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="BankName" class="form-label">Bank Name</label>
+                                <input type="text" class="form-control" id="BankName" name="BankName">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="BankAccNo" class="form-label">Bank Acc No</label>
+                                <input type="text" class="form-control" id="BankAccNo" name="BankAccNo">
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-4">
+                                <label for="BankBranch" class="form-label">Bank Branch</label>
+                                <input type="text" class="form-control" id="BankBranch" name="BankBranch">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="IFSCCode" class="form-label">IFSC Code</label>
+                                <input type="text" class="form-control" id="IFSCCode" name="IFSCCode">
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Balance & Other Details -->
+                    <fieldset class="border p-3 mt-3">
+                        <legend class="fw-bold">Balance & Other Details</legend>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label for="OpeningBalance" class="form-label">Opening Balance</label>
+                                <input type="text" class="form-control" id="OpeningBalance" name="OpeningBalance">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="BalanceIn" class="form-label">Balance In</label>
+                                <select class="form-select" id="BalanceIn" name="BalanceIn">
+                                    <option value="Credit">Credit</option>
+                                    <option value="Debit">Debit</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="PaymentTerm" class="form-label">Payment Term</label>
+                                <input type="text" class="form-control" id="PaymentTerm" name="PaymentTerm">
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-4">
+                                <label for="DueDays" class="form-label">Due Days</label>
+                                <input type="number" class="form-control" id="DueDays" name="DueDays">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="Agent" class="form-label">Agent</label>
+                                <input type="text" class="form-control" id="Agent" name="Agent">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="UserName" class="form-label">Username</label>
+                                <input type="text" class="form-control" id="UserName" name="UserName" autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-4">
+                                <label for="Password" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="Password" name="Password" placeholder="**********" autocomplete="off">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="Status" class="form-label">Status*</label>
+                                <select class="form-select" id="Status" name="Status">
+                                    <option value="Active">Active</option>
+                                    <option value="Inactive">Inactive</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check mt-4">
+                                    <input class="form-check-input" type="checkbox" id="WalkinLedger" name="WalkinLedger" value="true">
+                                    <label class="form-check-label" for="WalkinLedger">Walkin Ledger</label>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Address Details -->
+                    <fieldset class="border p-3 mt-3">
+                        <legend class="fw-bold text-success">Address Details</legend>
+                        <table class="table table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Branch Name</th>
+                                    <th>Name/Address/Mobile</th>
+                                    <th>Address</th>
+                                    <th>City/State/Pincode</th>
+                                    <th>GSTIN</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="addressTableBody">
+                                <tr class="addressRow">
+                                    <td><input type="text" class="form-control" name="AddressDetails[0].BranchName"></td>
+                                    <td><input type="text" class="form-control" name="AddressDetails[0].NameAddressMobile"></td>
+                                    <td><input type="text" class="form-control" name="AddressDetails[0].Address"></td>
+                                    <td><input type="text" class="form-control" name="AddressDetails[0].CityStatePincode"></td>
+                                    <td><input type="text" class="form-control" name="AddressDetails[0].GSTIN"></td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-danger btn-sm removeAddress">Delete</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <button type="button" id="addMoreAddress" class="btn btn-primary">Add More</button>
+                    </fieldset>
+
+                    <div class="col-md-6 mt-3">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save btn-icon"></i>Save
+                        </button>
+                        <button type="reset" class="btn btn-secondary">
+                            <i class="fas fa-undo btn-icon"></i>Reset
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Add Place Modal -->
+<div class="modal fade" id="addPlaceModal" tabindex="-1" aria-labelledby="addPlaceModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addPlaceModalLabel">Add Place</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="placeForm" action="@Url.Action("PlaceAdd", "Place")" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <h5 class="mb-3" style="background-color: whitesmoke; color: black; padding: 10px; text-transform: uppercase;">Place Details</h5>
+                        </div>
+                        <div class="col-lg-12">
+                            <label for="PlaceName">Place Name *</label>
+                            <input type="text" class="form-control" id="PlaceName" name="PlaceName"
+                                   required pattern="^[A-Za-z]{1,20}$" maxlength="20"
+                                   title="Enter alphabets only (up to 20 characters)">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        // Initialize Select2 for the vehicleNo dropdown
+        $('#vehicleNo').select2({
+            placeholder: 'Select Vehicle',
+            allowClear: true
+        });
+    });
+    function openAddModal() {
+        $('#addModal').modal('show');
+    }
+    function collectInvoiceData() {
+        let invoiceData = [];
+
+        console.log("Checking table rows...");
+
+        $("#invoiceTable tbody tr").each(function (index, row) {
+            console.log(`Processing row ${index + 1}...`);
+
+            let invoiceNo = $(this).find("input[name='InvoiceNo[]']").val();
+            let invoiceDate = $(this).find("input[name='InvoiceDate[]']").val();
+            let invoiceValue = $(this).find("input[name='BillAmt[]']").val();
+            let eWayBillNo = $(this).find("input[name='BillNo[]']").val();
+            let eWayExpireDate = $(this).find("input[name='RefDate[]']").val();
+
+            console.log(`Row ${index + 1} values:`, { invoiceNo, invoiceDate, invoiceValue, eWayBillNo, eWayExpireDate });
+
+            if (invoiceNo || invoiceDate || invoiceValue || eWayBillNo || eWayExpireDate) {
+                invoiceData.push({
+                    InvoiceNo: invoiceNo || null,
+                    InvoiceDate: invoiceDate || null,
+                    InvoiceValue: invoiceValue || null,
+                    EWayBillNo: eWayBillNo || null,
+                    EWayExpireDate: eWayExpireDate || null
+                });
+            }
+        });
+
+        console.log("Final Invoice Data:", invoiceData);
+        return invoiceData;
+    }
+
+
+      function submitForm() {
+        let invoiceData = collectInvoiceData();
+
+        $('#serializedInvoiceData').val(JSON.stringify(invoiceData));
+
+        console.log("Serialized Invoice Data:", $('#serializedInvoiceData').val());
+
+        $('#grForm').submit();
+        }
+
+
+
+
+        function searchTable() {
+        // Get the search input value
+        const searchText = document.getElementById("searchInput").value.toLowerCase();
+
+        // Get all table rows
+        const rows = document.querySelectorAll("#grList tbody tr");
+
+        // Loop through all rows
+        rows.forEach(row => {
+            // Get all cell values in the row
+            const rowText = row.textContent.toLowerCase();
+
+            // Show or hide the row based on the search query
+            if (rowText.includes(searchText)) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    }
+
+    $(document).ready(function () {
+        $('#grList').DataTable();
+
+        $('#grForm').submit(function (e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+            var token = $('input[name="__RequestVerificationToken"]').val(); // Get anti-forgery token
+
+            $.ajax({
+                url: '@Url.Action("GRAdd", "GR")',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: {
+                    'RequestVerificationToken': token // Include anti-forgery token
+                },
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire("Success!", "GR Added Successfully", "success")
+                            .then(() => {
+                                window.location.reload();
+                            });
+                    } else {
+                        Swal.fire("Error!", response.message || "There was an issue adding the GR.", "error");
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error:", error); // Log the error
+                    Swal.fire("Error!", "There was an error processing your request.", "error");
+                }
+            });
+        });
+        });
+
+            // Function to populate the edit modal with data
+    function EditGR(
+        grId, grNo, grDate, grType,grossWeight,loadWeight, branchName, vehicleNo, clientName, transporter,
+        fromPlace, toPlace, freightAmount, consigner, consignee, itemDescription,
+        hireRate, quantity
+    ) {
+        // Populate the form fields in the edit modal
+        $("#editGRId").val(grId); // GR ID
+        $("#editBranch").val(branchName); // Branch Name
+        $("#editGrNo").val(grNo); // GR Number
+        $("#editGRType").val(grType); // GR Type
+        $("#editGRDate").val(grDate); // GR Date
+         $("#editGrossWeight").val(grossWeight); // GR Date
+          $("#editLoadWeight").val(loadWeight); // GR Date
+        $("#editVehicleNo").val(vehicleNo); // Vehicle Number
+        $("#editClientName").val(clientName); // Client Name
+        $("#editTransporter").val(transporter); // Transporter
+        $("#editFromPlace").val(fromPlace); // From Place
+        $("#editToPlace").val(toPlace); // To Place
+        $("#editConsigner").val(consigner); // Consignor
+        $("#editConsignee").val(consignee); // Consignee
+        $("#editItemDescription").val(itemDescription); // Item Description
+        $("#editFreightAmount").val(freightAmount); // Freight Amount
+        $("#editHireRate").val(hireRate); // Hire Rate
+        $("#editQuantity").val(quantity); // Quantity
+
+        // Open the edit modal
+        $('#editModal').modal('show');
+    }
+
+    // Function to handle form submission
+    // function submitEditForm(event) {
+    //     event.preventDefault();
+    //     let invoiceData = collectInvoicesData("#editInvoiceTable");
+    //     $("#editSerializedInvoiceData").val(JSON.stringify(invoiceData));
+    //     $("#editGRForm").submit();
+    // }
+        function submitEditForm(printFlag) {
+        let invoiceData = collectInvoicesData("#editInvoiceTable");
+        $("#editSerializedInvoiceData").val(JSON.stringify(invoiceData));
+
+        var formData = new FormData($('#editGRForm')[0]);
+        var token = $('input[name="__RequestVerificationToken"]').val();
+
+        $.ajax({
+            url: $('#editGRForm').attr('action'), // URL should point to UpdateGR action
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: {
+                'RequestVerificationToken': token
+            },
+            success: function (response) {
+                if (response.success) {
+                    if (printFlag) {
+                        // Open print view in new tab with the updated GR ID
+                        const printWindow = window.open('@Url.Action("Print", "GR")/' + response.grId, '_blank');
+                        if (printWindow) {
+                            printWindow.onload = function() {
+                                printWindow.print();
+                                $('#editModal').modal('hide');
+                                window.location.reload();
+                            };
+                        } else {
+                            Swal.fire("Error!", "Popup was blocked. Please allow popups.", "error");
+                        }
+                    } else {
+                        Swal.fire("Success!", "GR Updated Successfully", "success").then(() => {
+                            $('#editModal').modal('hide');
+                            window.location.reload();
+                        });
+                    }
+                } else {
+                    Swal.fire("Error!", response.message || "Update failed.", "error");
+                }
+            },
+            error: function (xhr, status, error) {
+                Swal.fire("Error!", "An error occurred during update.", "error");
+            }
+        });
+    }
+
+    // Function to collect invoice data
+    function collectInvoicesData(tableId) {
+        let invoiceData = [];
+        $(`${tableId} tbody tr`).each(function () {
+            let invoiceNo = $(this).find("input[name='InvoiceNo[]']").val();
+            let invoiceDate = $(this).find("input[name='InvoiceDate[]']").val();
+            let invoiceValue = $(this).find("input[name='BillAmt[]']").val();
+            let eWayBillNo = $(this).find("input[name='BillNo[]']").val();
+            let eWayExpireDate = $(this).find("input[name='EWayBillExpireddate[]']").val();
+
+            if (invoiceNo || invoiceDate || invoiceValue || eWayBillNo || eWayExpireDate) {
+                invoiceData.push({
+                    InvoiceNo: invoiceNo,
+                    InvoiceDate: invoiceDate,
+                    InvoiceValue: invoiceValue,
+                    EWayBillNo: eWayBillNo,
+                    EWayExpireDate: eWayExpireDate
+                });
+            }
+        });
+        return invoiceData;
+    }
+
+    // Add row button for invoice table
+    $("#editAddRow").on("click", function () {
+        let newRow = `
+            <tr>
+                <td><input type="text" class="form-control" name="InvoiceNo[]"></td>
+                <td><input type="date" class="form-control" name="InvoiceDate[]"></td>
+                <td><input type="number" step="0.01" class="form-control" name="BillAmt[]"></td>
+                <td><input type="text" class="form-control" name="BillNo[]"></td>
+                <td><input type="date" class="form-control" name="EWayBillExpireddate[]"></td>
+                <td>
+                    <button type="button" class="btn btn-danger btn-sm removeRow">
+                        <i class="fa fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+        $("#editInvoiceTable tbody").append(newRow);
+    });
+
+    // Remove row button for invoice table
+    $(document).on("click", ".removeRow", function () {
+        $(this).closest("tr").remove();
+    });
+
+    $(document).ready(function () {
+        // Add more address rows
+        $("#addMoreAddress").click(function () {
+            let newRow = `
+                <tr class="addressRow">
+                    <td><input type="text" class="form-control" name="AddressDetails[0].BranchName"></td>
+                    <td><input type="text" class="form-control" name="AddressDetails[0].NameAddressMobile"></td>
+                    <td><input type="text" class="form-control" name="AddressDetails[0].Address"></td>
+                    <td><input type="text" class="form-control" name="AddressDetails[0].CityStatePincode"></td>
+                    <td><input type="text" class="form-control" name="AddressDetails[0].GSTIN"></td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-danger btn-sm removeAddress">Delete</button>
+                    </td>
+                </tr>
+            `;
+            $("#addressTableBody").append(newRow);
+        });
+            document.getElementById("toggleInsurance").addEventListener("change", function() {
+        let insuranceDetails = document.getElementById("insuranceDetails");
+        insuranceDetails.style.display = this.checked ? "flex" : "none";
+    });
+
+
+        // Remove an address row
+        $(document).on("click", ".removeAddress", function () {
+            $(this).closest("tr").remove();
+        });
+    });
+
+    function openAddVehicleMasterModal() {
+        $('#addVehicleMasterModal').modal('show');
+    }
+
+    function openAddGRTypeMasterModal() {
+        $('#addGRTypeModal').modal('show');
+    }
+
+    function openAddAddressBookModal() {
+        $('#addAddressBookModal').modal('show');
+    }
+
+    function openAddLedgerMasterModal() {
+        $('#addLedgerModal').modal('show');
+    }
+
+    function openAddPlaceModal() {
+        $('#addPlaceModal').modal('show');
+    }
+</script>
+<script>
+       document.getElementById("addRow").addEventListener("click", function() {
+        let table = document.getElementById("invoiceTable").getElementsByTagName('tbody')[0];
+        let newRow = document.createElement("tr");
+        newRow.innerHTML = `
+            <td><input type="text" class="form-control" name="InvoiceNo[]"></td>
+            <td><input type="date" class="form-control" name="InvoiceDate[]"></td>
+            <td><input type="number" step="0.01" class="form-control" name="BillAmt[]"></td>
+            <td><input type="text" class="form-control" name="BillNo[]"></td>
+            <td><input type="date" class="form-control" name="RefDate[]"></td>
+            <td>
+                <button type="button" class="btn btn-danger btn-sm removeRow">
+                    <i class="fa fa-trash"></i>
+                </button>
+            </td>
+        `;
+        table.appendChild(newRow);
+    });
+
+    // Event delegation to handle delete button clicks
+    document.getElementById("invoiceTable").addEventListener("click", function(event) {
+        if (event.target.closest(".removeRow")) {
+            event.target.closest("tr").remove();
+        }
+    });
+        $('#editGRForm').on('submit', function (e) {
+        e.preventDefault(); // Prevent default form submission for debugging
+        console.log('Form submitted'); // Check if this logs in the console
+        this.submit(); // Manually submit the form
+    });
+</script>
+<script>
+    // Set the default value of GRDate to the current date
+    document.getElementById('GRDate').valueAsDate = new Date();
+</script>
+<script>
+    function DeleteGR(grId, deleteUrl) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "Do you want to delete this GR?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Yes, delete it!",
+            cancelButtonText: "Cancel",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                var token = $('input[name="__RequestVerificationToken"]').val();
+                $.ajax({
+                    url: deleteUrl,
+                    type: 'POST',
+                    data: {
+                        id: grId,
+                        __RequestVerificationToken: token
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire("Deleted!", "Your GR has been deleted.", "success").then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire("Error!", response.message || "There was an issue deleting the GR.", "error");
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("AJAX Error:", xhr.responseText);
+                        Swal.fire("Error!", "An error occurred while deleting the GR.", "error");
+                    }
+                });
+            }
+        });
+    }
+</script>
+<script>
+        function submitForm(printFlag) {
+        let invoiceData = collectInvoiceData();
+        $('#serializedInvoiceData').val(JSON.stringify(invoiceData));
+
+        var formData = new FormData($('#grForm')[0]);
+        var token = $('input[name="__RequestVerificationToken"]').val();
+
+        $.ajax({
+            url: '@Url.Action("GRAdd", "GR")',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: {
+                'RequestVerificationToken': token
+            },
+            success: function (response) {
+                if (response.success) {
+                        Swal.fire("Success!", "GR Added Successfully", "success").then(() => {
+                            window.location.reload();
+                        });
+
+                } else {
+                    Swal.fire("Error!", response.message || "There was an issue adding the GR.", "error");
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("Error:", error);
+                Swal.fire("Error!", "There was an error processing your request.", "error");
+            }
+        });
+    }
+</script>
+<script>
+        function submitForms(printFlag) {
+        let invoiceData = collectInvoiceData();
+        $('#serializedInvoiceData').val(JSON.stringify(invoiceData));
+
+        var formData = new FormData($('#grForm')[0]);
+        var token = $('input[name="__RequestVerificationToken"]').val();
+
+        $.ajax({
+            url: '@Url.Action("GRAdd", "GR")',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: {
+                'RequestVerificationToken': token
+            },
+            success: function (response) {
+                if (response.success) {
+                    if (printFlag) {
+                        // Open print view in new tab
+
+                       const printWindow = window.open('@Url.Action("Print", "GR")/' + response.grId, '_blank');
+
+
+                        // Check if window is loaded before printing
+                        if (printWindow) {
+                            printWindow.onload = function() {
+                                printWindow.print();
+                                window.location.reload();
+                            };
+                        } else {
+                            Swal.fire("Error!", "Popup was blocked. Please allow popups for this site.", "error");
+                        }
+                    } else {
+                        Swal.fire("Success!", "GR Added Successfully", "success").then(() => {
+                            window.location.reload();
+                        });
+                    }
+                } else {
+                    Swal.fire("Error!", response.message || "There was an issue adding the GR.", "error");
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("Error:", error);
+                Swal.fire("Error!", "There was an error processing your request.", "error");
+            }
+        });
+    }
+</script>
+<script>
+    document.getElementById("vehicleNo").addEventListener("change", function () {
+        var vehicleNo = this.value;
+
+        if (vehicleNo) {
+            fetch('/GR/GetTransporterByVehicleNo?vehicleNo=' + encodeURIComponent(vehicleNo))
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("Transporter").value = data.transporter || "";
+                })
+                .catch(error => {
+                    console.error('Error fetching transporter:', error);
+                });
+        }
+    });
+
+    $(document).ready(function () {
+        $("#ClientName").autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: '@Url.Action("GetClientNames", "GR")', // Your controller and action name
+                    type: 'POST', // Change to POST here
+                    data: { term: request.term }, // Pass the typed term to the server
+                    dataType: "json",
+                    success: function (data) {
+                        response(data); // Provide the server data to the autocomplete
+                    },
+                    error: function () {
+                        console.log("Error fetching data.");
+                    }
+                });
+            },
+            minLength: 2, // Minimum characters before search starts
+            select: function (event, ui) {
+                // Optionally handle when an item is selected
+                console.log("Selected: " + ui.item.value);
+            }
+        });
+    });
+
+    function updateConsignee() {
+        var clientName = document.getElementById('ClientName').value;
+
+        // If ClientName is empty, clear the Consignee and States dropdown
+        if (clientName === "") {
+            document.getElementById('Consignee').value = "";
+            $("#States").empty().append('<option value="">Select State</option>').hide();
+        } else {
+            // Update the Consignee field with the Bill To Party (ClientName) value
+            document.getElementById('Consignee').value = clientName;
+
+            // Fetch related states via AJAX
+            $.ajax({
+                url: '@Url.Action("GetStatesByClientName", "GR")',  // Replace with your actual controller name
+                type: 'GET',  // Using GET request to fetch states
+                data: { clientName: clientName },  // Send the clientName to the server
+                dataType: "json",
+                success: function (data) {
+                    // Get the States dropdown
+                    var stateDropdown = $("#States");
+
+                    // Clear existing options
+                    stateDropdown.empty();
+
+                    // Add the default option
+                    stateDropdown.append('<option value="">Select State</option>');
+
+                    // Add each state to the dropdown
+                    if (data.length > 0) {
+                        $.each(data, function (index, state) {
+                            stateDropdown.append('<option value="' + state + '">' + state + '</option>');
+                        });
+
+                        // Show the States dropdown
+                        stateDropdown.show();
+                    } else {
+                        // If no states, hide the dropdown
+                        stateDropdown.hide();
+                    }
+                },
+                error: function () {
+                    console.log("Error fetching states.");
+                }
+            });
+        }
+    }
+
+    // Function to update the From Place dropdown when Consigner is entered
+    function updateFromPlaceDropdown() {
+        var consignerName = document.getElementById('Consigner').value;
+
+        // If Consigner is empty, clear the From Place field and hide the dropdown
+        if (consignerName === "") {
+            // Clear the dropdown
+            var stateDropdown = document.getElementById('StatesFromPlace');
+            stateDropdown.innerHTML = '<option value="">Select State</option>';
+        } else {
+            // Fetch related states via AJAX
+            $.ajax({
+                url: '@Url.Action("GetStatesByConsigner", "GR")',  // Update with your actual controller action
+                type: 'GET',
+                data: { consignerName: consignerName },
+                dataType: 'json',
+                success: function (data) {
+                    var stateDropdown = document.getElementById('StatesFromPlace');
+
+                    // Clear existing options
+                    stateDropdown.innerHTML = '<option value="">Select State</option>';
+
+                    // Check if states are returned
+                    if (data.length > 0) {
+                        // Populate the dropdown with the fetched states
+                        data.forEach(function (state) {
+                            var option = document.createElement("option");
+                            option.value = state;
+                            option.text = state;
+                            stateDropdown.appendChild(option);
+                        });
+
+                        // Show the dropdown
+                        $(stateDropdown).show();
+                    } else {
+                        // If no states are found, hide the dropdown
+                        $(stateDropdown).hide();
+                    }
+                },
+                error: function () {
+                    console.log("Error fetching states for Consigner.");
+                }
+            });
+        }
+    }
+
+</script>
+<script>
+    $(function () {
+        var vehicleNos = @Html.Raw(Json.Serialize(vehicleNos));
+
+        $("#vehicleNo, #editVehicleNo").autocomplete({
+            source: vehicleNos
+        });
+    });
+</script>
+<script>
+    function toggleMaterialType(type) {
+        const quantityField = document.getElementById('quantityField');
+        const looseBtn = document.getElementById('looseBtn');
+        const packagesBtn = document.getElementById('packagesBtn');
+        const materialType = document.getElementById('materialType');
+
+        if (type === 'packages') {
+            quantityField.classList.remove('d-none');
+            packagesBtn.classList.add('active');
+            looseBtn.classList.remove('active');
+            materialType.value = 'Packages'; // Capitalized
+            document.getElementById('Quantity').required = true;
+        } else {
+            quantityField.classList.add('d-none');
+            looseBtn.classList.add('active');
+            packagesBtn.classList.remove('active');
+            materialType.value = 'Loose'; // Capitalized
+            document.getElementById('Quantity').required = false;
+            document.getElementById('Quantity').value = ''; // Clear value
+        }
+    }
+</script>
+
+<style>
+    .btn-group .btn {
+        border-radius: 0.25rem !important;
+        margin-right: 5px;
+    }
+
+    .btn.active {
+        background-color: #0d6efd;
+        color: white !important;
+    }
+</style>
+<script>
+    // Load series-to-lastGR map from backend
+    var lastGRBySeries = {
+    @foreach (var item in ViewBag.LastGRBySeries)
+    {
+        @: "@item.Series": "@item.LastGR",
+    }
+    };
+
+    function generateGRNo() {
+        var inputElement = document.getElementById("GrNo");
+        var fullSeries = inputElement.value.toUpperCase(); // e.g., GSS2025001
+
+        var match = fullSeries.match(/^([A-Z]+\d+)(\d{3,})$/); // Match: prefix + number part
+
+        if (match) {
+            var prefix = match[1];        // e.g., GSS2025
+            var numberPart = match[2];    // e.g., 001
+
+            var nextNumber = (parseInt(numberPart) + 1).toString().padStart(numberPart.length, '0');
+            inputElement.value = prefix + nextNumber;
+        } else {
+            alert("Invalid GR No format. Example: GSS2025001");
+        }
+    }
+
+       document.getElementById("GrossWeight").addEventListener("input", function () {
+        var grossWeight = this.value;
+        document.getElementById("LoadWeight").value = grossWeight;
+    });
+
+</script>
+
+

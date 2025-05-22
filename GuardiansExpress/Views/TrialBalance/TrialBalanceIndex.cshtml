@@ -1,0 +1,115 @@
+﻿@model IEnumerable<GuardiansExpress.Models.DTOs.TrialBalanceDTO>
+
+@{
+    ViewData["Title"] = "Trial Balance";
+}
+
+<h2>Trial Balance</h2>
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Trial Balance</h4>
+            </div>
+
+            <!-- Filter Form in a single row -->
+            <div class="card-body">
+                <form id="balanceSheetForm" method="GET" asp-action="TrialBalanceIndex">
+                    <div class="form-row d-flex flex-wrap align-items-end">
+
+                        <!-- Branch -->
+                        <div class="form-group me-3">
+                            <label for="Branch">Branch</label>
+                            <select name="Branch" class="form-control" id="Branch">
+                                <option value="">Select</option>
+                                <option value="Head Office">Head Office</option>
+                            </select>
+                        </div>
+
+                        <!-- Acc Group -->
+                        <div class="form-group me-3">
+                            <label for="AccGroup">Acc Group</label>
+                            <select name="AccGroup" class="form-control" id="AccGroup">
+                                <option value="">Select</option>
+                                @foreach (var item in ViewBag.group)
+                                {
+                                    <option value="@item">@item</option>
+                                }
+                            </select>
+                        </div>
+
+                        <!-- Date From -->
+                        <div class="form-group me-3">
+                            <label for="DateFrom">Date From</label>
+                            <input type="date" id="DateFrom" name="DateFrom" class="form-control" />
+                        </div>
+
+                        <!-- Date To -->
+                        <div class="form-group me-3">
+                            <label for="DateTo">Date To</label>
+                            <input type="date" id="DateTo" name="DateTo" class="form-control" />
+                        </div>
+
+                        <!-- Submit -->
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-success mt-2">
+                                <i class="fa fa-search"></i> Search
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+<div class="table-responsive">
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th rowspan="2">S.No</th>
+                <th rowspan="2">Acc Head</th>
+                <th rowspan="2">Group</th>
+                <th rowspan="2">Sub Group</th>
+                <th colspan="2">Opening Balance</th>
+                <th colspan="2">Current Balance</th>
+                <th colspan="2">Total Balance</th>
+            </tr>
+            <tr>
+                <th>Debit</th>
+                <th>Credit</th>
+                <th>Debit</th>
+                <th>Credit</th>
+                <th>Debit</th>
+                <th>Credit</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                int count = 1;
+                foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@count</td>
+                        <td>@item.AccHead</td>
+                        <td>@item.Group</td>
+                        <td>@item.SubGroup</td>
+                        <td>@item.OpeningDebit</td>
+                        <td>@item.OpeningCredit</td>
+                        <td>@item.CurrentDebit</td>
+                        <td>@item.CurrentCredit</td>
+                        <td>@item.TotalDebit</td>
+                        <td>@item.TotalCredit</td>
+                    </tr>
+                    count++;
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="10" class="text-center">No data available</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+

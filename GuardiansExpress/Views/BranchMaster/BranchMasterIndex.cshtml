@@ -1,0 +1,360 @@
+﻿@model IEnumerable<GuardiansExpress.Models.Entity.BranchMasterDTO>
+@{
+    int rCnt = 1;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<div class="content-wrapper">
+    <div class="container-full">
+        <div class="content">
+            <div class="row">
+                <div class="col-md-12 mt-3">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">Branch Master</h4>
+                            <button type="button" class="btn btn-primary">
+                                <a href="javascript:void(0);" onclick="openAddModal();" class="text-white">
+                                    <i class="fa fa-plus" aria-hidden="true"></i> Add Branch
+                                </a>
+                            </button>
+                        </div>
+                        <div class="box-body">
+                            <div class="table-responsive">
+                                <table id="example1" class="text-fade table table-bordered" style="width:100%">
+                                    <thead>
+                                        <tr class="text-dark">
+                                            <th>S.No</th>
+                                            <th>Branch Name</th>
+                                            <th>Email</th>
+                                            <th>State</th>
+                                            <th>Status</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var v in Model)
+                                        {
+                                            <tr>
+                                                <th scope="row">@(rCnt++)</th>
+                                                <td>
+                                                    <a href="#" onclick="EditBranch(
+                        @v.id, '@v.Company', '@v.BranchName', '@v.POC', '@v.Email', '@v.Address', '@v.City', '@v.StateId', '@v.Country',
+                        '@v.Pincode', '@v.StampImage', '@v.status')">@v.BranchName</a>
+                                                </td>
+                                                <td>@v.Email</td>
+                                                <td>@v.StateName</td>
+                                                <td>
+                                                    @if (Convert.ToInt32(v.status) == 1)
+                                                    {
+                                                        <span>Active</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>InActive</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    <a href="#" onclick="DeleteBranch(@v.id)" title="Delete">
+                                                        <button type="button" class="waves-effect waves-circle btn btn-circle btn-danger btn-xs">
+                                                            <i class="fa fa-trash"></i>
+                                                        </button>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Add Branch Modal -->
+<div class="modal fade" id="addBranchModal" tabindex="-1" aria-labelledby="addBranchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addBranchModalLabel">Add Branch</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="branchForm" action="@Url.Action("Save", "BranchMaster")" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <label>Company <span style="color:red">*</span></label>
+                            <select class="form-control" name="CompanyId" required>
+                                @foreach (var t in ViewBag.cc)
+                                {
+                                    <option value="@t.CompanyId">@t.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Branch Name <span style="color:red">*</span></label>
+                            <input class="form-control" name="BranchName" type="text" required>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>BranchCode <span style="color:red">*</span></label>
+                            <input class="form-control" name="BranchCode" type="text" required>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>POC <span style="color:red">*</span></label>
+                            <input class="form-control" name="POC" type="text" required>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Email <span style="color:red">*</span></label>
+                            <input class="form-control" name="Email" type="email" required>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Address</label>
+                            <input class="form-control" name="Address" type="text" required>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>City</label>
+                            <input class="form-control" name="City" type="text" required>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>State <span style="color:red">*</span></label>
+                            <select class="form-control" name="StateId" required>
+                                @foreach (var state in ViewBag.s)
+                                {
+                                    <option value="@state.Id">@state.StateName</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-lg-6">
+                            <label>Country <span style="color:red">*</span></label>
+                            <select class="form-control" name="CountryId" required>
+                                @foreach (var item in ViewBag.c)
+                                {
+                                    <option value="@item.Id">@item.CountryName</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-lg-6">
+                            <label>Pincode <span style="color:red">*</span></label>
+                            <input class="form-control" name="Pincode" type="text" required maxlength="6" pattern="\d{6}" title="Pincode must be a 6-digit number">
+                        </div>
+
+                        <div class="col-lg-6">
+                            <label>Stamp</label>
+                            <input class="form-control" name="StampImg" type="file">
+                        </div>
+
+                        <div class="col-lg-6">
+                            <label>Status <span style="color:red">*</span></label>
+                            <select class="form-control" id="status" name="status" required>
+                                <option value="true">Active</option>
+                                <option value="false">InActive</option>
+                            </select>
+                        </div>
+                        <div class="col-md-12 mt-3 d-flex justify-content-start gap-2">
+                            <button type="submit" class="btn btn-primary">Save</button>
+                            <button type="reset" class="btn btn-success">Reset</button>
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Branch Modal -->
+<div class="modal fade" id="editBranchModal" tabindex="-1" aria-labelledby="editBranchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editBranchModalLabel">Edit Branch</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editBranchForm" action="@Url.Action("Save", "BranchMaster")" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="Id" id="editId" value="" />
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <label>Company*</label>
+                            <select class="form-control" name="CompanyId" id="editCompany" required>
+                                @foreach (var t in ViewBag.cc)
+                                {
+                                    <option value="@t.CompanyId">@t.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Branch Name*</label>
+                            <input class="form-control" name="BranchName" id="editBranchName" type="text" required>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>POC *</label>
+                            <input class="form-control" name="POC" id="editPOC" type="text" required>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Email</label>
+                            <input class="form-control" name="Email" id="editEmail" type="email" required>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Address</label>
+                            <input class="form-control" name="Address" id="editAddress" type="text" required>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>City</label>
+                            <input class="form-control" name="City" id="editCity" type="text" required>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>State *</label>
+                            <select class="form-control" name="StateId" id="editState" required>
+                                @foreach (var state in ViewBag.s)
+                                {
+                                    <option value="@state.Id">@state.StateName</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Country*</label>
+                            <select class="form-control" name="CountryId" id="editCountry" required>
+                                @foreach (var item in ViewBag.c)
+                                {
+                                    <option value="@item.Id">@item.CountryName</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Pincode*</label>
+                            <input class="form-control" name="Pincode" id="editPincode" type="text" required maxlength="6" pattern="\d{6}" title="Pincode must be a 6-digit number">
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Stamp</label>
+                            <input class="form-control" name="StampImg" id="editStampImg" type="file">
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Status*</label>
+                            <select class="form-control" name="Status" id="editStatus" required>
+                                <option value="true">Active</option>
+                                <option value="false">InActive</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mt-3">
+                            <button type="submit" class="btn btn-primary">Update</button>
+                        </div>
+                        <div class="col-md-6 mt-3">
+                            <button type="reset" class="btn btn-success">Reset</button>
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openAddModal() {
+        $('#addBranchModal').modal('show');
+    }
+
+    function EditBranch(id, company, branchName, poc, email, address, city, state, country, pincode, stampImage, status) {
+        $('#editId').val(id);
+        $('#editCompany').val(company);
+        $('#editBranchName').val(branchName);
+        $('#editPOC').val(poc);
+        $('#editEmail').val(email);
+        $('#editAddress').val(address);
+        $('#editCity').val(city);
+        $('#editState').val(state);
+        $('#editCountry').val(country);
+        $('#editPincode').val(pincode);
+        $('#editStatus').val(status);
+
+        $('#editBranchModal').modal('show');
+    }
+
+    function DeleteBranch(id) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "Do You Want to Delete This Branch?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn btn-danger",
+            confirmButtonText: "Yes, delete it!",
+            cancelButtonText: "Cancel",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: "/BranchMaster/Delete",
+                    type: 'POST',
+                    data: { id: id },
+                    success: function (response) {
+                        Swal.fire("Deleted!", "Your Branch has been deleted.", "success").then(() => {
+                            window.location.reload();
+                        });
+                    },
+                    error: function () {
+                        Swal.fire("Error!", "There was an issue deleting the Branch.", "error");
+                    }
+                });
+            }
+        });
+    }
+
+    $('#branchForm').submit(function (e) {
+        e.preventDefault();
+        var formData = new FormData(this);
+
+        $.ajax({
+            url: '/BranchMaster/Save',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                if (response.success) {
+                    Swal.fire("Success!", "Branch added successfully.", "success").then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire("Error!", response.message || "There was an issue adding the Branch.", "error");
+                }
+            },
+            error: function (xhr, status, error) {
+                Swal.fire("Error!", "There was an error processing your request: " + xhr.responseText, "error");
+            }
+        });
+    });
+
+    $('#editBranchForm').submit(function (e) {
+        e.preventDefault();
+        var formData = new FormData(this);
+
+        $.ajax({
+            url: '/BranchMaster/Save',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                if (response.success) {
+                    Swal.fire("Updated!", response.message, "success").then(() => {
+                        $('#editBranchModal').modal('hide');
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire("Error!", response.message || "Failed to update branch.", "error");
+                }
+            },
+            error: function (xhr, status, error) {
+                Swal.fire("Error!", "An error occurred while updating the branch: " + xhr.responseText, "error");
+            }
+        });
+    });
+</script>

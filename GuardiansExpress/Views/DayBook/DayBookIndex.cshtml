@@ -1,0 +1,298 @@
+﻿@model IEnumerable<GuardiansExpress.Models.DTOs.DayBookDTO>
+@{
+    ViewData["Title"] = "Day Book Report";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+}
+
+<style>
+    .dropdown-menu {
+        width: 100%;
+    }
+
+    .table-responsive {
+        max-height: 70vh;
+        overflow: auto;
+    }
+
+    .selected-filter {
+        background-color: #e6f7ff;
+        border-left: 3px solid #1890ff;
+        padding-left: 10px;
+    }
+</style>
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="container-full">
+            <div class="content">
+                <div class="row">
+                    <div class="col-md-12 mt-3">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h4 class="card-title">Day Book Report</h4>
+                                <div>
+                                    <a href="javascript:void(0)" onclick="exportToPdf()" class="btn btn-danger">
+                                        <i class="fas fa-file-pdf"></i> Export PDF
+                                    </a>
+                                    <a href="javascript:void(0)" onclick="exportToExcel()" class="btn btn-success">
+                                        <i class="fas fa-file-excel"></i> Export Excel
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                                <form asp-action="Search" method="post" id="searchForm">
+                                    <div class="row g-3">
+                                        <!-- Date Range -->
+                                        <div class="col-md-3">
+                                            <label>Start Date</label>
+                                            <input type="date" name="startDate" class="form-control"
+                                                   value="@ViewBag.StartDate" />
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label>End Date</label>
+                                            <input type="date" name="endDate" class="form-control"
+                                                   value="@ViewBag.EndDate" />
+                                        </div>
+
+                                        <!-- Branch -->
+                                        <div class="col-md-3">
+                                            <label>Branch</label>
+                                            <select name="branch" class="form-control" asp-items="ViewBag.Branches">
+                                                <option value="">All Branches</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Transaction Type -->
+                                        <div class="col-md-3">
+                                            <label>Transaction Type</label>
+                                            <select name="transactionType" class="form-control" asp-items="ViewBag.TransactionTypes">
+                                                <option value="">All Types</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Account Head -->
+                                        <div class="col-md-3 @(ViewBag.SelectedAccHead != null ? "selected-filter" : "")">
+                                            <label>Account Head</label>
+                                            <input type="text" name="accHead" id="accHead" class="form-control"
+                                                   placeholder="Enter Account Head"
+                                                   value="@ViewBag.SelectedAccHead"
+                                                   list="accountHeads" />
+                                            <datalist id="accountHeads">
+                                                @foreach (var head in ViewBag.AccountHeads ?? new List<string>())
+                                                {
+                                                    <option value="@head">@head</option>
+                                                }
+                                            </datalist>
+                                        </div>
+
+                                        <!-- Balance Type -->
+                                        <div class="col-md-3">
+                                            <label>Balance Type</label>
+                                            <select name="balType" class="form-control" asp-items="ViewBag.BalanceTypes">
+                                                <option value="">All Types</option>
+                                                <option value="Dr" selected='@(Context.Request.Query["balType"] == "Dr")'>Dr</option>
+                                                <option value="Cr" selected='@(Context.Request.Query["balType"] == "Cr")'>Cr</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Book Type -->
+                                        <div class="col-md-3">
+                                            <label>Book Type</label>
+                                            <select name="bookType" class="form-control" asp-items="ViewBag.BookTypes">
+                                                <option value="">All Types</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Submit -->
+                                        <div class="text-end mt-3">
+                                            <button type="submit" class="btn btn-success me-2">
+                                                <i class="fa fa-search"></i> Search
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary" onclick="resetForm()">
+                                                <i class="fa fa-refresh"></i> Reset
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+
+                                @if (Model != null && Model.Any())
+                                {
+                                    <div class="table-responsive mt-4">
+                                        <table class="table table-bordered table-striped" id="dataTable">
+                                            <thead class="bg-primary text-white">
+                                                <tr>
+                                                    @if (ViewBag.SelectedColumns != null)
+                                                    {
+                                                        foreach (var column in ViewBag.SelectedColumns as List<string> ?? new List<string>())
+                                                        {
+                                                            <th>@column</th>
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <th>Sr No.</th>
+                                                        <th>Date</th>
+                                                        <th>Ref. No.</th>
+                                                        <th>Acc Head</th>
+                                                        <th>Particulars</th>
+                                                        <th>Voucher No</th>
+                                                        <th>Cheque No</th>
+                                                        <th>TransactionType</th>
+                                                    }
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var item in Model)
+                                                {
+                                                    <tr>
+                                                        @if (ViewBag.SelectedColumns != null)
+                                                        {
+                                                            foreach (var column in ViewBag.SelectedColumns as List<string> ?? new List<string>())
+                                                            {
+                                                                var prop = item.GetType().GetProperty(column);
+                                                                <td>
+                                                                    @if (prop != null)
+                                                                    {
+                                                                        var value = prop.GetValue(item);
+                                                                        @switch (column)
+                                                                        {
+                                                                            case "Date":
+                                                                            case "TransactionDate":
+                                                                            case "CreatedOn":
+                                                                            case "UpdatedOn":
+                                                                                <text>@(value != null ? ((DateTime)value).ToString("dd-MM-yyyy") : "-")</text>
+                                                                                break;
+                                                                            case "DebitAmount":
+                                                                            case "CreditAmount":
+                                                                            case "Balance":
+                                                                                <text>@(value != null ? ((decimal)value).ToString("N2") : "-")</text>
+                                                                                break;
+                                                                            default:
+                                                                                <text>@(value?.ToString() ?? "-")</text>
+                                                                                break;
+                                                                        }
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <text>-</text>
+                                                                    }
+                                                                </td>
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            <td>@item.SrNo</td>
+                                                            <td>@item.Date.ToString("dd-MM-yyyy")</td>
+                                                            <td>@item.ReferenceNo</td>
+                                                            <td>@item.AccountHead</td>
+                                                            <td>@item.Particulars</td>
+                                                            <td>@item.VoucherNo</td>
+                                                            <td>@item.ChequeNo</td>
+                                                            <td>@item.TransactionType</td>
+                                                            
+                                                        }
+                                                    </tr>
+                                                }
+                                                <!-- Summary Row -->
+                                                <tr class="font-weight-bold bg-light">
+                                                    @if (ViewBag.SelectedColumns != null)
+                                                    {
+                                                        <td colspan="@(ViewBag.SelectedColumns.Count - 2)" class="text-end">Total</td>
+                                                        @if (ViewBag.SelectedColumns.Contains("DebitAmount"))
+                                                        {
+                                                            <td class="text-right">@Model.Sum(d => d.DebitAmount).ToString("N2")</td>
+                                                        }
+                                                        @if (ViewBag.SelectedColumns.Contains("CreditAmount"))
+                                                        {
+                                                            <td class="text-right">@Model.Sum(d => d.CreditAmount).ToString("N2")</td>
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <td colspan="7" class="text-end">Total</td>
+                                                        <td class="text-right">@Model.Sum(d => d.DebitAmount).ToString("N2")</td>
+                                                        <td class="text-right">@Model.Sum(d => d.CreditAmount).ToString("N2")</td>
+                                                    }
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                }
+                                else if (Model != null)
+                                {
+                                    <p class="mt-3 text-center text-muted">No records found matching your criteria.</p>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Preserve checkbox state
+        const checkboxes = document.querySelectorAll('.column-checkbox');
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function () {
+                const checkedCount = document.querySelectorAll('.column-checkbox:checked').length;
+                if (checkedCount === 0) {
+                    this.checked = true;
+                    alert('At least one column must be selected');
+                }
+                updateColumnCount();
+            });
+        });
+
+        function updateColumnCount() {
+            const count = document.querySelectorAll('.column-checkbox:checked').length;
+            document.querySelector('.dropdown-toggle').innerHTML =
+                `Select Columns (${count})`;
+        }
+        updateColumnCount();
+
+        // Highlight AccHead field if it has a value
+        const accHeadField = document.getElementById('accHead');
+        if (accHeadField && accHeadField.value) {
+            accHeadField.parentElement.classList.add('selected-filter');
+        }
+
+        // Set default dates if not set
+        if (!document.querySelector('input[name="startDate"]').value) {
+            document.querySelector('input[name="startDate"]').value = new Date().toISOString().split('T')[0];
+        }
+        if (!document.querySelector('input[name="endDate"]').value) {
+            document.querySelector('input[name="endDate"]').value = new Date().toISOString().split('T')[0];
+        }
+    });
+
+    function resetForm() {
+        document.getElementById('searchForm').reset();
+        document.querySelectorAll('.column-checkbox').forEach(checkbox => {
+            checkbox.checked = true;
+        });
+        document.querySelector('.dropdown-toggle').innerHTML = 'Select Columns';
+
+        // Remove highlighting
+        document.querySelectorAll('.selected-filter').forEach(el => {
+            el.classList.remove('selected-filter');
+        });
+    }
+
+    function exportToPdf() {
+        // Get all form values
+        const formData = new FormData(document.getElementById('searchForm'));
+        const queryString = new URLSearchParams(formData).toString();
+        window.location.href = '@Url.Action("ExportToPdf", "DayBook")?' + queryString;
+    }
+
+    function exportToExcel() {
+        // Get all form values
+        const formData = new FormData(document.getElementById('searchForm'));
+        const queryString = new URLSearchParams(formData).toString();
+        window.location.href = '@Url.Action("ExportToExcel", "DayBook")?' + queryString;
+    }
+</script>

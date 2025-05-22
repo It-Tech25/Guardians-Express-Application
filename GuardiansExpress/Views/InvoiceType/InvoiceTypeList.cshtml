@@ -1,0 +1,259 @@
+﻿@model IEnumerable<GuardiansExpress.Models.DTOs.InvoiceTypeModel>
+@{
+    int rCnt = 1;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="row">
+            <div class="col-md-12 mt-3">
+                <div class="card">
+                
+                    <div class="card-header">
+                        <a href="javascript:void(0);" onclick="openAddModal();" class="btn btn-success btn-xs" style="height: 100%; display: flex; justify-content: center; align-items: center; padding: 0 10px;">
+                            <i class="fa fa-plus" aria-hidden="true"></i> 
+                        </a>
+                    </div>
+                    <div class="box-body">
+                        <div class="table-responsive">
+                            <table id="example1" class="text-fade table table-bordered" style="width:100%">
+                                <thead>
+                                    <tr class="text-dark">
+                                        <th>S.No</th>
+                                        <th>InvoiceType</th>
+                                        <th>Id</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var v in Model)
+                                    {
+                                        <tr>
+                                            <th scope="row">@(rCnt++)</th>
+                                            <td>@v.InvoiceType</td>
+                                            <td>@v.Id</td>
+                                            <td>@v.Status</td>
+                                            <td>
+                                                <a href="#" onclick="EditInvoiceType(@v.Id, '@v.InvoiceType', '@v.Status')"><i class="fa fa-pencil"></i></a>
+                                                <a href="#" onclick="DeleteInvoiceType(@v.Id)"> <i class="fa fa-trash"></i></a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                       
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Invoice Type Modal -->
+<div class="modal fade" id="addInvoiceTypeModal" tabindex="-1" aria-labelledby="addInvoiceTypeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addInvoiceTypeModalLabel">Add Invoice Type</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="InvoiceForm" action="@Url.Action("AddOrUpdateInvoiceType", "InvoiceType")" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <label>InvoiceType *</label>
+                            <input class="form-control" name="InvoiceType" type="text" required autocomplete="off">
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Status *</label>
+                            <select class="form-control" name="Status" required autocomplete="off">
+                                <option value="" disabled selected>Select Status</option>
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mt-3">
+                            <button type="submit" class="btn btn-primary">Save</button>
+                            <button type="reset" class="btn btn-success">Reset</button>
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Invoice Type Modal -->
+<div class="modal fade" id="editInvoiceTypeModal" tabindex="-1" aria-labelledby="editInvoiceTypeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editInvoiceTypeModalLabel">Edit Invoice Type</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editInvoiceForm" action="@Url.Action("AddOrUpdateInvoiceType", "InvoiceType")" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="Id" id="editId" value="" />
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <label>InvoiceType *</label>
+                            <input class="form-control" name="InvoiceType" id="editInvoiceType" type="text" required autocomplete="off">
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Status *</label>
+                            <select class="form-control" name="Status" id="editStatus" required autocomplete="off">
+                                <option value="" disabled selected>Select Status</option>
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mt-3">
+                            <button type="submit" class="btn btn-primary">Update</button>
+                            <button type="reset" class="btn btn-success">Reset</button>
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Function to open the Add Invoice Type modal
+    function openAddModal() {
+        $('#addInvoiceTypeModal').modal('show');
+    }
+
+    // Function to open the Edit Invoice Type modal and populate it with data
+    function EditInvoiceType(id, invoiceType, status) {
+        $('#editId').val(id);
+        $('#editInvoiceType').val(invoiceType);
+        $('#editStatus').val(status);
+        $('#editInvoiceTypeModal').modal('show');
+    }
+
+      function DeleteInvoiceType(id) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "Do You Want to Delete This Invoice Type?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn btn-danger",
+            confirmButtonText: "Yes, delete it!",
+            cancelButtonText: "Cancel",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: "/InvoiceType/DeleteInvoiceType",
+                    type: 'POST',
+                    data: {
+                        id: id,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]:first').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire("Deleted!", "Your Invoice Type has been deleted.", "success").then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire("Error!", response.message || "There was an issue deleting the Invoice Type.", "error");
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.log("Error Status:", status);
+                        console.log("Error:", error);
+                        console.log("Response:", xhr.responseText);
+                        Swal.fire("Error!", "There was an issue deleting the Invoice Type.", "error");
+                    }
+                });
+            }
+        });
+    }
+
+    // Handle form submission for Add Invoice Type
+    $('#InvoiceForm').submit(function (e) {
+        e.preventDefault();
+        var formData = new FormData(this);
+
+        $.ajax({
+            url: '/InvoiceType/AddOrUpdateInvoiceType',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                if (response.success) {
+                    Swal.fire("Success!", "Invoice Type added successfully.", "success").then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire("Error!", response.message || "There was an issue adding the Invoice Type.", "error");
+                }
+            },
+            error: function () {
+                Swal.fire("Error!", "There was an error processing your request.", "error");
+            }
+        });
+    });
+
+    // Handle form submission for Edit Invoice Type
+    $('#editInvoiceForm').submit(function (e) {
+        e.preventDefault();
+        var formData = new FormData(this);
+
+        $.ajax({
+            url: '/InvoiceType/AddOrUpdateInvoiceType',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                if (response.success) {
+                    Swal.fire("Updated!", "Invoice Type updated successfully.", "success").then(() => {
+                        $('#editInvoiceTypeModal').modal('hide');
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire("Error!", response.message || "Failed to update Invoice Type.", "error");
+                }
+            },
+            error: function () {
+                Swal.fire("Error!", "An error occurred while updating the Invoice Type.", "error");
+            }
+        });
+    });
+
+    // Search functionality
+    function searchTable() {
+        var idInput = document.getElementById("searchId").value.toLowerCase();
+        var invoiceIdInput = document.getElementById("searchInvoiceId").value.toLowerCase();
+        var table = document.getElementById("dataTable");
+        var rows = table.getElementsByTagName("tr");
+
+        for (var i = 1; i < rows.length; i++) { // Skip header row
+            var idColumn = rows[i].getElementsByTagName("td")[0]; // InvoiceType in the first column
+            var invoiceIdColumn = rows[i].getElementsByTagName("td")[1]; // Invoice ID in the second column
+
+            if (idColumn && invoiceIdColumn) {
+                var idText = idColumn.textContent.toLowerCase();
+                var invoiceIdText = invoiceIdColumn.textContent.toLowerCase();
+
+                // Check if both fields match
+                if (idText.includes(idInput) && invoiceIdText.includes(invoiceIdInput)) {
+                    rows[i].style.display = "";
+                } else {
+                    rows[i].style.display = "none";
+                }
+            }
+        }
+    }
+</script>

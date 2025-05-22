@@ -1,0 +1,266 @@
+﻿@model IEnumerable<GuardiansExpress.Models.Entity.VehicleStatusEntity>
+@{
+    int rCnt = 1;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .required {
+        color: red;
+    }
+</style>
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="row">
+            <div class="col-md-12 mt-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Vehicle Status List</h4>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addVehicleStatusModal">
+                            <i class="fa fa-plus" aria-hidden="true"></i> Add Vehicle Status
+                        </button>
+                    </div>
+                    
+                <div class="box-body">
+                    <div class="table-responsive">
+                        <table id="example1" class="text-fade table table-bordered" style="width:100%">
+                            <thead>
+                                <tr class="text-dark">
+                                                <th>S.No</th>
+                                                <th>Vehicle Status Name</th>
+                                                <th>Status Behaviour</th>
+                                                <th>Color</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var v in Model)
+                                            {
+                                                <tr>
+                                                    <th scope="row">@(rCnt++)</th>
+                                                    <td>
+                                                <a href="#" onclick="EditVehicleStatus(@v.VehicleStatusID, '@v.VehicleStatusName', '@v.StatusBehaviour', '@v.Color')" class="btn btn-link p-0" title="Edit">
+                                                        @v.VehicleStatusName
+                                                    </a>    
+                                                    </td>
+                                                    <td>@v.StatusBehaviour</td>
+                                                    <td>@v.Color</td>
+                                                    <td>
+                                                        <a href="#" onclick="DeleteVehicleStatus(@v.VehicleStatusID)" class="btn btn-link p-0" title="Delete">
+                                                    <button type="button" class="waves-effect waves-circle btn btn-circle btn-danger btn-xs"><i class="fa fa-trash"></i></button>
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Vehicle Status Modal -->
+<div class="modal fade" id="addVehicleStatusModal" tabindex="-1" role="dialog" aria-labelledby="addVehicleStatusModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addVehicleStatusModalLabel">Add Vehicle Status</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="vehicleStatusForm" action="@Url.Action("VehicleStatusAdd", "VehicleStatus")" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <label>Vehicle Status Name<span class="required">*</span></label>
+                            <select class="form-control" name="VehicleStatusName" required autocomplete="off">
+                                <option value="--SELECT--">--SELECT--</option>
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Status Behaviour<span class="required">*</span></label>
+                            <input class="form-control" name="StatusBehaviour" type="text" required>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Color<span class="required">*</span></label>
+                            <input class="form-control" name="Color" type="text" required>
+                        </div>
+                        <div class="col-md-6 mt-3">
+                            <button type="submit" class="btn btn-primary">Save</button>
+                            <button type="reset" class="btn btn-success">Reset</button>
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Vehicle Status Modal -->
+<div class="modal fade" id="editVehicleStatusModal" tabindex="-1" role="dialog" aria-labelledby="editVehicleStatusModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editVehicleStatusModalLabel">Edit Vehicle Status</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editVehicleStatusForm" action="@Url.Action("VehicleStatusUpdate", "VehicleStatus")" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="VehicleStatusID" id="editVehicleStatusID" value="" />
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <label>Vehicle Status Name</label>
+                            <select class="form-control" name="VehicleStatusName" id="editVehicleStatusName" autocomplete="off">
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Status Behaviour</label>
+                            <input class="form-control" name="StatusBehaviour" id="editStatusBehaviour" type="text">
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Color</label>
+                            <input class="form-control" name="Color" id="editColor" type="text">
+                        </div>
+                        <div class="col-md-6 mt-3">
+                            <button type="submit" class="btn btn-primary">Update</button>
+                            <button type="reset" class="btn btn-success">Reset</button>
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('#dataTable').DataTable();
+
+        $('#vehicleStatusForm').submit(function (e) {
+            e.preventDefault();
+            var formData = $(this).serialize();
+            $.ajax({
+                url: '/VehicleStatus/VehicleStatusAdd',
+                type: 'POST',
+                data: formData,
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire("Success!", "Vehicle Status added successfully.", "success")
+                        .then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire("Error!", response.message || "There was an issue adding the Vehicle Status.", "error");
+                    }
+                },
+                error: function () {
+                    Swal.fire("Error!", "There was an error processing your request.", "error");
+                }
+            });
+        });
+
+        $('#editVehicleStatusForm').submit(function (e) {
+            e.preventDefault();
+            var formData = $(this).serialize();
+            $.ajax({
+                url: '/VehicleStatus/VehicleStatusUpdate',
+                type: 'POST',
+                data: formData,
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire("Success!", "Vehicle Status updated successfully.", "success")
+                        .then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire("Error!", response.message || "There was an issue updating the Vehicle Status.", "error");
+                    }
+                },
+                error: function () {
+                    Swal.fire("Error!", "There was an error processing your request.", "error");
+                }
+            });
+        });
+    });
+
+    function EditVehicleStatus(VehicleStatusID, VehicleStatusName, StatusBehaviour, Color) {
+        $('#editVehicleStatusID').val(VehicleStatusID);
+        $('#editVehicleStatusName').val(VehicleStatusName);
+        $('#editStatusBehaviour').val(StatusBehaviour);
+        $('#editColor').val(Color);
+        $('#editVehicleStatusModal').modal('show');
+    }
+
+    function DeleteVehicleStatus(VehicleStatusID) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "Do You Want to Delete This Vehicle Status?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn btn-danger",
+            confirmButtonText: "Yes, delete it!",
+            cancelButtonText: "Cancel",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: "/VehicleStatus/Delete",
+                    type: 'POST',
+                    data: { id: VehicleStatusID },
+                    success: function (response) {
+                        Swal.fire(
+                            "Deleted!",
+                            "Your Vehicle Status has been deleted.",
+                            "success"
+                        ).then(() => {
+                            window.location.reload();
+                        });
+                    },
+                    error: function () {
+                        Swal.fire(
+                            "Error!",
+                            "There was an issue deleting the Vehicle Status.",
+                            "error"
+                        );
+                    }
+                });
+            }
+        });
+    }
+
+    function searchTable() {
+        var vehicleStatusInput = document.getElementById("searchVehicleStatus").value.toLowerCase().trim();
+        var table = document.getElementById("dataTable");
+        var rows = table.getElementsByTagName("tbody")[0].getElementsByTagName("tr");
+
+        for (var i = 0; i < rows.length; i++) {
+            var vehicleStatusColumn = rows[i].getElementsByTagName("td")[1]; // Vehicle Status Name is in the second column
+
+            if (vehicleStatusColumn) {
+                var vehicleStatusText = vehicleStatusColumn.textContent.toLowerCase().trim();
+
+                if (vehicleStatusText.includes(vehicleStatusInput)) {
+                    rows[i].style.display = "";
+                } else {
+                    rows[i].style.display = "none";
+                }
+            }
+        }
+    }
+</script>

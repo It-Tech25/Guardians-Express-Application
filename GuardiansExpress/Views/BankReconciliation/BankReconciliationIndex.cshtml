@@ -1,0 +1,342 @@
+﻿@model IEnumerable<GuardiansExpress.Models.Entity.Voucher>
+
+@{
+    ViewData["Title"] = "Bank Reconciliation";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    int DNo = 1;
+}
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="row">
+            <div class="col-md-12 mt-1">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">Bank Reconciliation</h4>
+                    </div>
+                </div>
+
+                <!-- Tab Navigation -->
+                <ul class="nav nav-tabs mt-3" id="myTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="reconciliation-tab" data-bs-toggle="tab" data-bs-target="#reconciliationTab" type="button" role="tab">Bank Reconciliation</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#historyTab" type="button" role="tab">History</button>
+                    </li>
+                </ul>
+
+                <!-- Tab Content -->
+                <div class="tab-content mt-3">
+                    <!-- Bank Reconciliation Tab -->
+                    <div class="tab-pane fade show active" id="reconciliationTab">
+                        <div class="card shadow-lg p-4">
+                            <div class="row">
+                                <div class="col-md-3">
+
+                                    <label class="fw-bold">Bank Name</label>
+                                    <select name="AccountHead" id="AccountHead" class="form-control">
+
+                                        <option value="">Select Bank</option>
+                                        @foreach (var item in ViewBag.bankname)
+                                        {
+                                            <option value="@item">@item</option>
+
+                                        }
+                                    </select>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="fw-bold">Cheque No.</label>
+                                    <input type="text" class="form-control" id="chequeNo" placeholder="Enter Cheque No.">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="fw-bold">Date (From - To)</label>
+                                    <div class="d-flex">
+                                        <input type="date" class="form-control" id="fromDate">
+                                        <input type="date" class="form-control ms-2" id="toDate">
+                                    </div>
+                                </div>
+
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button class="btn btn-success w-100 me-2" onclick="searchRecords()">
+                                        <i class="fas fa-search"></i> Search
+                                    </button>
+                                    <button class="btn btn-secondary w-100" onclick="resetFilters()">
+                                        <i class="fas fa-sync"></i> Reset
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Data Table -->
+                        <div class="card shadow-lg p-4">
+                            <div id="tableContainer" style="display: none;">
+                                <table class="table table-bordered text-center">
+                                    <thead class="table-success">
+                                        <tr>
+                                            <th>S.No</th>
+                                            <th>Doc No.</th>
+                                            <th>Date</th>
+                                            <th>Cheque No.</th>
+                                            <th>A/C Description</th>
+                                            <th>Ref. Description</th>
+                                            <th>Amount</th>
+                                            <th>Type</th>
+                                            <th>Reconcile Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="bankReconciliationTable">
+                                        <!-- Data will be loaded dynamically via JavaScript -->
+                                    </tbody>
+                                </table>
+
+                                <!-- Actions -->
+                                <div class="d-flex justify-content-end mt-3">
+                                    <input type="date" class="form-control w-25 me-2" id="bulkReconcileDate">
+                                   @*  <button class="btn btn-primary me-2" onclick="applyBulkReconcileDate()">Update with Voucher Entry</button>
+ *@
+                                    <button class="btn btn-success" onclick="saveReconciliation()">✔ Save</button>
+                                </div>
+                            </div>
+
+                            <div id="noDataMessage" class="text-center p-5">
+                                <i class="fas fa-database fa-3x mb-3 text-muted"></i>
+                                <h4 class="text-muted">Please select a bank to view reconciliation data</h4>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- History Tab -->
+                    <div class="tab-pane fade" id="historyTab">
+                        <div class="card shadow-lg p-4">
+                            <h4>📜 Reconciliation History</h4>
+                            <table class="table table-striped text-center">
+                                <thead class="table-info">
+                                    <tr>
+                                        <th>S.No</th>
+                                        <th>Bank Name</th>
+                                        <th>Doc No.</th>
+                                        <th>Cheque No.</th>
+                                        <th>Amount</th>
+                                        <th>Reconcile Date</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historyTable">
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted">No History Found</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div> <!-- End of tab-content -->
+            </div> <!-- End of col-md-12 -->
+        </div> <!-- End of row -->
+    </div> <!-- End of content-wrapper -->
+</div> <!-- End of main-panel -->
+<!-- JavaScript -->
+<script>
+     function searchRecords() {
+        loadBankData(); // Re-load with current filters
+
+    }
+</script>
+<script>
+    // function searchRecords() {
+    //     let bankName = document.getElementById("bankName").value;
+    //     let chequeNo = document.getElementById("chequeNo").value;
+    //     let fromDate = document.getElementById("fromDate").value;
+    //     let toDate = document.getElementById("toDate").value;
+
+    //     if (!bankName && !chequeNo && !fromDate && !toDate) {
+    //         alert("Please enter at least one search criterion.");
+    //         return;
+    //     }
+
+    //     // Simulated search logic (Replace with actual AJAX call)
+    //     alert(`Searching records for:\nBank: ${bankName}\nCheque No: ${chequeNo}\nDate: ${fromDate} - ${toDate}`);
+
+    //     // Uncomment for actual AJAX call
+    //     /*
+    //     $.ajax({
+    //         url: '/BankReconciliation/Search',
+    //         type: 'GET',
+    //         data: { bankName, chequeNo, fromDate, toDate },
+    //         success: function (response) {
+    //             $("#bankReconciliationTable").html(response);
+    //         },
+    //         error: function () {
+    //             alert("Error fetching records.");
+    //         }
+    //     });
+    //     */
+    // }
+
+        function resetFilters() {
+        document.getElementById("AccountHead").value = ""; // Corrected ID
+        document.getElementById("chequeNo").value = "";
+        document.getElementById("fromDate").value = "";
+        document.getElementById("toDate").value = "";
+
+        // Hide table
+        document.getElementById("tableContainer").style.display = "none";
+        document.getElementById("noDataMessage").style.display = "block";
+        document.getElementById("noDataMessage").innerHTML = '<i class="fas fa-database fa-3x mb-3 text-muted"></i><h4 class="text-muted">Please select a bank to view reconciliation data</h4>';
+    }
+        document.getElementById("AccountHead").addEventListener("change", function() {
+        if (this.value) searchRecords();
+    });
+
+        function searchRecords() {
+        let bankName = document.getElementById("AccountHead").value;
+        let chequeNo = document.getElementById("chequeNo").value;
+        let fromDate = document.getElementById("fromDate").value;
+        let toDate = document.getElementById("toDate").value;
+
+           $.ajax({
+            url: '/BankReconciliation/GetBankReconciliationData',
+            type: 'GET',
+            dataType: 'json',
+            data: {
+                bankName: bankName,
+                chequeNo: chequeNo,
+                fromDate: fromDate,
+                toDate: toDate
+            },
+         success: function(response) {
+                if (response.length > 0) {
+                    let tableHtml = '';
+                    let serialNumber = 1;
+
+                    response.forEach((item, index) => {
+                        tableHtml += `
+                            <tr data-voucher-id="${item.id}">
+                                <td>${serialNumber}</td>
+                                <td>${item.docNumber || index + 1}</td>
+                                <td>${formatDate(item.voucherDate)}</td>
+                                <td>${item.chequeNumber || ''}</td>
+                                <td>${item.accountHead}</td>
+                                <td>${item.description || item.accountHead}</td>
+                                <td>${item.totalAmount?.toFixed(2)}</td>
+                                <td>
+                                    <select class="form-control transaction-type">
+                                        <option value="CR" ${item.transactionType === 'CR' ? 'selected' : ''}>CR</option>
+                                        <option value="DR" ${item.transactionType === 'DR' ? 'selected' : ''}>DR</option>
+                                    </select>
+                                </td>
+                                <td><input type="date" class="form-control reconcileDate" value="${item.reconcileDate ? formatDate(item.reconcileDate) : ''}"></td>
+                            </tr>`;
+                        serialNumber++;
+                    });
+
+                    $("#bankReconciliationTable").html(tableHtml);
+                    $("#tableContainer").show();
+                    $("#noDataMessage").hide();
+                } else {
+                    $("#tableContainer").hide();
+                    $("#noDataMessage").html('<i class="fas fa-exclamation-circle fa-3x mb-3 text-warning"></i><h4 class="text-muted">No records found for the selected bank</h4>').show();
+                }
+            },
+            error: function() {
+                $("#noDataMessage").html('<i class="fas fa-exclamation-triangle fa-3x mb-3 text-danger"></i><h4 class="text-danger">Error loading data</h4>').show();
+            }
+        });
+    }
+
+    function formatDate(dateString) {
+        if (!dateString) return '';
+
+        // Handle date string in various formats
+        const date = new Date(dateString);
+        return date.toISOString().split('T')[0]; // YYYY-MM-DD format
+    }
+
+
+    function resetFilters() {
+       document.getElementById("AccountHead").value = "";
+        document.getElementById("chequeNo").value = "";
+        document.getElementById("fromDate").value = "";
+        document.getElementById("toDate").value = "";
+
+        // Hide table
+        document.getElementById("tableContainer").style.display = "none";
+        document.getElementById("noDataMessage").style.display = "block";
+        document.getElementById("noDataMessage").innerHTML = '<i class="fas fa-database fa-3x mb-3 text-muted"></i><h4 class="text-muted">Please select a bank to view reconciliation data</h4>';
+    }
+
+     function applyBulkReconcileDate() {
+        let bulkDate = document.getElementById("bulkReconcileDate").value;
+        if (!bulkDate) {
+            alert("Please select a date first.");
+            return;
+        }
+
+        // Apply date to all rows
+        let dateInputs = document.querySelectorAll(".reconcileDate");
+        dateInputs.forEach(input => {
+            input.value = bulkDate;
+        });
+
+        // Optionally save right after
+        saveReconciliation(); // <-- Add this if you want auto save
+    }
+
+
+    function saveReconciliation() {
+        // Validate if bank is selected
+        let bankName = document.getElementById("bankName").value;
+        if (!bankName) {
+            alert("Please select a bank first.");
+            return;
+        }
+
+        // Collect all reconciliation data
+        let reconciliations = [];
+        let rows = document.querySelectorAll("#bankReconciliationTable tr");
+
+        rows.forEach(row => {
+            let voucherId = row.getAttribute("data-voucher-id");
+            let reconcileDate = row.querySelector(".reconcileDate").value;
+            let transactionType = row.querySelector(".transaction-type").value;
+
+            if (voucherId && reconcileDate) {
+                reconciliations.push({
+                    voucherId: voucherId,
+                    reconcileDate: reconcileDate,
+                    transactionType: transactionType
+                });
+            }
+        });
+
+        if (reconciliations.length === 0) {
+            alert("No reconciliation data to save.");
+            return;
+        }
+
+        // Send to server
+        $.ajax({
+            url: '/BankReconciliation/SaveReconciliation',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(reconciliations),
+            success: function(response) {
+                if (response.success) {
+                    alert("Reconciliation data saved successfully!");
+                } else {
+                    alert("Error saving data: " + (response.errors ? response.errors.join(", ") : "Unknown error"));
+                }
+            },
+            error: function() {
+                alert("Error saving reconciliation data. Please try again.");
+            }
+        });
+    }
+</script>

@@ -1,0 +1,1246 @@
+@model IEnumerable<GuardiansExpress.Models.DTOs.InvoiceDTO>
+@{
+    int rCnt = 1;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    /* Custom styling for active states */
+    .btn-group .btn-check:checked + .btn-outline-success {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .btn-group .btn-check:checked + .btn-outline-danger {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    datalist {
+        position: absolute;
+        background-color: white;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    .btn-group .btn {
+        border-radius: 0.5rem !important;
+        padding: 0.5rem 1.5rem;
+        font-weight: 500;
+    }
+    /* Add to your existing style section */
+    /* Ensure checkboxes are visible and properly aligned */
+    #grRecordsModal .form-check-input {
+        width: 1.2em;
+        height: 1.2em;
+        margin: 0;
+        opacity: 1 !important;
+        position: static !important;
+    }
+
+    #grRecordsModal .form-check-input {
+        margin: 0;
+        opacity: 1 !important;
+        position: static !important;
+        cursor: pointer;
+    }
+
+    #grRecordsModal .form-check-label {
+        cursor: pointer;
+        margin-left: 0.5rem;
+    }
+
+    #grRecordsTableBody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .gr-record-checkbox:focus {
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        outline: none;
+    }
+
+</style>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- DataTables CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+
+<!-- jQuery (required for DataTables) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- DataTables JS -->
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="row">
+            <div class="col-md-12 mt-3">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4 class="card-title mb-0">Add Invoice</h4>
+                        <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#addInvoiceModal">
+                            <i class="fa fa-plus" aria-hidden="true"></i> Add Invoice
+                        </button>
+                    </div>
+                    <div class="box-body">
+                        <div class="table-responsive">
+                            <table id="example2" class="text-fade table table-bordered" style="width:100%">
+                                <thead>
+                                    <tr class="text-dark">
+                                        <th>S.No</th>
+                                        <th>Invoice No</th>
+                                        <th>Date</th>
+                                        <th>Branch</th>
+                                        <th>Ledger</th>
+                                        <th>Net Amt|items</th>
+                                        <th>Paid</th>
+                                        <th>Approve St.</th>
+                                        <th>E-Invoice</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var inv in Model)
+                                    {
+                                        <tr>
+                                            <td scope="row">@(rCnt++)</td>
+                                            <td>@inv.InvoiceNo</td>
+                                            <td>@inv.InvDate</td>
+                                            <td>@inv.BranchName</td>
+                                            <td>@inv.InvDate</td>
+
+                                            <td>@inv.NetAmount</td>
+                                            <td>@inv.GrossAmount</td>
+                                            <td>@(inv.IsActive == true ? "Inactive" : "Active")</td>
+
+                                            <td>@inv.InvoiceType</td>
+                                            @* <td>
+												<a href="#" onclick="EditInv(@inv.InvoiceId, '@inv.BranchId', '@inv.InvTypeId', '@inv.SNo', '@inv.InvoiceNo', '@inv.InvDate', '@inv.SalesTypeId', '@inv.NoGST', '@inv.ClientId', '@inv.SelectAddress', '@inv.AccGSTIN', '@inv.Address', '@inv.SelectContact', '@inv.ContactPerson', '@inv.ClientEmail', '@inv.ClientMobile', '@inv.OrderNo', '@inv.OrderDate', '@inv.PONo', '@inv.PODate', '@inv.DueDate', '@inv.ShipToSelectAddress', '@inv.ShipToGSTIN', '@inv.ShipToAddress', '@inv.Mode''@inv.VehicleNo''@inv.GREwayNo''@inv.GRDate''@inv.EwayBillNo''@inv.Packages','@inv.Transporter','@inv.TransporterId','@inv.DispatchFromState','@inv.DispatchFromCity','@inv.DispatchFromPincode','@inv.DispatchFrom','@inv.ChallanNo','@inv.PaymentTerm','@inv.SalesAgent','@inv.ORCAmount','@inv.Notes')" class="btn btn-link p-0" title="Edit">
+													<button type="button" class="waves-effect waves-circle btn btn-circle btn-dark btn-xs"><i class="fa fa-pencil"></i></button>
+												</a>
+												<a href="#" onclick="DeleteInvoice(@inv.InvoiceId)" class="btn btn-link p-0" title="Delete">
+													<button type="button" class="waves-effect waves-circle btn btn-circle btn-danger btn-xs"><i class="fa fa-trash"></i></button>
+												</a>
+											</td> *@
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Add Invoice Modal -->
+<div class="modal fade" id="addInvoiceModal" tabindex="-1" role="dialog" aria-labelledby="addinvoiceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addinvoiceModalLabel">Add Invoice</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="InvoiceSetupForm" action="@Url.Action("createInvoice", "Invoice")" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <div class="row">
+
+                        <div class="col-lg-3">
+                            <label>Branch <span class="text-danger">*</span></label>
+                            <select class="form-control" name="BranchId" id="BranchId">
+                                @foreach (var t in ViewBag.b)
+                                {
+                                    <option value="@t.id">@t.BranchName</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label>Inv type <span class="text-danger">*</span></label>
+                            <select class="form-control" name="InvTypeId" id="InvTypeId">
+                                @foreach (var t in ViewBag.v)
+                                {
+                                    <option value="@t.Id">@t.InvoiceType</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-lg-3">
+                            <label for="InvoiceNo">Invoice No <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="InvoiceNo" name="InvoiceNo" required maxlength="20">
+                        </div>
+                        <div class="col-lg-3">
+                            <label for="InvDate">Inv Date <span class="text-danger">*</span></label>
+                            <input type="Date" class="form-control" id="InvDate" name="InvDate" required maxlength="20">
+                        </div>
+
+
+                        <div class="col-md-3">
+                            <label class="form-label">Client <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="Client" id="clientInput"
+                                       list="clientList" required autocomplete="off" />
+
+                                <datalist id="clientList">
+                                    @foreach (var client in ViewBag.ClientName as List<string>)
+                                    {
+                                        <option value="@client"></option>
+                                    }
+                                </datalist>
+
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addLedgerModal">
+                                    +
+                                </button>
+                            </div>
+                        </div>
+
+
+                        <div class="col-md-3">
+                            <label for="SelectAddress">Select Address<span class="text-danger">*</span></label>
+
+                            <input type="text" class="form-control" id="SelectAddress" name="SelectAddress" required>
+                        </div>
+                        <div class="col-lg-3">
+                            <label for="AccGSTIN">Acc GSTIN</label>
+                            <input type="text" class="form-control" id="AccGSTIN" name="AccGSTIN" maxlength="15">
+                        </div>
+                        <div class="col-lg-3">
+                            <label for="Address">Address <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="Address" name="Address" required>
+                        </div>
+                        <div class="col-lg-3">
+                            <label for="SelectContact">Select Contact</label>
+
+                            <input type="text" class="form-control" id="SelectContact" name="SelectContact" maxlength="10">
+                        </div>
+                        <div class="col-lg-3">
+                            <label for="ContactPerson">Contact Person</label>
+                            <input type="text" class="form-control" id="ContactPerson" name="ContactPerson" maxlength="10">
+                        </div>
+                        <div class="col-lg-3">
+                            <label for="ClientEmail">Client Email</label>
+                            <input type="email" class="form-control" id="ClientEmail" name="ClientEmail">
+                        </div>
+                        <div class="col-lg-3">
+                            <label for="ClientMobile">Client Mobile</label>
+                            <input type="text" class="form-control" id="ClientMobile" name="ClientMobile" maxlength="10">
+                        </div>
+                        <div class="col-lg-3">
+                            <label for="OrderNo">Order No.</label>
+                            <input type="number" class="form-control" id="OrderNo" name="OrderNo">
+                        </div>
+                        <div class="col-lg-3">
+                            <label for="OrderDate">Order Date</label>
+                            <input type="Date" class="form-control" id="OrderDate" name="OrderDate">
+                        </div>
+                        <div class="col-lg-3">
+                            <label for="PONo">PO No.</label>
+                            <input type="text" class="form-control" id="PONo" name="PONo">
+                        </div>
+                        <div class="col-lg-3">
+                            <label for="PODate">PO Date</label>
+                            <input type="Date" class="form-control" id="PODate" name="PODate">
+                        </div>
+                        <div class="col-lg-3">
+                            <label for="DueDate">Due Date</label>
+                            <input type="Date" class="form-control" id="DueDate" name="DueDate">
+                        </div>
+                        <div class="col-lg-3">
+                            <label class="form-label d-block mb-2">GST Type</label>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="GSTType" id="GST" value="GST" autocomplete="off">
+                                <label class="btn btn-outline-success d-flex justify-content-center align-items-center text-center w-50" for="GST">GST</label>
+
+                                <input type="radio" class="btn-check" name="GSTType" id="NoGST" value="NoGST" autocomplete="off">
+                                <label class="btn btn-outline-danger d-flex justify-content-center align-items-center text-center w-50" for="NoGST">NoGST</label>
+                            </div>
+                        </div>
+
+
+
+
+                        <div class="col-lg-12 mt-3">
+                            <div class="card">
+                                <div class="card-header" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#shippingDetailsCollapse" aria-expanded="false" aria-controls="shippingDetailsCollapse">
+                                    <h5 class="mb-0 d-flex justify-content-between align-items-center">
+                                        Shipping & Transport Details
+                                        <i class="fas fa-chevron-down"></i>
+                                    </h5>
+                                </div>
+                                <div id="shippingDetailsCollapse" class="collapse">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <!-- Ship To Information -->
+                                            <div class="col-lg-6">
+                                                <label for="ShipToSelectAddress">Select Address*</label>
+                                                <input type="text" class="form-control" id="ShipToSelectAddress" name="ShipToSelectAddress">
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <label for="ShipToGSTIN">Ship To GSTIN</label>
+                                                <input type="text" class="form-control" id="ShipToGSTIN" name="ShipToGSTIN">
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <label for="ShipToAddress">Address</label>
+                                                <input type="text" class="form-control" id="ShipToAddress" name="ShipToAddress">
+                                            </div>
+
+
+                                            <div class="col-md-6">
+                                                <label for="Invoice Type">Invoice Type</label>
+                                                <select id="Invoice Type" class="form-control" name="Invoice Type">
+                                                    <option value="">Select</option>
+                                                    <option>FCM</option>
+                                                    <option>RCM</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <label for="VehicleNo">Vehicle No.</label>
+                                                <input type="text" class="form-control" id="VehicleNo" name="VehicleNo">
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <label for="GREwayNo">GR/Eway No.</label>
+                                                <input type="text" class="form-control" id="GREwayNo" name="GREwayNo">
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <label for="GRDate">GR Date</label>
+                                                <input type="Date" class="form-control" id="GRDate" name="GRDate">
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <label for="EwayBillNo">Eway Bill No</label>
+                                                <input type="text" class="form-control" id="EwayBillNo" name="EwayBillNo">
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <label for="Packages">Packages</label>
+                                                <input type="text" class="form-control" id="Packages" name="Packages">
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <label for="Transporter">Transporter</label>
+                                                <input type="text" class="form-control" id="Transporter" name="Transporter">
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <label for="TransporterId">Transporter Id</label>
+                                                <input type="text" class="form-control" id="TransporterId" name="TransporterId">
+                                            </div>
+
+
+                                            <div class="col-lg-6">
+                                                <label>Dispatch From State</label>
+                                                <select class="form-control" name="DispatchFromState" id="DispatchFromState">
+                                                    @foreach (var t in ViewBag.st)
+                                                    {
+                                                        <option value="@t.Id">@t.StateName</option>
+                                                    }
+                                                </select>
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <label for="DispatchFromCity">Dispatch From City</label>
+                                                <input type="text" class="form-control" id="DispatchFromCity" name="DispatchFromCity">
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <label for="DispatchFromPincode">Dispatch From Pincode</label>
+                                                <input type="text" class="form-control" id="DispatchFromPincode" name="DispatchFromPincode">
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <label for="DispatchFrom">Dispatch From</label>
+                                                <input type="text" class="form-control" id="DispatchFrom" name="DispatchFrom">
+                                            </div>
+
+
+                                            <div class="col-lg-6">
+                                                <label for="CostCenter">Cost Center<span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" id="CostCenter" name="CostCenter">
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <label for="ChallanNo">Challan No<span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" id="ChallanNo" name="ChallanNo">
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <label for="PaymentTerm">Payment Term</label>
+                                                <input type="text" class="form-control" id="PaymentTerm" name="PaymentTerm">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <table class="table table-bordered mt-3">
+                        <thead>
+                            <tr>
+                                <th>GRNO</th>
+                                <th>GRDate</th>
+                                <th>HSCSSN</th>
+                                <th>Rate</th>
+                                <th>Detention Amount</th>
+                                <th>Detention Days</th>
+                                <th>Other Charges</th>
+                                <th>Remarks</th>
+                                <th>Total Amount</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="documentTableBody">
+                            <tr class="billItemRow">
+                                <td><input type="text" class="form-control" name="BillItems[0].GRNo" placeholder="GRNo" required></td>
+                                <td><input type="date" class="form-control" name="BillItems[0].GRDate" placeholder="GRDate" required></td>
+
+                                <!-- Updated HSCSSN dropdown -->
+                                <td>
+                                    <select class="form-control hscssn-dropdown" name="BillItems[0].HSCSSN" required>
+                                        <option value="">Select</option>
+                                    </select>
+                                </td>
+
+                                <td><input type="number" class="form-control" name="BillItems[0].Rate" required></td>
+                                <td><input type="number" class="form-control" name="BillItems[0].DetentionAmount" required></td>
+                                <td><input type="number" class="form-control detention-days-input" name="BillItems[0].DetentionDays" required></td>
+                                <td><input type="number" class="form-control other-charges-input" name="BillItems[0].OtherCharges" required></td>
+                                <td><input type="text" class="form-control remarks-input" name="BillItems[0].Remarks" placeholder="Remarks" required></td>
+                                <td><input type="number" class="form-control total-amount-input" name="BillItems[0].TotalAmount" readonly required></td>
+                                <td><button type="button" class="btn btn-danger btn-sm removeRow">✖</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="row mt-3">
+                        <div class="col-md-6"></div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>Invoice Summary</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row mb-2">
+                                        <div class="col-md-6 text-right">
+                                            <strong>Gross Amount:</strong>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <input type="number" class="form-control" id="GrossAmount" name="GrossAmount" step="0.01" value="0.00" readonly>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-2">
+                                        <div class="col-md-6 text-right">
+                                            <strong>Tax:</strong>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <input type="number" class="form-control" id="Tax" name="Tax" step="0.01" value="0.00" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-md-6 text-right">
+                                            <strong>Round Off:</strong>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <input type="number" class="form-control" id="RoundOff" name="RoundOff" step="0.01" value="0.00">
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 text-right">
+                                            <strong>Net Amount:</strong>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <input type="number" class="form-control" id="NetAmount" name="NetAmount" step="0.01" value="0.00" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="row mt-3">
+                        <div class="col-md-12 text-left">
+                            <button type="submit" class="btn btn-success">Save</button>
+                            <button type="reset" class="btn btn-secondary">Reset</button>
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Ledger Popup -->
+<div class="modal fade" id="addLedgerModal" tabindex="-1" aria-labelledby="addLedgerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addLedgerModalLabel">Add Ledger</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="ledgerForm" action="@Url.Action("AddorUpdateLedgerMaster", "LedgerMaster")" method="post">
+                    @Html.AntiForgeryToken()
+                    <fieldset class="border p-3 mb-3">
+                        <legend class="w-auto">Ledger Details</legend>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="AccGroup" class="form-label">Account Group <span class="text-danger">*</span></label>
+                                <select class="form-select" id="AccGroup" name="AccGroup" required>
+                                    <option value="">Select SubGroup</option>
+                                    @if (ViewBag.subgroup != null)
+                                    {
+                                        foreach (var item in ViewBag.subgroup)
+                                        {
+                                            <option value="@item.SubGroupName">@item.SubGroupName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="AccHead" class="form-label">Account Head <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="AccHead" name="AccHead" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="TDSPercent" class="form-label">TDS %</label>
+                                <input type="number" class="form-control" id="TDSPercent" name="TDSPercent" step="0.01" placeholder="0.00">
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-check form-check-inline">
+                                    <input type="checkbox" class="form-check-input" id="BankAccount" name="BankAccount" value="true">
+                                    <label for="BankAccount" class="form-check-label">Bank Account</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input type="checkbox" class="form-check-input" id="TaxLedger" name="TaxLedger" value="true">
+                                    <label for="TaxLedger" class="form-check-label">Tax Ledger</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input type="checkbox" class="form-check-input" id="Taxable" name="Taxable" value="true">
+                                    <label for="Taxable" class="form-check-label">Taxable</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input type="checkbox" class="form-check-input" id="VehicleExpense" name="VehicleExpense" value="true">
+                                    <label for="VehicleExpense" class="form-check-label">Vehicle Expense</label>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Contact & Address Details -->
+                    <fieldset class="border p-3 mt-3">
+                        <legend class="fw-bold d-flex justify-content-between align-items-center">
+                            Contact & Address Details
+                            <button type="button" class="btn btn-primary" id="addContactBtn">
+                                <i class="fas fa-plus"></i> Add
+                            </button>
+                        </legend>
+                        <div id="contactForm">
+                            <div class="contact-section border p-3 mb-2">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <label for="ContactPerson" class="form-label">Contact Person</label>
+                                        <input type="text" class="form-control" id="ContactPerson" name="ContactPerson[]">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="Mobile" class="form-label">Mobile</label>
+                                        <input type="number" class="form-control" id="Mobile" name="Mobile[]">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="AltMobile" class="form-label">Alt. Mobile</label>
+                                        <input type="number" class="form-control" id="AltMobile" name="AltMobile[]">
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-md-4">
+                                        <label for="Email" class="form-label">Email ID</label>
+                                        <input type="email" id="Email" class="form-control" name="Email[]">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="TelNo" class="form-label">Tel No</label>
+                                        <input type="number" id="TelNo" class="form-control" name="TelNo[]">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="RefID" class="form-label">Ref ID</label>
+                                        <input type="text" id="RefID" class="form-control" name="RefID[]">
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-md-4">
+                                        <label for="CCEmailId" class="form-label">CC Email ID</label>
+                                        <input type="email" id="CCEmailId" class="form-control" name="CCEmailId[]">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="OtherEmailId" class="form-label">Other Email ID</label>
+                                        <input type="email" id="OtherEmailId" class="form-control" name="OtherEmailId[]">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="VendorCode" class="form-label">Vendor Code</label>
+                                        <input type="text" id="VendorCode" class="form-control" name="VendorCode[]">
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-md-6">
+                                        <label for="Address1" class="form-label">Address 1</label>
+                                        <input type="text" id="Address1" class="form-control" name="Address1[]">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="Address2" class="form-label">Address 2</label>
+                                        <input type="text" id="Address2" class="form-control" name="Address2[]">
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-md-4">
+                                        <label for="City" class="form-label">City</label>
+                                        <input type="text" id="City" class="form-control" name="City[]">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="State" class="form-label">State*</label>
+                                        <select id="State" class="form-control" name="State[]">
+                                            <option value="Telangana" selected>Telangana</option>
+                                            <option value="Andhra Pradesh">Andhra Pradesh</option>
+                                            <option value="Karnataka">Karnataka</option>
+                                            <option value="Tamil Nadu">Tamil Nadu</option>
+                                            <option value="Maharashtra">Maharashtra</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="Pincode" class="form-label">Pincode</label>
+                                        <input type="number" id="Pincode" class="form-control" name="Pincode[]">
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-md-4">
+                                        <label for="Country" class="form-label">Country*</label>
+                                        <select class="form-select" id="Country" name="Country[]">
+                                            <option value="India" selected>India</option>
+                                            <option value="USA">USA</option>
+                                            <option value="UK">UK</option>
+                                            <option value="Canada">Canada</option>
+                                            <option value="Australia">Australia</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Document & Bank Details -->
+                    <fieldset class="border p-3 mt-3">
+                        <legend class="fw-bold">Document & Bank Details</legend>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label for="RegistrationType" class="form-label">Registration Type</label>
+                                <select class="form-select" id="RegistrationType" name="RegistrationType">
+                                    <option value="Composition">Composition</option>
+                                    <option value="Consumer">Consumer</option>
+                                    <option value="Regular">Regular</option>
+                                    <option value="Unregistered">Unregistered</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="PartyType" class="form-label">Party Type</label>
+                                <input type="text" class="form-control" id="PartyType" name="PartyType">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="CINNo" class="form-label">CIN No</label>
+                                <input type="number" class="form-control" id="CINNo" name="CINNo">
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-4">
+                                <label for="GSTIN" class="form-label">GSTIN</label>
+                                <input type="text" class="form-control" id="GSTIN" name="GSTIN">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="PANNo" class="form-label">PAN No</label>
+                                <input type="text" class="form-control" id="PANNo" name="PANNo">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="AAdharNumber" class="form-label">Aadhar No</label>
+                                <input type="number" class="form-control" id="AAdharNumber" name="AAdharNumber">
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-4">
+                                <label for="AccHolderName" class="form-label">Acc. Holder Name</label>
+                                <input type="text" class="form-control" id="AccHolderName" name="AccHolderName">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="BankName" class="form-label">Bank Name</label>
+                                <input type="text" class="form-control" id="BankName" name="BankName">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="BankAccNo" class="form-label">Bank Acc No</label>
+                                <input type="text" class="form-control" id="BankAccNo" name="BankAccNo">
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-4">
+                                <label for="BankBranch" class="form-label">Bank Branch</label>
+                                <input type="text" class="form-control" id="BankBranch" name="BankBranch">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="IFSCCode" class="form-label">IFSC Code</label>
+                                <input type="text" class="form-control" id="IFSCCode" name="IFSCCode">
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Balance & Other Details -->
+                    <fieldset class="border p-3 mt-3">
+                        <legend class="fw-bold">Balance & Other Details</legend>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label for="OpeningBalance" class="form-label">Opening Balance</label>
+                                <input type="text" class="form-control" id="OpeningBalance" name="OpeningBalance">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="BalanceIn" class="form-label">Balance In</label>
+                                <select class="form-select" id="BalanceIn" name="BalanceIn">
+                                    <option value="Credit">Credit</option>
+                                    <option value="Debit">Debit</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="PaymentTerm" class="form-label">Payment Term</label>
+                                <input type="text" class="form-control" id="PaymentTerm" name="PaymentTerm">
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-4">
+                                <label for="DueDays" class="form-label">Due Days</label>
+                                <input type="number" class="form-control" id="DueDays" name="DueDays">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="Agent" class="form-label">Agent</label>
+                                <input type="text" class="form-control" id="Agent" name="Agent">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="UserName" class="form-label">Username</label>
+                                <input type="text" class="form-control" id="UserName" name="UserName" autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-4">
+                                <label for="Password" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="Password" name="Password" placeholder="**********" autocomplete="off">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="Status" class="form-label">Status*</label>
+                                <select class="form-select" id="Status" name="Status">
+                                    <option value="Active">Active</option>
+                                    <option value="Inactive">Inactive</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check mt-4">
+                                    <input class="form-check-input" type="checkbox" id="WalkinLedger" name="WalkinLedger" value="true">
+                                    <label class="form-check-label" for="WalkinLedger">Walkin Ledger</label>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Address Details -->
+                    <fieldset class="border p-3 mt-3">
+                        <legend class="fw-bold text-success">Address Details</legend>
+                        <table class="table table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Branch Name</th>
+                                    <th>Name/Address/Mobile</th>
+                                    <th>Address</th>
+                                    <th>City/State/Pincode</th>
+                                    <th>GSTIN</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="addressTableBody">
+                                <tr class="addressRow">
+                                    <td><input type="text" class="form-control" name="AddressDetails[0].BranchName"></td>
+                                    <td><input type="text" class="form-control" name="AddressDetails[0].NameAddressMobile"></td>
+                                    <td><input type="text" class="form-control" name="AddressDetails[0].Address"></td>
+                                    <td><input type="text" class="form-control" name="AddressDetails[0].CityStatePincode"></td>
+                                    <td><input type="text" class="form-control" name="AddressDetails[0].GSTIN"></td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-danger btn-sm removeAddress">Delete</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <button type="button" id="addMoreAddress" class="btn btn-primary">Add More</button>
+                    </fieldset>
+                    <div class="col-md-6 mt-3">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save btn-icon"></i>Save
+                        </button>
+                        <button type="reset" class="btn btn-secondary">
+                            <i class="fas fa-undo btn-icon"></i>Reset
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- GR Records Selection Modal -->
+<div class="modal fade" id="grRecordsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Select GR Records</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">Select</th>
+                                <th>GR No</th>
+                                <th>Rate</th>
+                                <th>From</th>
+                                <th>To</th>
+                            </tr>
+                        </thead>
+                        <tbody id="grRecordsTableBody">
+                            <!-- Dynamic content -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="addSelectedGrRecords" class="btn btn-primary">Add Selected</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        // Initialize DataTable
+        if (!$.fn.DataTable.isDataTable('#example1')) {
+            $('#example1').DataTable();
+        }
+
+        // Handle modal transitions
+        // Show Invoice modal when Ledger modal closes
+        $('#addLedgerModal').on('hidden.bs.modal', function (e) {
+            $('#addInvoiceModal').modal('show');
+        });
+
+        // Clean up backdrops when closing main modal
+        $('#addInvoiceModal').on('hidden.bs.modal', function (e) {
+            $('body').removeClass('modal-open');
+            $('.modal-backdrop').remove();
+        });
+
+        // Form submission handler
+        $('#InvoiceSetupForm').on('submit', function (e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+
+            $.ajax({
+                url: '/Invoice/createInvoice',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire("Success!", "Invoice added successfully.", "success")
+                            .then(() => window.location.reload());
+                    } else {
+                        Swal.fire("Error!", response.message || "There was an issue adding the Invoice.", "error");
+                    }
+                },
+                error: function (xhr) {
+                    Swal.fire("Error!", "Error processing request: " + xhr.statusText, "error");
+                }
+            });
+        });
+
+        // GR Records handling
+         // Fetch GR records on client change
+        $('#clientInput').on('change', function () {
+            const clientName = $(this).val();
+            if (clientName) {
+                fetchGRRecords(clientName);
+            }
+        });
+
+        // Handle checkbox click
+       // Handle checkbox change
+          // Revised checkbox handler with proper error handling
+      // 1. Disable focus trap on the modal
+    $('#grRecordsModal').modal({
+      focus: false // Disables Bootstrap's default focus trapping
+    });
+
+    // 2. Add this cleanup when closing modal
+    // 1. Declare the flag at the top of your script
+    let checkboxProcessing = false; // <-- Add this line
+
+    // 2. Initialize modal with focus trap disabled
+    $(document).ready(function() {
+        $('#grRecordsModal').modal({
+            focus: false // Disable Bootstrap's focus trap
+        });
+    });
+
+    // 3. Define the handler function
+    function handleCheckboxChange(e) {
+        if (checkboxProcessing) return;
+        checkboxProcessing = true;
+
+        try {
+            e.stopPropagation();
+            const $checkbox = $(this);
+
+            // Verify checkbox is within the modal
+            if (!$checkbox.closest('#grRecordsModal').length) return;
+
+            // Add slight delay for stability
+            setTimeout(() => {
+                const recordData = {
+                    grno: $checkbox.data('grno') || 'N/A',
+                    grdate: $checkbox.data('grdate') || 'N/A',
+                    rate: parseFloat($checkbox.data('rate')) || 0,
+                    detentionAmount: parseFloat($checkbox.data('detentionamount')) || 0,
+                    //detentionDays: parseInt($checkbox.data('detentiondays')) || 0,
+                    otherCharges: parseFloat($checkbox.data('othercharges')) || 0,
+                    remarks: $checkbox.data('remarks') || ''
+                };
+                console.log('Processed:', recordData);
+            }, 50);
+
+        } catch (error) {
+            console.error('Checkbox error:', error);
+        } finally {
+            checkboxProcessing = false;
+        }
+    }
+
+    // 4. Event listener cleanup system
+    $('#grRecordsModal').on('hidden.bs.modal', () => {
+        $('.gr-record-checkbox').off('change.checkboxHandler');
+        checkboxProcessing = false;
+    });
+
+    // 5. Attach namespaced event listener
+    $('#grRecordsModal').on('change.checkboxHandler', '.gr-record-checkbox', handleCheckboxChange);
+    // 6. Use event delegation with proper namespace
+    $('#grRecordsModal').on('change', '.gr-record-checkbox', handleCheckboxChange);
+        // Add GR records
+        $('#addSelectedGrRecords').off('click').on('click', function () {
+            const selectedRecords = [];
+
+    $('#grRecordsTableBody .gr-record-checkbox:checked').each(function () {
+        const $checkbox = $(this);
+        selectedRecords.push({
+            grNo: $checkbox.data('grno') || '',
+            grDate: $checkbox.data('grdate') || '',
+            freightAmount: parseFloat($checkbox.data('freightamount')) || 0,
+            detentionAmount: parseFloat($checkbox.data('detentionamount')) || 0,
+            //detentionDays: parseFloat($checkbox.data('detentiondays')) || 0,
+            otherCharges: parseFloat($checkbox.data('othercharges')) || 0,
+            remarks: $checkbox.data('remarks') || ''
+        });
+    });
+            if (selectedRecords.length > 0) {
+                addGrRecordsToTable(selectedRecords);
+                $('#grRecordsModal').modal('hide');
+            } else {
+                Swal.fire("Warning!", "Please select at least one GR record.", "warning");
+            }
+        });
+
+        // Row-level inputs
+        $('#documentTableBody').on('input', '.rate-input, .detention-days-input, .other-charges-input', function () {
+            calculateRowTotal($(this).closest('tr'));
+        });
+
+        $('#documentTableBody').on('click', '.removeRow', function () {
+            $(this).closest('tr').remove();
+            reindexRows();
+            calculateInvoiceTotal();
+        });
+    });
+
+    // Fetch GR Records
+    // Fixed GR records processing
+    function fetchGRRecords(clientName) {
+        fetch(`/Invoice/GrRecords?clientName=${encodeURIComponent(clientName)}`)
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.getElementById('grRecordsTableBody');
+                tbody.innerHTML = ''; // Clear existing content
+
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5">No records found</td></tr>';
+                    return;
+                }
+
+                data.forEach(record => {
+                    const fragment = document.createDocumentFragment();
+                    const row = document.createElement('tr');
+
+                    // 1. Checkbox column
+                    const tdCheckbox = document.createElement('td');
+                    tdCheckbox.innerHTML = `
+                        <div class="form-check">
+                            <input type="checkbox"
+                                class="form-check-input gr-record-checkbox"
+                                data-grno="${record.grNo}"
+                                data-grdate="${record.grDate}"
+                                data-freightamount="${record.freightAmount}"
+                                data-detentionamount="${record.detentionAmount}"
+                               
+                                data-othercharges="${record.otherCharges}"
+                                data-remarks="${record.remarks}">
+                        </div>
+                    `;
+                    row.appendChild(tdCheckbox);
+
+                    // 2. GR No
+                    const tdGrNo = document.createElement('td');
+                    tdGrNo.textContent = record.grNo;
+                    row.appendChild(tdGrNo);
+
+                    // 3. Rate
+                    const tdRate = document.createElement('td');
+                    tdRate.textContent = record.freightAmount || "0.00";
+                    row.appendChild(tdRate);
+
+                    // 4. From
+                    const tdFrom = document.createElement('td');
+                    tdFrom.textContent = record.statesFromPlace || "-";
+                    row.appendChild(tdFrom);
+
+                    // 5. To
+                    const tdTo = document.createElement('td');
+                    tdTo.textContent = record.states || "-";
+                    row.appendChild(tdTo);
+
+                    fragment.appendChild(row);
+                    tbody.appendChild(fragment);
+                });
+
+                $('#grRecordsModal').modal('show');
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+                Swal.fire("Error!", "Failed to load GR records", "error");
+            });
+    }
+        function escapeHtml(unsafe) {
+        return typeof unsafe !== 'string' ? '' : unsafe
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    function addGrRecordsToTable(records) {
+        const tbody = $('#documentTableBody');
+
+        // Clear existing rows including default
+        tbody.empty();
+
+        records.forEach((record, index) => {
+            // Fixed: Use index instead of newIndex and fixed template string syntax
+            const $row = $(`
+                           <tr class="billItemRow">
+                <td><input type="text" class="form-control grno-input"
+                     name="BillItems[${index}].GRNo"
+                     value="${record.grNo}" required></td>
+                <td><input type="date" class="form-control grdate-input"
+                     name="BillItems[${index}].GRDate"
+                     value="${formatDateForInput(record.grDate)}" required></td>
+                <td><input type="number" class="form-control rate-input"
+                     name="BillItems[${index}].FreightAmount"  // Updated name
+                     value="${record.freightAmount}" required></td> // Updated value
+                    <td><input type="number" class="form-control detention-amount-input"
+                         name="BillItems[${index}].DetentionAmount"
+                         value="${record.detentionAmount}" required></td>
+                    <td><input type="number" class="form-control detention-days-input"
+                         name="BillItems[${index}].DetentionDays"
+                         value="${record.detentionDays}" required></td>
+                    <td><input type="number" class="form-control other-charges-input"
+                         name="BillItems[${index}].OtherCharges"
+                         value="${record.otherCharges}" required></td>
+                    <td><input type="text" class="form-control remarks-input"
+                         name="BillItems[${index}].Remarks"
+                         value="${record.remarks}" required></td>
+                    <td><input type="number" class="form-control total-amount-input"
+                         name="BillItems[${index}].TotalAmount" readonly required></td>
+                    <td><button type="button" class="btn btn-danger btn-sm removeRow">✖</button></td>
+                </tr>
+            `);  // Fixed: Removed stray backtick and semicolon
+
+            tbody.append($row);
+        });
+
+        // Initialize calculations for new rows
+        $('#documentTableBody tr').each(function() {
+            calculateRowTotal(this);
+        });
+
+        reindexRows();
+        calculateInvoiceTotal();
+    }
+
+    // Add event delegation for dynamic inputs
+    $(document).on('input', '.rate-input, .detention-amount-input, .other-charges-input', function() {
+        calculateRowTotal($(this).closest('tr'));
+    });
+
+    function calculateRowTotal(row) {
+        const $row = $(row);
+        const rate = parseFloat($row.find('.rate-input').val()) || 0;
+        const detentionAmount = parseFloat($row.find('.detention-amount-input').val()) || 0;
+        const otherCharges = parseFloat($row.find('.other-charges-input').val()) || 0;
+
+        const totalAmount = rate + detentionAmount + otherCharges;
+
+        $row.find('.total-amount-input').val(totalAmount.toFixed(2));
+        calculateInvoiceTotal();
+    }
+
+    function calculateInvoiceTotal() {
+        let grossAmount = 0;
+        $('#documentTableBody .total-amount-input').each(function () {
+            grossAmount += parseFloat($(this).val()) || 0;
+        });
+
+        $('#GrossAmount').val(grossAmount.toFixed(2));
+        $('#NetAmount').val(grossAmount.toFixed(2));
+    }
+
+    function reindexRows() {
+        $('#documentTableBody tr').each(function (index) {
+            $(this).find('input').each(function () {
+                const $input = $(this);
+                const name = $input.attr('name').replace(/\[\d+\]/, `[${index}]`);
+                $input.attr('name', name);
+            });
+        });
+    }
+
+       function formatDateForInput(dateString) {
+        if (!dateString) return '';
+
+        try {
+            // Handle ISO and local dates
+            const date = new Date(dateString);
+            if (isNaN(date)) return '';
+
+            // Convert to YYYY-MM-DD format
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+
+            return `${year}-${month}-${day}`;
+        } catch (e) {
+            console.error('Date format error:', e);
+            return '';
+        }
+    }
+
+
+    function calculateTax() {
+           let gstType = $("input[name='GSTType']:checked").val();
+           let grossAmount = parseFloat($("#GrossAmount").val()) || 0;
+
+           let taxOriginal = 0;
+           let taxRounded = 0;
+           let roundOffValue = 0;
+           let roundOffDisplay = "+0.00";
+
+           if (gstType === "GST") {
+               taxOriginal = grossAmount * 0.18;
+
+               let decimalPart = taxOriginal - Math.floor(taxOriginal);
+
+               if (decimalPart > 0.5) {
+                   taxRounded = Math.ceil(taxOriginal);
+               } else {
+                   taxRounded = Math.floor(taxOriginal);
+               }
+
+               roundOffValue = taxRounded - taxOriginal;
+
+               // Fix for proper + or - display with correct precision
+               roundOffDisplay = (roundOffValue >= 0 ? "+" : "") + roundOffValue.toFixed(2);
+           } else {
+               taxRounded = 0;
+               roundOffValue = 0;
+               roundOffDisplay = "+0.00";
+           }
+
+           $("#Tax").val(taxRounded.toFixed(2));
+           $("#RoundOff").val(roundOffDisplay);
+
+           let netAmount = grossAmount + taxRounded;
+           $("#NetAmount").val(netAmount.toFixed(2));
+       }
+
+       $(document).ready(function () {
+           $("input[name='GSTType']").change(function () {
+               calculateTax();
+           });
+
+           $("#GrossAmount").on("input", function () {
+               calculateTax();
+           });
+
+           calculateTax();
+       });
+           $(document).ready(function () {
+        $('#example2').DataTable({
+            "pageLength": 5,
+            "lengthChange": true,
+            "ordering": true,
+            "language": {
+                "emptyTable": "No invoices found"
+            }
+        });
+    });
+
+    //  $(document).ready(function () {
+    //     $('#example2').DataTable({
+    //         "paging": true,
+    //         "searching": true,
+    //         "ordering": true
+    //     });
+    // });
+    //     $('#example2').DataTable({
+    //     pageLength: 5,
+    //     lengthMenu: [5, 10, 25, 50, 100],
+    //     searching: true,
+    //     paging: true,
+    //     ordering: true,
+    //     language: {
+    //         search: "Search Employee:"
+    //     }
+    // });
+
+</script>
+<script>
+    $(document).ready(function () {
+        $.ajax({
+            url: '/Invoice/GetHSCSSNList', // Replace with actual controller route
+            type: 'GET',
+            success: function (data) {
+                $('.hscssn-select').each(function () {
+                    var dropdown = $(this);
+                    dropdown.empty().append('<option value="">Select</option>');
+                    $.each(data, function (i, item) {
+                        dropdown.append($('<option>', {
+                            value: item.Value,
+                            text: item.Text
+                        }));
+                    });
+                });
+            },
+            error: function () {
+                alert('Error loading HSCSSN list');
+            }
+        });
+    });
+</script>

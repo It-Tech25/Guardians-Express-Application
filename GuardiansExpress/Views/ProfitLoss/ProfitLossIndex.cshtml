@@ -1,0 +1,120 @@
+﻿@model GuardiansExpress.Models.DTOs.ProfitLossDTO
+<!-- Views/ProfitLoss/Index.cshtml -->
+
+<h2>Profit & Loss Statement</h2>
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Profit & Loss Statement</h4>
+            </div>
+            <div class="card-body">
+                <form asp-action="GenerateReport" method="post" class="mb-4">
+                    <div class="form-row">
+                        <div class="form-group col-md-3">
+                            <label>Branch:</label>
+                            <select class="form-control" name="branch">
+                                <option value="Head Office">Head Office</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label>Start Date:</label>
+                            <input type="date" name="startDate" class="form-control" required />
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label>End Date:</label>
+                            <input type="date" name="endDate" class="form-control" required />
+                        </div>
+                        <div class="form-group col-md-3 align-self-end">
+                            <button type="submit" class="btn btn-primary">Search</button>
+                        </div>
+                    </div>
+
+                </form>
+
+                <table class="table table-bordered">
+                    <thead class="thead-light">
+                        <tr>
+                            <th colspan="1" class="text-center">Description (Expenses)</th>
+                            <th colspan="1" class="text-center">Amount</th>
+                            <th colspan="1" class="text-center">Amount</th>
+                            <th colspan="1" class="text-center">Description (Incomes)</th>
+                            <th colspan="1" class="text-center">Amount</th>
+                            <th colspan="1" class="text-center">Amount</th>
+                        </tr>
+                        <tr>
+                            <!-- Expense Columns -->
+                            <td><strong>Expense P&L</strong></td>
+                            <td></td>
+                            <td></td>
+                            <!-- Income Columns -->
+                            <td><strong>Expense Trading</strong></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <!-- Expense Columns -->
+                            <td><a>Indirect Expence</a></td>
+                            <td></td>
+                            <td></td>
+                            <!-- Income Columns -->
+                            <td><a>Direct Expence</a></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <!-- Expense Columns -->
+                            <td><strong>Income P&L</strong></td>
+                            <td></td>
+                            <td></td>
+                            <!-- Income Columns -->
+                            <td><strong>Income Trading</strong></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <!-- Expense Columns -->
+                            <td><a>Indirect Income</a></td>
+                            <td></td>
+                            <td></td>
+                            <!-- Income Columns -->
+                            <td><a>Sales Accounts</a></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                       
+                        <tr>
+                            <td></td>
+                            <td></td>
+                            <td ></td>
+                            <td colspan="1"><strong>Net Loss:</strong></td>
+                            <td></td>
+                            <td><strong>@Model.TotalExpenses.ToString("N2")</strong></td>
+                          
+                        </tr>
+                        <tr>
+                            <td>Total</td>
+                            <td></td>
+                            <td>@Model.TotalExpenses.ToString("N2")</td>
+                            <td>Total</td>
+                            <td></td>
+                            <td><strong>@Model.TotalExpenses.ToString("N2")</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .table-bordered th, .table-bordered td {
+        vertical-align: middle !important;
+    }
+
+    .text-right {
+        text-align: right !important;
+    }
+</style>

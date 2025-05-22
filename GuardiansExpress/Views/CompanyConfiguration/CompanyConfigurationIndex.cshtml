@@ -1,0 +1,1442 @@
+﻿@model IEnumerable<GuardiansExpress.Models.DTOs.CompanyConfigurationViewModel>
+@{
+    int rCnt = 1;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    .modal-xl .modal-content {
+        width: 100%;
+        height: 90vh; /* 90% of viewport height */
+        overflow-y: auto; /* Add scroll if content is too tall */
+    }
+
+    /* Adjust modal body padding if needed */
+    .modal-xl .modal-body {
+        padding: 20px;
+    }
+</style>
+
+
+
+<div class="content-wrapper">
+    <div class="container-full">
+        <div class="content">
+            <div class="col-md-12 mt-3">
+                <div class="card">
+
+                    <div class="card-header">
+                        <h4 class="card-title">Company List</h4>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTaxModal">
+                            <a href="javascript:void(0);" onclick="openPopups();" style="height: 100%; display: flex; justify-content: center; align-items: center; padding: 0 10px; color:#fff; text-decoration:none;">
+                                <i class="fa fa-plus mr-1"></i> Add
+                            </a>
+                        </button>
+                    </div>
+                    <div class="box">
+                        <!-- /.box-header -->
+                        <div class="box-body">
+                            <div class="table-responsive">
+                                <table id="example1" class="text-fade table table-bordered display nowrap" style="width:100%">
+                                    <thead>
+                                        <tr class="text-dark">
+                                            <th>S.No</th>
+                                            <th>Company Name</th>
+                                            <th>Email</th>
+                                            <th>Phone</th>
+                                            <th>State</th>
+                                            <th>GSTIN</th>
+                                            <th>Status</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var company in Model)
+                                        {
+                                            <tr>
+                                                <th scope="row">@(rCnt++)</th>
+                                                <!-- Hyperlink on the Name column -->
+                                                <td>
+                                                    <a href="javascript:void(0);"
+                                                       onclick='Edit(@Html.Raw(Json.Serialize(company)))'
+                                                       style="cursor: pointer; color: #007bff; text-decoration: none;">
+                                                        @company.Name
+                                                    </a>
+                                                    @*  <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalLong">
+                                                        @company.Name
+                                                    </button> *@@* 
+                                                    <a type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editModal">
+
+                                                    </a> *@
+                                                </td>
+                                                <td>@company.Email</td>
+                                                <td>@company.Phone</td>
+                                                <td>@company.State</td>
+                                                <td>@company.GSTIN</td>
+                                                <td>@company.Status</td>
+                                                <td>
+                                                    @*    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editModal">
+                                                        Test Modal
+                                                    </button> *@
+                                                    <!-- Delete Button with Trash Icon -->
+                                                    <a href="#" onclick="Delete(@company.CompanyId)">
+                                                        <button type="button" class="waves-effect waves-circle btn btn-circle btn-danger btn-xs">
+                                                            <i class="fa fa-trash"></i>
+                                                        </button>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <!-- /.box-body -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="modal fade" id="companyModal" tabindex="-1" aria-labelledby="addCompanyModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="companyModal">Add New Company</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="companySettingsForm" action="@Url.Action("CompanyConfigurationAdd", "CompanyConfiguration")" method="post" enctype="multipart/form-data">
+
+                <div class="modal-body">
+                    @Html.AntiForgeryToken()
+
+                    <!-- Image Uploads -->
+                    <div class="card mb-3">
+                        <div class="card-header">Image Uploads</div>
+                        <div class="card-body">
+                            <div class="row mt-3">
+                                <div class="col-lg-6">
+                                    <label for="CompanyLogo">Company Logo</label>
+                                    <input class="form-control" id="CompanyLogo" name="CompanyLogo" type="file" />
+                                </div>
+
+                                <div class="col-lg-6">
+                                    <label for="LetterHeadImage">Letter Head Image</label>
+                                    <input class="form-control" id="LetterHeadImage" name="LetterHeadImage" type="file" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Basic Company Info -->
+                    <div class="card mb-3">
+                        <div class="card-header">Basic Company Info</div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-lg-3">
+                                    <label for="Name">Name <span class="required">*</span></label>
+                                    <input class="form-control" id="Name" name="Name" maxlength="50" placeholder="Name" type="text" required />
+                                </div>
+                                <div class="col-lg-3">
+                                    <label for="Email">Email<span class="required">*</span></label>
+                                    <input class="form-control" id="Email" name="Email" type="email" placeholder="Email" required
+                                           oninput="validateEmailInput(this)" />
+                                    <small class="text-danger" id="emailError" style="display:none;">Invalid email format.</small>
+                                </div>
+
+                                <div class="col-lg-3">
+                                    <label for="InfoEmails">Company Email<span class="required">*</span></label>
+                                    <input class="form-control" id="InfoEmails" name="InfoEmails" type="email" placeholder="Company Email" required
+                                           oninput="validateEmailInput(this)" />
+                                    <small class="text-danger" id="infoEmailError" style="display:none;">Invalid email format.</small>
+                                </div>
+
+                                <div class="col-lg-3">
+                                    <label for="Phone">Phone <span class="required">*</span></label>
+                                    <input class="form-control" id="Phone" name="Phone" type="text" placeholder="Phone" required
+                                           pattern="\d{10}" maxlength="10" oninput="validatePhoneInput(this)" />
+                                    <small class="text-danger" id="phoneError" style="display:none;">Phone number must be 10 digits.</small>
+                                </div>
+
+                                <div class="col-lg-3">
+                                    <label for="TelNo">Tel No <span class="required">*</span></label>
+                                    <input class="form-control" id="TelNo" name="TelNo" type="text" placeholder="Tele Phone" required
+                                           pattern="\d{10}" maxlength="10" oninput="validatePhoneInput(this)" />
+                                    <small class="text-danger" id="telNoError" style="display:none;">Telephone number must be 10 digits.</small>
+                                </div>
+
+                                <div class="col-lg-3">
+                                    <label for="Fax">Fax</label>
+                                    <input class="form-control" id="Fax" name="Fax" placeholder="Enter Fax" type="text" />
+                                </div>
+                                <div class="col-lg-3">
+                                    <label for="PANNo">PAN No</label>
+                                    <input class="form-control" id="PANNo" name="PANNo" placeholder="AAAAA9999A" maxlength="10" type="text" />
+                                </div>
+                                <div class="col-lg-3">
+                                    <label for="GSTIN">GSTIN</label>
+                                    <input class="form-control" id="GSTIN" name="GSTIN" placeholder="22AAAAA0000A1Z5" maxlength="10" type="text" />
+                                </div>
+                                <div class="col-lg-3">
+                                    <label for="CINNumber">CIN Number</label>
+                                    <input class="form-control" id="CINNumber" name="CINNumber" placeholder="U12345MH2024PLC123456" maxlength="21" type="text" />
+                                </div>
+                                <div class="col-lg-3">
+                                    <label for="HSCSSNumber">HSC/SSN Number</label>
+                                    <input class="form-control" id="HSCSSN" name="HSCSSN" placeholder="U12345MH2024PLC123456" maxlength="21" type="text" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Settings -->
+                    <div class="card mb-3">
+                        <div class="card-header">Settings</div>
+                        <div class="card-body">
+                            <div class="row mt-3">
+                                <div class="col-lg-2">
+                                    <div class="form-check">
+                                        <input type="hidden" name="EnableSMS" value="false" />
+                                        <input class="form-check-input" type="checkbox" name="EnableSMS" id="EnableSMS" value="true" />
+                                        <label class="form-check-label" for="EnableSMS"> Enable SMS </label>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-2">
+                                    <div class="form-check">
+                                        <input type="hidden" name="EnableEmail" value="false" />
+                                        <input class="form-check-input" type="checkbox" name="EnableEmail" id="EnableEmail" value="true" />
+                                        <label class="form-check-label" for="EnableEmail"> Enable Email </label>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-2">
+                                    <div class="form-check">
+                                        <input type="hidden" name="IsDefault" value="false" />
+                                        <input class="form-check-input" type="checkbox" name="IsDefault" id="IsDefault" value="true" />
+                                        <label class="form-check-label" for="IsDefault"> Is Default </label>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-2">
+                                    <div class="form-check">
+                                        <input type="hidden" name="ChangeTaxOnInvoice" value="false" />
+                                        <input class="form-check-input" type="checkbox" name="ChangeTaxOnInvoice" id="ChangeTaxOnInvoice" value="true" />
+                                        <label class="form-check-label" for="ChangeTaxOnInvoice"> Change Tax On Invoice </label>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-2">
+                                    <div class="form-check">
+                                        <input type="hidden" name="ShowItemImageInLead" value="false" />
+                                        <input class="form-check-input" type="checkbox" name="ShowItemImageInLead" id="ShowItemImageInLead" value="true" />
+                                        <label class="form-check-label" for="ShowItemImageInLead"> Show Item Image In Lead </label>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-2">
+                                    <div class="form-check">
+                                        <input type="hidden" name="ShowItemImageInPO" value="false" />
+                                        <input class="form-check-input" type="checkbox" name="ShowItemImageInPO" id="ShowItemImageInPO" value="true" />
+                                        <label class="form-check-label" for="ShowItemImageInPO"> Show Item Image In PO </label>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-2">
+                                    <div class="form-check">
+                                        <input type="hidden" name="EnableKYCVerification" value="false" />
+                                        <input class="form-check-input" type="checkbox" name="EnableKYCVerification" id="EnableKYCVerification" value="true" />
+                                        <label class="form-check-label" for="EnableKYCVerification"> Enable KYC Verification </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+
+                    <!-- Address -->
+                    <div class="card mb-3">
+                        <div class="card-header">Address</div>
+                        <div class="card-body">
+                            <div class="row mt-3">
+                                <div class="col-lg-2">
+                                    <label>AddressLine1</label>
+                                    <input class="form-control" name="AddressLine1" placeholder="Enter Address1" type="text" />
+                                </div>
+                                <div class="col-lg-2">
+                                    <label>AddressLine2</label>
+                                    <input class="form-control" name="AddressLine2" placeholder="Enter Address2" type="text" />
+                                </div>
+                                <div class="col-lg-2">
+                                    <label>City</label>
+                                    <input class="form-control" name="City" placeholder="Enter City" type="text" />
+                                </div>
+                                <div class="col-lg-2">
+                                    <label>State</label>
+                                    <input class="form-control" name="State" placeholder="Enter State" type="text" />
+                                </div>
+                                <div class="col-lg-2">
+                                    <label>Country</label>
+                                    <input class="form-control" name="Country" type="text" placeholder="Enter Country" value="India" />
+                                </div>
+                                <div class="col-lg-2">
+                                    <label>Pincode</label>
+                                    <input class="form-control" name="Pincode" placeholder="Enter PinCode" type="text" />
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Other Details -->
+                    <div class="card mb-3">
+                        <div class="card-header">Other Details</div>
+                        <div class="card-body">
+                            <div class="row">
+                                <!-- Input Fields -->
+                                <div class="col-lg-2">
+                                    <label>RoundOff Invoice</label>
+                                    <input class="form-control" name="RoundOffInvoice" placeholder="Enter Round off Invoice" type="text" inputmode="numeric" pattern="[0-9]*" />
+                                </div>
+                                <div class="col-lg-2">
+                                    <label>Lock Entry Till</label>
+                                    <input class="form-control" name="LockEntryTill" type="date" />
+                                </div>
+                                <div class="col-lg-2">
+                                    <label>TCS Amount</label>
+                                    <input class="form-control" name="TCSAmount" type="text" placeholder="0.00" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" />
+                                </div>
+                                <div class="col-lg-2">
+                                    <label>Invoice No Min Length</label>
+                                    <input class="form-control" name="InvoiceNoMinLength" placeholder="0.00" type="text" inputmode="numeric" pattern="[0-9]*" />
+                                </div>
+                                <div class="col-lg-2">
+                                    <label>Eway Bill Amount</label>
+                                    <input class="form-control" name="EwayBillAmount" type="text" placeholder="0.00" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" />
+                                </div>
+                                <div class="col-lg-2">
+                                    <label>ORC Percentage</label>
+                                    <input class="form-control" name="ORCPercentage" type="text" placeholder="0.00%" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" />
+                                </div>
+                                <div class="col-lg-2">
+                                    <label>Auto Invoice Time</label>
+                                    <input class="form-control" name="AutoInvoiceTime" placeholder="0.00sec" type="time" />
+                                </div>
+                                <div class="col-lg-2">
+                                    <label>Password Reset Days</label>
+                                    <input class="form-control" name="PasswordResetDays" placeholder="0 Days" type="text" inputmode="numeric" pattern="[0-9]*" />
+                                </div>
+                                <div class="col-lg-2">
+                                    <label>Status</label>
+                                    <select class="form-control" name="Status">
+                                        <option value="Active">Active</option>
+                                        <option value="Inactive">Inactive</option>
+                                    </select>
+                                </div>
+                                <!-- Checkbox Fields -->
+                                <div class="row mt-5">
+                                    <div class="col-md-3">
+                                        <div class="form-check form-check-inline">
+                                            <input type="hidden" name="ProvisionForBilling" value="false" />
+                                            <input type="checkbox" class="form-check-input" id="ProvisionForBilling" name="ProvisionForBilling" value="true">
+                                            <label class="form-check-label" for="ProvisionForBilling">Provision for Billing</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-check form-check-inline">
+                                            <input type="hidden" name="ManualWtInBilling" value="false" />
+                                            <input type="checkbox" class="form-check-input" id="ManualWtInBilling" name="ManualWtInBilling" value="true">
+                                            <label class="form-check-label" for="ManualWtInBilling">Manual Weight in Billing</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-check form-check-inline">
+                                            <input type="hidden" name="ApprovedVoucherInLedger" value="false" />
+                                            <input type="checkbox" class="form-check-input" id="ApprovedVoucherInLedger" name="ApprovedVoucherInLedger" value="true">
+                                            <label class="form-check-label" for="ApprovedVoucherInLedger">Approved Voucher in Ledger</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-check form-check-inline">
+                                            <input type="hidden" name="ManualRate" value="false" />
+                                            <input type="checkbox" class="form-check-input" id="ManualRate" name="ManualRate" value="true">
+                                            <label class="form-check-label" for="ManualRate">Manual Rate</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-check form-check-inline">
+                                            <input type="hidden" name="DispatchWiseGR" value="false" />
+                                            <input type="checkbox" class="form-check-input" id="DispatchWiseGR" name="DispatchWiseGR" value="true">
+                                            <label class="form-check-label" for="DispatchWiseGR">Dispatch Wise GR</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-check form-check-inline">
+                                            <input type="hidden" name="TransShipment" value="false" />
+                                            <input type="checkbox" class="form-check-input" id="TransShipment" name="TransShipment" value="true">
+                                            <label class="form-check-label" for="TransShipment">Transshipment</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-check form-check-inline">
+                                            <input type="hidden" name="ClubVoucherEntryTotal" value="false" />
+                                            <input type="checkbox" class="form-check-input" id="ClubVoucherEntryTotal" name="ClubVoucherEntryTotal" value="true">
+                                            <label class="form-check-label" for="ClubVoucherEntryTotal">Club Voucher Entry Total</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-check form-check-inline">
+                                            <input type="hidden" name="ShowGroupInVoucherEntry" value="false" />
+                                            <input type="checkbox" class="form-check-input" id="ShowGroupInVoucherEntry" name="ShowGroupInVoucherEntry" value="true">
+                                            <label class="form-check-label" for="ShowGroupInVoucherEntry">Show Group in Voucher Entry</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-check form-check-inline">
+                                            <input type="hidden" name="DirectDebitDriverTransporter" value="false" />
+                                            <input type="checkbox" class="form-check-input" id="DirectDebitDriverTransporter" name="DirectDebitDriverTransporter" value="true">
+                                            <label class="form-check-label" for="DirectDebitDriverTransporter">Direct Debit Driver Transporter</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-check form-check-inline">
+                                            <input type="hidden" name="ResetGRNoFinancialYearWise" value="false" />
+                                            <input type="checkbox" class="form-check-input" id="ResetGRNoFinancialYearWise" name="ResetGRNoFinancialYearWise" value="true">
+                                            <label class="form-check-label" for="ResetGRNoFinancialYearWise">Reset GR No Financial Year Wise</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-check form-check-inline">
+                                            <input type="hidden" name="LedgerWiseDetail" value="false" />
+                                            <input type="checkbox" class="form-check-input" id="LedgerWiseDetail" name="LedgerWiseDetail" value="true">
+                                            <label class="form-check-label" for="LedgerWiseDetail">Ledger Wise Detail</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Template Setup (Reduced) -->
+                    <div class="card mb-3">
+                        <div class="card-header">Template Setup</div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-lg-2">
+                                    <label>Invoice Template</label>
+                                    <input class="form-control" name="InvoiceTemplate" placeholder="Enter Invoice Template" type="text" />
+                                </div>
+                                <div class="col-lg-2">
+                                    <label>Debit Note Template</label>
+                                    <input class="form-control" name="DebitNoteTemplate" placeholder="Enter Debit Note Template" type="text" />
+                                </div>
+                                <div class="col-lg-2">
+                                    <label>Lead Template</label>
+                                    <input class="form-control" name="LeadTemplate" placeholder="Enter Lead Template" type="text" />
+                                </div>
+                                <div class="col-lg-2">
+                                    <label>GR Template</label>
+                                    <input class="form-control" name="GRTemplate" placeholder="Enter GR Template" type="text" />
+                                </div>
+                                <div class="col-lg-2">
+                                    <label>GR Receive Template</label>
+                                    <input class="form-control" name="GRReceiveTemplate" placeholder="Enter GR Receiver Template" type="text" />
+                                </div>
+                                <div class="col-lg-2">
+                                    <label>Hire Template</label>
+                                    <input class="form-control" name="HireTemplate" placeholder="Enter Hire Temp" type="text" />
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-lg-2">
+                                    <label>Hire Transporter Template</label>
+                                    <input class="form-control" name="HireTransporterTemplate" placeholder="Enter Transporter Temp" type="text" />
+                                </div>
+                                <div class="col-lg-2">
+                                    <label>Sale Order Template</label>
+                                    <input class="form-control" name="SaleOrderTemplate" placeholder="Enter Sale Order Temp" type="text" />
+                                </div>
+                                <div class="col-lg-2">
+                                    <label>Lead PDF Title</label>
+                                    <input class="form-control" name="LeadPDFTitle" placeholder="Enter Lead PDF Title" type="text" />
+                                </div>
+                                <div class="col-lg-2">
+                                    <div class="form-check form-check-inline">
+                                        <input type="hidden" name="DefaultTemplate" value="false" />
+                                        <input type="checkbox" class="form-check-input" id="DefaultTemplate" name="DefaultTemplate" value="true">
+                                        <label class="form-check-label" for="DefaultTemplate">Default Template</label>
+                                    </div>
+                                </div>
+                                <div class="col-lg-2">
+                                    <label>SO Top Height</label>
+                                    <input class="form-control" name="SOTopHeight" placeholder="0.00" type="number" />
+                                </div>
+                                <div class="col-lg-2">
+                                    <label>SO Header Height</label>
+                                    <input class="form-control" name="SOHeaderHeight" placeholder="0.00" type="number" />
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="row">
+                                    <div class="col-lg-2">
+                                        <label>SO Footer Height</label>
+                                        <input class="form-control" name="SOFooterHeight" placeholder="0.00" type="text" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" />
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label>Lead Top Height</label>
+                                        <input class="form-control" name="LeadTopHeight" placeholder="0.00" type="text" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" />
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label>Lead Header Height</label>
+                                        <input class="form-control" name="LeadHeaderHeight" placeholder="0.00" type="text" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" />
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label>Lead Footer Height</label>
+                                        <input class="form-control" name="LeadFooterHeight" placeholder="0.00" type="text" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" />
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label>Invoice Top Height</label>
+                                        <input class="form-control" name="InvTopHeight" placeholder="0.00" type="text" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" />
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label>Invoice Header Height</label>
+                                        <input class="form-control" name="InvHeaderHeight" placeholder="0.00" type="text" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" />
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-lg-2">
+                                        <label>Invoice Footer Height</label>
+                                        <input class="form-control" name="InvFooterHeight" placeholder="0.00" type="text" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" />
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label>GR Top Height</label>
+                                        <input class="form-control" name="GRTopHeight" placeholder="0.00" type="text" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" />
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label>GR Header Height</label>
+                                        <input class="form-control" name="GRHeaderHeight" placeholder="0.00" type="text" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" />
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label>GR Footer Height</label>
+                                        <input class="form-control" name="GRFooterHeight" placeholder="0.00" type="text" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" />
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label>Calendar Dashboard Event Count</label>
+                                        <input class="form-control" name="CalDashEventCount" placeholder="0.00" type="number" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mb-3">
+                            <div class="card-header">E-Invoice Credentials</div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-lg-3 offset-lg-3">
+                                        <label for="EInvoiceUsername">E-Invoice Username</label>
+                                        <input class="form-control" id="EInvoiceUsername" name="EInvoiceUsername" type="text" />
+                                    </div>
+                                    <div class="col-lg-3">
+                                        <label for="EInvoicePassword">E-Invoice Password</label>
+                                        <input class="form-control" id="EInvoicePassword" name="EInvoicePassword" type="password" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="reset" class="btn btn-success">Reset</button>
+                        <button type="submit" class="btn btn-primary">Save Company</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Modal (Hidden by default) -->
+<!-- Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" style="max-width: 95%; width: 95%;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="companyModal">Edit Company</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editCompanySettingsForm" action="@Url.Action("CompanyConfigurationUpdate", "CompanyConfiguration")" method="post" enctype="multipart/form-data">
+                    <div class="modal-body">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="CompanyId" id="editCompanyId" value="" />
+
+                        <!-- Image Uploads -->
+                        <div class="card mb-3">
+                            <div class="card-header">Image Uploads</div>
+                            <div class="card-body">
+                                <div class="row mt-3">
+                                    <div class="col-lg-6">
+                                        <label for="CompanyLogo">Company Logo</label>
+                                        <input class="form-control" id="editCompanyLogo" name="CompanyLogo" type="file" />
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <label for="LetterHeadImage">Letter Head Image</label>
+                                        <input class="form-control" id="editLetterHeadImage" name="LetterHeadImage" type="file" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Basic Company Info -->
+                        <div class="card mb-3">
+                            <div class="card-header">Basic Company Info</div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-lg-6">
+                                        <label for="Name">Name </label>
+                                        <input class="form-control" id="editName" name="Name" type="text" />
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <label for="Email">Email </label>
+                                        <input class="form-control" id="editEmail" name="Email" type="email" />
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <label for="InfoEmails">Company Emails </label>
+                                        <input class="form-control" id="editInfoEmails" name="InfoEmails" type="email" />
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <label for="Phone">Phone </label>
+                                        <input class="form-control" id="editPhone" name="Phone" type="text" />
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <label for="TelNo">Tel No </label>
+                                        <input class="form-control" id="editTelNo" name="TelNo" type="text" />
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <label for="Fax">Fax</label>
+                                        <input class="form-control" id="editFax" name="Fax" type="text" />
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <label for="Website">Website</label>
+                                        <input class="form-control" id="editWebsite" name="Website" type="url" />
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <label for="PANNo">PAN No</label>
+                                        <input class="form-control" id="editPANNo" name="PANNo" maxlength="10" type="text" />
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <label for="GSTIN">GSTIN</label>
+                                        <input class="form-control" id="editGSTIN" name="GSTIN" maxlength="10" type="text" />
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <label for="CINNumber">CIN Number</label>
+                                        <input class="form-control" id="editCINNumber" name="CINNumber" maxlength="10" type="text" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Settings -->
+                        <div class="card mb-3">
+                            <div class="card-header">Settings</div>
+                            <div class="card-body">
+                                <div class="row mt-3">
+                                    <div class="col-lg-2">
+                                        <div class="form-check">
+                                            <input type="hidden" name="EnableSMS" value="false" />
+                                            <input class="form-check-input" type="checkbox" name="EnableSMS" id="editEnableSMS" value="true" />
+                                            <label class="form-check-label" for="EnableSMS"> Enable SMS </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <div class="form-check">
+                                            <input type="hidden" name="EnableEmail" value="false" />
+                                            <input class="form-check-input" type="checkbox" name="EnableEmail" id="editEnableEmail" value="true" />
+                                            <label class="form-check-label" for="EnableEmail"> Enable Email </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <div class="form-check">
+                                            <input type="hidden" name="IsDefault" value="false" />
+                                            <input class="form-check-input" type="checkbox" name="IsDefault" id="editIsDefault" value="true" />
+                                            <label class="form-check-label" for="IsDefault"> Is Default </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <div class="form-check">
+                                            <input type="hidden" name="ChangeTaxOnInvoice" value="false" />
+                                            <input class="form-check-input" type="checkbox" name="ChangeTaxOnInvoice" id="editChangeTaxOnInvoice" value="true" />
+                                            <label class="form-check-label" for="ChangeTaxOnInvoice"> Change Tax On Invoice </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <div class="form-check">
+                                            <input type="hidden" name="ShowItemImageInLead" value="false" />
+                                            <input class="form-check-input" type="checkbox" name="ShowItemImageInLead" id="editShowItemImageInLead" value="true" />
+                                            <label class="form-check-label" for="ShowItemImageInLead"> Show Item Image In Lead </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <div class="form-check">
+                                            <input type="hidden" name="ShowItemImageInPO" value="false" />
+                                            <input class="form-check-input" type="checkbox" name="ShowItemImageInPO" id="editShowItemImageInPO" value="true" />
+                                            <label class="form-check-label" for="ShowItemImageInPO"> Show Item Image In PO </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <div class="form-check">
+                                            <input type="hidden" name="EnableKYCVerification" value="false" />
+                                            <input class="form-check-input" type="checkbox" name="EnableKYCVerification" id="editEnableKYCVerification" value="true" />
+                                            <label class="form-check-label" for="EnableKYCVerification"> Enable KYC Verification </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Address -->
+                        <div class="card mb-3">
+                            <div class="card-header">Address</div>
+                            <div class="card-body">
+                                <div class="row mt-3">
+                                    <div class="col-lg-2">
+                                        <label>Address Line 1</label>
+                                        <input class="form-control" name="AddressLine1" id="editAddressLine1" type="text" />
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label>Address Line 2</label>
+                                        <input class="form-control" name="AddressLine2" id="editAddressLine2" type="text" />
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label>City</label>
+                                        <input class="form-control" name="City" id="editCity" type="text" />
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label>State</label>
+                                        <input class="form-control" name="State" id="editState" type="text" />
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label>Country</label>
+                                        <input class="form-control" name="Country" id="editCountry" type="text" value="India" />
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label>Pincode</label>
+                                        <input class="form-control" name="Pincode" id="editPincode" type="text" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Other Details -->
+                        <div class="card mb-3">
+                            <div class="card-header">Other Details</div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <!-- Input Fields -->
+                                    <div class="col-lg-2">
+                                        <label>RoundOff Invoice</label>
+                                        <input class="form-control" name="RoundOffInvoice" id="editRoundOffInvoice" type="text" />
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label>Lock Entry Till</label>
+                                        <input class="form-control" name="LockEntryTill" id="editLockEntryTill" type="date" />
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label>TCS Amount</label>
+                                        <input class="form-control" name="TCSAmount" id="editTCSAmount" type="number" step="0.01" />
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label>Invoice No Min Length</label>
+                                        <input class="form-control" name="InvoiceNoMinLength" id="editInvoiceNoMinLength" type="number" />
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label>Eway Bill Amount</label>
+                                        <input class="form-control" name="EwayBillAmount" type="number" step="0.01" id="editEwayBillAmount" />
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label>ORC Percentage</label>
+                                        <input class="form-control" name="ORCPercentage" type="number" step="0.01" id="editORCPercentage" />
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label>Auto Invoice Time</label>
+                                        <input class="form-control" name="AutoInvoiceTime" type="time" id="editAutoInvoiceTime" />
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label>Password Reset Days</label>
+                                        <input class="form-control" name="PasswordResetDays" type="number" id="editPasswordResetDays" />
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label>Status</label>
+                                        <select class="form-control" name="Status" id="editStatus">
+                                            <option value="Active">Active</option>
+                                            <option value="Inactive">Inactive</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Checkbox Fields -->
+                                    <div class="col-lg-2">
+                                        <div class="form-check form-check-inline">
+                                            <input type="hidden" name="ProvisionForBilling" value="false" />
+                                            <input type="checkbox" class="form-check-input" id="editProvisionForBilling" name="ProvisionForBilling" value="true">
+                                            <label class="form-check-label" for="ProvisionForBilling">Provision for Billing</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <div class="form-check form-check-inline">
+                                            <input type="hidden" name="ManualWtInBilling" value="false" />
+                                            <input type="checkbox" class="form-check-input" id="editManualWtInBilling" name="ManualWtInBilling" value="true">
+                                            <label class="form-check-label" for="ManualWtInBilling">Manual Weight in Billing</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <div class="form-check form-check-inline">
+                                            <input type="hidden" name="ApprovedVoucherInLedger" value="false" />
+                                            <input type="checkbox" class="form-check-input" id="editApprovedVoucherInLedger" name="ApprovedVoucherInLedger" value="true">
+                                            <label class="form-check-label" for="ApprovedVoucherInLedger">Approved Voucher in Ledger</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <div class="form-check form-check-inline">
+                                            <input type="hidden" name="ManualRate" value="false" />
+                                            <input type="checkbox" class="form-check-input" id="editManualRate" name="ManualRate" value="true">
+                                            <label class="form-check-label" for="ManualRate">Manual Rate</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <div class="form-check form-check-inline">
+                                            <input type="hidden" name="DispatchWiseGR" value="false" />
+                                            <input type="checkbox" class="form-check-input" id="editDispatchWiseGR" name="DispatchWiseGR" value="true">
+                                            <label class="form-check-label" for="DispatchWiseGR">Dispatch Wise GR</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <div class="form-check form-check-inline">
+                                            <input type="hidden" name="TransShipment" value="false" />
+                                            <input type="checkbox" class="form-check-input" id="editTransShipment" name="TransShipment" value="true">
+                                            <label class="form-check-label" for="TransShipment">Transshipment</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <div class="form-check form-check-inline">
+                                            <input type="hidden" name="ClubVoucherEntryTotal" value="false" />
+                                            <input type="checkbox" class="form-check-input" id="editClubVoucherEntryTotal" name="ClubVoucherEntryTotal" value="true">
+                                            <label class="form-check-label" for="ClubVoucherEntryTotal">Club Voucher Entry Total</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <div class="form-check form-check-inline">
+                                            <input type="hidden" name="ShowGroupInVoucherEntry" value="false" />
+                                            <input type="checkbox" class="form-check-input" id="editShowGroupInVoucherEntry" name="ShowGroupInVoucherEntry" value="true">
+                                            <label class="form-check-label" for="ShowGroupInVoucherEntry">Show Group in Voucher Entry</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <div class="form-check form-check-inline">
+                                            <input type="hidden" name="DirectDebitDriverTransporter" value="false" />
+                                            <input type="checkbox" class="form-check-input" id="editDirectDebitDriverTransporter" name="DirectDebitDriverTransporter" value="true">
+                                            <label class="form-check-label" for="DirectDebitDriverTransporter">Direct Debit Driver Transporter</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <div class="form-check form-check-inline">
+                                            <input type="hidden" name="ResetGRNoFinancialYearWise" value="false" />
+                                            <input type="checkbox" class="form-check-input" id="editResetGRNoFinancialYearWise" name="ResetGRNoFinancialYearWise" value="true">
+                                            <label class="form-check-label" for="ResetGRNoFinancialYearWise">Reset GR No Financial Year Wise</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <div class="form-check form-check-inline">
+                                            <input type="hidden" name="LedgerWiseDetail" value="false" />
+                                            <input type="checkbox" class="form-check-input" id="editLedgerWiseDetail" name="LedgerWiseDetail" value="true">
+                                            <label class="form-check-label" for="LedgerWiseDetail">Ledger Wise Detail</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Template Setup -->
+                        <div class="card mb-3">
+                            <div class="card-header">Template Setup</div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-lg-3">
+                                        <label>Invoice Template</label>
+                                        <input class="form-control" name="InvoiceTemplate" type="text" id="editInvoiceTemplate" />
+                                    </div>
+                                    <div class="col-lg-3">
+                                        <label>Debit Note Template</label>
+                                        <input class="form-control" name="DebitNoteTemplate" type="text" id="editDebitNoteTemplate" />
+                                    </div>
+                                    <div class="col-lg-3">
+                                        <label>Lead Template</label>
+                                        <input class="form-control" name="LeadTemplate" type="text" id="editLeadTemplate" />
+                                    </div>
+                                    <div class="col-lg-3">
+                                        <label>GR Template</label>
+                                        <input class="form-control" name="GRTemplate" type="text" id="editGRTemplate" />
+                                    </div>
+                                </div>
+
+                                <div class="row mt-3">
+                                    <div class="col-lg-3">
+                                        <label>GR Receive Template</label>
+                                        <input class="form-control" name="GRReceiveTemplate" type="text" id="editGRReceiveTemplate" />
+                                    </div>
+                                    <div class="col-lg-3">
+                                        <label>Hire Template</label>
+                                        <input class="form-control" name="HireTemplate" type="text" id="editHireTemplate" />
+                                    </div>
+                                    <div class="col-lg-3">
+                                        <label>Hire Transporter Template</label>
+                                        <input class="form-control" name="HireTransporterTemplate" type="text" id="editHireTransporterTemplate" />
+                                    </div>
+                                    <div class="col-lg-3">
+                                        <label>Sale Order Template</label>
+                                        <input class="form-control" name="SaleOrderTemplate" type="text" id="editSaleOrderTemplate" />
+                                    </div>
+                                </div>
+
+                                <div class="row mt-3">
+                                    <div class="col-lg-3">
+                                        <label>Lead PDF Title</label>
+                                        <input class="form-control" name="LeadPDFTitle" type="text" id="editLeadPDFTitle" />
+                                    </div>
+                                    <div class="col-lg-3">
+                                        <div class="form-check form-check-inline">
+                                            <input type="hidden" name="DefaultTemplate" value="false" />
+                                            <input type="checkbox" class="form-check-input" id="editDefaultTemplate" name="DefaultTemplate" value="true">
+                                            <label class="form-check-label" for="DefaultTemplate">Default Template</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mt-3">
+                                    <div class="col-lg-2">
+                                        <label>SO Top Height</label>
+                                        <input class="form-control" name="SOTopHeight" type="number" id="editSOTopHeight" />
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label>SO Header Height</label>
+                                        <input class="form-control" name="SOHeaderHeight" type="number" id="editSOHeaderHeight" />
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label>SO Footer Height</label>
+                                        <input class="form-control" name="SOFooterHeight" type="number" id="editSOFooterHeight" />
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label>Lead Top Height</label>
+                                        <input class="form-control" name="LeadTopHeight" type="number" id="editLeadTopHeight" />
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label>Lead Header Height</label>
+                                        <input class="form-control" name="LeadHeaderHeight" type="number" id="editLeadHeaderHeight" />
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label>Lead Footer Height</label>
+                                        <input class="form-control" name="LeadFooterHeight" type="number" id="editLeadFooterHeight" />
+                                    </div>
+                                </div>
+
+                                <div class="row mt-3">
+                                    <div class="col-lg-2">
+                                        <label>Invoice Top Height</label>
+                                        <input class="form-control" name="InvTopHeight" type="number" id="editInvTopHeight" />
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label>Invoice Header Height</label>
+                                        <input class="form-control" name="InvHeaderHeight" type="number" id="editInvHeaderHeight" />
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label>Invoice Footer Height</label>
+                                        <input class="form-control" name="InvFooterHeight" type="number" id="editInvFooterHeight" />
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label>GR Top Height</label>
+                                        <input class="form-control" name="GRTopHeight" type="number" id="editGRTopHeight" />
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label>GR Header Height</label>
+                                        <input class="form-control" name="GRHeaderHeight" type="number" id="editGRHeaderHeight" />
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label>GR Footer Height</label>
+                                        <input class="form-control" name="GRFooterHeight" type="number" id="editGRFooterHeight" />
+                                    </div>
+                                </div>
+
+                                <div class="row mt-3">
+                                    <div class="col-lg-2">
+                                        <label>Hire Top Height</label>
+                                        <input class="form-control" name="HireTopHeight" type="number" id="editHireTopHeight" />
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label>Hire Header Height</label>
+                                        <input class="form-control" name="HireHeaderHeight" type="number" id="editHireHeaderHeight" />
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label>Hire Footer Height</label>
+                                        <input class="form-control" name="HireFooterHeight" type="number" id="editHireFooterHeight" />
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label>Hire Transporter Top Height</label>
+                                        <input class="form-control" name="HireTransporterTopHeight" type="number" id="editHireTransporterTopHeight" />
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label>Hire Transporter Header Height</label>
+                                        <input class="form-control" name="HireTransporterHeaderHeight" type="number" id="editHireTransporterHeaderHeight" />
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label>Hire Transporter Footer Height</label>
+                                        <input class="form-control" name="HireTransporterFooterHeight" type="number" id="editHireTransporterFooterHeight" />
+                                    </div>
+                                </div>
+
+                                <div class="row mt-3">
+                                    <div class="col-lg-2">
+                                        <label>Calendar Dashboard Event Count</label>
+                                        <input class="form-control" name="CalDashEventCount" type="number" id="editCalDashEventCount" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mb-3">
+                            <div class="card-header">E-Invoice Credentials</div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-lg-6">
+                                        <label for="EInvoiceUsername">E-Invoice Username</label>
+                                        <input class="form-control" id="editEInvoiceUsername" name="EInvoiceUsername" type="text" />
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <label for="EInvoicePassword">E-Invoice Password</label>
+                                        <input class="form-control" id="editEInvoicePassword" name="EInvoicePassword" type="password" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="reset" class="btn btn-success">Reset</button>
+                        <button type="submit" class="btn btn-primary" onclick="saveChanges()">Update</button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+   
+ <script>
+        function Edit(company) {
+    console.log("Company data:", company);
+
+        // Convert checkbox values from string to boolean if needed
+        const boolProps = ['enableSMS', 'enableEmail', 'isDefault', 'changeTaxOnInvoice',
+                          'showItemImageInLead', 'showItemImageInPO', 'enableKYCVerification',
+                          'defaultTemplate'];
+
+        boolProps.forEach(prop => {
+            if (typeof company[prop] === 'string') {
+                company[prop] = company[prop].toLowerCase() === 'true';
+            }
+        });
+
+        // Populate form fields
+        $('#editCompanyId').val(company.companyId);
+        $('#editName').val(company.name);
+        $('#editEmail').val(company.email);
+        $('#editInfoEmails').val(company.infoEmails);
+        $('#editPhone').val(company.phone);
+        $('#editTelNo').val(company.telNo);
+        $('#editFax').val(company.fax);
+        $('#editPANNo').val(company.panNo);
+        $('#editGSTIN').val(company.gstin);
+        $('#editCINNumber').val(company.cinNumber);
+
+        // Checkboxes
+        $('#editEnableSMS').prop('checked', company.enableSMS);
+        $('#editEnableEmail').prop('checked', company.enableEmail);
+        $('#editIsDefault').prop('checked', company.isDefault);
+        $('#editChangeTaxOnInvoice').prop('checked', company.changeTaxOnInvoice);
+        $('#editShowItemImageInLead').prop('checked', company.showItemImageInLead);
+        $('#editShowItemImageInPO').prop('checked', company.showItemImageInPO);
+        $('#editEnableKYCVerification').prop('checked', company.enableKYCVerification);
+
+        // Address
+        $('#editAddressLine1').val(company.addressLine1);
+        $('#editAddressLine2').val(company.addressLine2);
+        $('#editCity').val(company.city);
+        $('#editState').val(company.state);
+        $('#editCountry').val(company.country || 'India');
+        $('#editPincode').val(company.pincode);
+
+        // Other details
+        $('#editRoundOffInvoice').val(company.roundOffInvoice);
+        $('#editLockEntryTill').val(formatDateForInput(company.lockEntryTill));
+        $('#editTCSAmount').val(company.tcsAmount);
+        $('#editInvoiceNoMinLength').val(company.invoiceNoMinLength);
+        $('#editEwayBillAmount').val(company.ewayBillAmount);
+        $('#editORCPercentage').val(company.orcPercentage);
+        $('#editAutoInvoiceTime').val(company.autoInvoiceTime?.substring(0, 5)); // Format time as HH:mm
+        $('#editPasswordResetDays').val(company.passwordResetDays);
+        $('#editStatus').val(company.status || 'Active');
+
+        // Template setup
+        $('#editInvoiceTemplate').val(company.invoiceTemplate);
+        $('#editDebitNoteTemplate').val(company.debitNoteTemplate);
+        $('#editLeadTemplate').val(company.leadTemplate);
+        $('#editGRTemplate').val(company.grTemplate);
+        $('#editGRReceiveTemplate').val(company.grReceiveTemplate);
+        $('#editHireTemplate').val(company.hireTemplate);
+        $('#editHireTransporterTemplate').val(company.hireTransporterTemplate);
+        $('#editSaleOrderTemplate').val(company.saleOrderTemplate);
+        $('#editLeadPDFTitle').val(company.leadPDFTitle);
+        $('#editDefaultTemplate').prop('checked', company.defaultTemplate);
+
+        // Heights
+        $('#editSOTopHeight').val(company.soTopHeight);
+        $('#editSOHeaderHeight').val(company.soHeaderHeight);
+        $('#editSOFooterHeight').val(company.soFooterHeight);
+        $('#editLeadTopHeight').val(company.leadTopHeight);
+        $('#editLeadHeaderHeight').val(company.leadHeaderHeight);
+        $('#editLeadFooterHeight').val(company.leadFooterHeight);
+        $('#editInvTopHeight').val(company.invTopHeight);
+        $('#editInvHeaderHeight').val(company.invHeaderHeight);
+        $('#editInvFooterHeight').val(company.invFooterHeight);
+        $('#editGRTopHeight').val(company.grTopHeight);
+        $('#editGRHeaderHeight').val(company.grHeaderHeight);
+        $('#editGRFooterHeight').val(company.grFooterHeight);
+        $('#editCalDashEventCount').val(company.calDashEventCount);
+
+        // E-Invoice
+        $('#editEInvoiceUsername').val(company.eInvoiceUsername);
+        $('#editEInvoicePassword').val(company.eInvoicePassword);
+
+        // Show the modal using Bootstrap 5
+         var editModal = new bootstrap.Modal(document.getElementById('editModal'), {
+        keyboard: false,
+        backdrop: 'static'
+    });
+    editModal.show();
+    var modalDialog = modalElement.querySelector('.modal-dialog');
+    modalDialog.classList.add('modal-xl');
+    modalDialog.style.maxWidth = '95%';
+    modalDialog.style.width = '95%';
+    }
+
+    // Helper function to format date for input field
+    function formatDateForInput(dateString) {
+        if (!dateString) return '';
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return '';
+            return date.toISOString().split('T')[0];
+        } catch (e) {
+            console.error('Error formatting date:', e);
+            return '';
+        }
+    }
+
+    // Initialize form submission handler
+    $(document).ready(function() {
+        // Remove any duplicate handlers first
+        $('#editCompanySettingsForm').off('submit');
+
+        $('#editCompanySettingsForm').submit(function(e) {
+            e.preventDefault();
+            console.log('Form submission started');
+
+            // Debug: Log form data before submission
+            const formData = new FormData(this);
+            for (let [key, value] of formData.entries()) {
+                console.log(key, value);
+            }
+
+            // Ensure all checkboxes send values
+            $(this).find('input[type="checkbox"]').each(function() {
+                const name = $(this).attr('name');
+                $(`input[type="hidden"][name="${name}"]`).remove();
+                $(this).after(`<input type="hidden" name="${name}" value="${$(this).prop('checked')}">`);
+            });
+
+            $.ajax({
+                url: $(this).attr('action'),
+                type: 'POST',
+                data: new FormData(this),
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    console.log('Server response:', response);
+                    if (response.success) {
+                        Swal.fire({
+                            title: "Success!",
+                            text: "Company updated successfully.",
+                            icon: "success"
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            title: "Error!",
+                            text: response.message || "Operation failed.",
+                            icon: "error"
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX error:', error);
+                    Swal.fire({
+                        title: "Error!",
+                        text: "An error occurred: " + (xhr.responseText || error),
+                        icon: "error"
+                    });
+                }
+            });
+        });
+    });
+
+    function openeditPopups() {
+        // Check if the modal element exists
+        var modalElement = document.getElementById('exampleModalLong'); // Changed to 'editModal' for consistency
+
+        if (modalElement) {
+            // Get the modal dialog element
+            var modalDialog = modalElement.querySelector('.modal-dialog');
+
+            // Remove any existing size classes
+            modalDialog.classList.remove('modal-sm', 'modal-lg', 'modal-xl');
+
+            // Add the extra-large modal class
+            modalDialog.classList.add('modal-xl');
+
+            // You can also set a custom width if needed
+            modalDialog.style.maxWidth = '95%';
+            modalDialog.style.width = '95%';
+
+            try {
+                // Initialize and show the modal
+                var myModal = new bootstrap.Modal(modalElement, {
+                    keyboard: false,
+                    backdrop: 'static'
+                });
+                myModal.show();
+            } catch (error) {
+                console.error("Error showing modal:", error);
+                try {
+                    // Fallback to jQuery method
+                    jQuery(modalElement).modal('show');
+                } catch (error2) {
+                    console.error("Fallback error:", error2);
+                    alert("Could not open the edit form.");
+                }
+            }
+        } else {
+            console.error("Modal element with ID 'editModal' not found");
+            alert("Could not find the edit form.");
+        }
+    }
+
+    function openPopups() {
+        // Check if the modal element exists
+        var modalElement = document.getElementById('companyModal');
+
+        if (modalElement) {
+            // Get the modal dialog element
+            var modalDialog = modalElement.querySelector('.modal-dialog');
+
+            // Remove any existing size classes
+            modalDialog.classList.remove('modal-sm', 'modal-lg', 'modal-xl');
+
+            // Add the extra-large modal class
+            modalDialog.classList.add('modal-xl');
+
+            // You can also set a custom width if needed
+            modalDialog.style.maxWidth = '95%';
+            modalDialog.style.width = '95%';
+
+            try {
+                // Initialize and show the modal
+                var myModal = new bootstrap.Modal(modalElement, {
+                    keyboard: false,
+                    backdrop: 'static'
+                });
+                myModal.show();
+            } catch (error) {
+                console.error("Error showing modal:", error);
+                try {
+                    // Fallback to jQuery method
+                    jQuery(modalElement).modal('show');
+                } catch (error2) {
+                    console.error("Fallback error:", error2);
+                    alert("Could not open the company form.");
+                }
+            }
+        } else {
+            console.error("Modal element with ID 'companyModal' not found");
+            alert("Could not find the company form.");
+        }
+    }
+
+    // Moved form handlers outside of modal functions
+    $(document).ready(function() {
+        $('#companySettingsForm').submit(function(e) {
+            e.preventDefault();
+
+            // Ensure all checkboxes send values
+            $(this).find('input[type="checkbox"]').each(function() {
+                const name = $(this).attr('name');
+                $(`input[type="hidden"][name="${name}"]`).remove();
+                $(this).after(`<input type="hidden" name="${name}" value="${$(this).prop('checked')}">`);
+            });
+
+            var formData = new FormData(this);
+            handleAjaxRequest('/CompanyConfiguration/CompanyConfigurationAdd', formData, 'Company added successfully.');
+        });
+
+        $('#editCompanySettingsForm').submit(function(e) {
+            e.preventDefault();
+
+            // Debugging: Log the CompanyId value
+            console.log('CompanyId:', $('#editCompanyId').val());
+
+            // Ensure all checkboxes send values
+            $(this).find('input[type="checkbox"]').each(function() {
+                const name = $(this).attr('name');
+                $(`input[type="hidden"][name="${name}"]`).remove();
+                $(this).after(`<input type="hidden" name="${name}" value="${$(this).prop('checked')}">`);
+            });
+
+            var formData = new FormData(this);
+
+            // Debugging: Log the form data
+            for (let [key, value] of formData.entries()) {
+                console.log(key, value);
+            }
+
+            handleAjaxRequest('/CompanyConfiguration/CompanyConfigurationUpdate', formData, 'Company updated successfully.', function() {
+                $('#editTabItem').addClass('d-none');
+                $('#add-tab').parent().removeClass('d-none');
+                $('#add-tab').tab('show');
+            });
+        });
+    });
+
+    function handleAjaxRequest(url, formData, successMessage, callback) {
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                if (response.success) {
+                    Swal.fire("Success!", successMessage, "success").then(() => {
+                        if (callback) callback();
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire("Error!", response.message || "Operation failed.", "error");
+                }
+            },
+            error: function() {
+                Swal.fire("Error!", "An error occurred while processing your request.", "error");
+            }
+        });
+    }
+
+    function validateEmailInput(input) {
+        let emailPattern = /^[a-zA-Z0-9._%+-]+@@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        let errorElement = document.getElementById(input.id + "Error");
+
+        if (!emailPattern.test(input.value)) {
+            errorElement.style.display = "block";
+        } else {
+            errorElement.style.display = "none";
+        }
+    }
+
+    function Delete(id) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "Do you want to delete this company ?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn btn-danger",
+            confirmButtonText: "Yes, delete it!",
+            cancelButtonText: "Cancel"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: "/CompanyConfiguration/Delete",
+                    type: 'POST',
+                    data: { id: id },
+                    success: function() {
+                        Swal.fire("Deleted!", "Company setting has been deleted.", "success").then(() => {
+                            window.location.reload();
+                        });
+                    },
+                    error: function() {
+                        Swal.fire("Error!", "There was an issue deleting the company setting.", "error");
+                    }
+                });
+            }
+        });
+    }
+
+    function searchTable() {
+        var searchId = document.getElementById("searchId").value.toLowerCase();
+        var searchCompanyName = document.getElementById("searchCompanyName").value.toLowerCase();
+        var searchStatus = document.getElementById("searchStatus").value.toLowerCase();
+        var table = document.getElementById("companySetupList");
+        var rows = table.getElementsByTagName("tr");
+
+        for (var i = 1; i < rows.length; i++) {
+            var idCell = rows[i].getElementsByTagName("td")[1];
+            var companyNameCell = rows[i].getElementsByTagName("td")[0];
+            var statusCell = rows[i].getElementsByTagName("td")[6];
+
+            if (idCell && companyNameCell && statusCell) {
+                var idText = idCell.textContent || idCell.innerText;
+                var companyNameText = companyNameCell.textContent || companyNameCell.innerText;
+                var statusText = statusCell.textContent || statusCell.innerText;
+
+                if (
+                    (searchId === "" || idText.toLowerCase().includes(searchId)) &&
+                    (searchCompanyName === "" || companyNameText.toLowerCase().includes(searchCompanyName)) &&
+                    (searchStatus === "" || statusText.toLowerCase().includes(searchStatus))
+                ) {
+                    rows[i].style.display = "";
+                } else {
+                    rows[i].style.display = "none";
+                }
+            }
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        let searchInput = document.querySelector("input[name='searchTerm']");
+        let paginationLinks = document.querySelectorAll(".pagination .page-link");
+
+        paginationLinks.forEach(link => {
+            let url = new URL(link.href);
+            if (searchInput && searchInput.value) {
+                url.searchParams.set("searchTerm", searchInput.value);
+            }
+            link.href = url.toString();
+        });
+    });
+</script>
+
+
+
+
+

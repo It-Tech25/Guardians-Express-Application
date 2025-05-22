@@ -1,0 +1,533 @@
+﻿@model IEnumerable<GuardiansExpress.Models.DTOs.TaxMasterDto>
+@{
+    int rCnt = 0; // Fixed to start from 0 since we're adding to startRecord later
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // Get pagination data for use in the view
+    int currentPage = ViewData["CurrentPage"] != null ? (int)ViewData["CurrentPage"] : 1;
+    int totalPages = ViewData["TotalPages"] != null ? (int)ViewData["TotalPages"] : 1;
+    string searchTerm = ViewData["SearchTerm"] != null ? (string)ViewData["SearchTerm"] : "";
+    int pageSize = ViewData["PageSize"] != null ? (int)ViewData["PageSize"] : 10;
+    int totalRecords = ViewData["TotalRecords"] != null ? (int)ViewData["TotalRecords"] : 0;
+
+    // Calculate the starting record number
+    int startRecord = ((currentPage - 1) * pageSize) + 1;
+    int endRecord = Math.Min(startRecord + pageSize - 1, totalRecords);
+}
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="">
+            <div class="content">
+                <div class="row">
+                    <div class="col-md-12 mt-3">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Tax Master List</h4>
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTaxModal">
+                                    <i class="fa fa-plus"></i> Add Tax
+                                </button>
+                            </div>
+
+                            <!-- Search Box -->
+                            <div class="card-body">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <div class="input-group">
+                                            <input type="text" id="searchInput" class="form-control" placeholder="Search..." value="@searchTerm">
+                                            <div class="input-group-append">
+                                                <button class="btn btn-primary" type="button" id="searchButton">
+                                                    <i class="fa fa-search"></i> Search
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="pageSizeSelector">Items per page:</label>
+                                        <select id="pageSizeSelector" class="form-control form-control-sm" style="width: auto;">
+                                            @if (pageSize == 10)
+                                            {
+                                                <option value="10" selected>10</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="10">10</option>
+                                            }
+
+                                            @if (pageSize == 25)
+                                            {
+                                                <option value="25" selected>25</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="25">25</option>
+                                            }
+
+                                            @if (pageSize == 50)
+                                            {
+                                                <option value="50" selected>50</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="50">50</option>
+                                            }
+
+                                            @if (pageSize == 100)
+                                            {
+                                                <option value="100" selected>100</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="100">100</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="box-body">
+                            <div class="table-responsive">
+                                <table id="example1" class="text-fade table table-bordered" style="width:100%">
+                                    <thead>
+                                        <tr class="text-dark">
+                                            <th>S.No</th>
+                                            <th>Tax Name</th>
+                                            <th>Type</th>
+                                            <th>Common (For all categories)</th>
+                                            <th>Status</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var tax in Model)
+                                        {
+                                            <tr>
+                                                <td scope="row">@(startRecord + rCnt++)</td>
+                                                <td>
+                                                    <a href="#" onclick="EditTax('@tax.TaxId', '@tax.TaxName', '@tax.TaxType', '@tax.IsCommonTax', '@tax.Status', '@tax.IsTCSTax', '@tax.Ledger')"
+                                                       title="Edit" class="text-primary">
+                                                        @tax.TaxName
+                                                    </a>
+                                                </td>
+                                                <td>@tax.TaxType</td>
+                                                <td>@tax.IsCommonTax</td>
+                                                <td>@tax.Status</td>
+                                                <td>
+                                                    <a href="#" onclick="DeleteTax(@tax.TaxId)" title="Delete">
+                                                        <button type="button" class="waves-effect waves-circle btn btn-circle btn-danger btn-xs">
+                                                            <i class="fa fa-trash"></i>
+                                                        </button>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Pagination Controls -->
+                            @*                                 <div class="row mt-3">
+                            <div class="col-md-6">
+                            <p>Showing @startRecord to @endRecord of @totalRecords entries</p>
+                            </div>
+                            <div class="col-md-6">
+                            <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-end">
+                            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                            <a class="page-link" href="@Url.Action("TaxIndex", "TaxMaster", new { searchTerm = searchTerm, pageNumber = currentPage - 1, pageSize = pageSize })" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                            </a>
+                            </li>
+
+                            @{
+                            // Show a limited number of page links
+                            const int maxPageLinks = 5;
+                            int startPage = Math.Max(1, currentPage - (maxPageLinks / 2));
+                            int endPage = Math.Min(totalPages, startPage + maxPageLinks - 1);
+
+                            // Adjust start page if we're near the end
+                            if (endPage - startPage + 1 < maxPageLinks)
+                            {
+                            startPage = Math.Max(1, endPage - maxPageLinks + 1);
+                            }
+
+                            for (int i = startPage; i <= endPage; i++)
+                            {
+                            <li class="page-item @(i == currentPage ? "active" : "")">
+                            <a class="page-link" href="@Url.Action("TaxIndex", "TaxMaster", new { searchTerm = searchTerm, pageNumber = i, pageSize = pageSize })">@i</a>
+                            </li>
+                            }
+                            }
+
+                            <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                            <a class="page-link" href="@Url.Action("TaxIndex", "TaxMaster", new { searchTerm = searchTerm, pageNumber = currentPage + 1, pageSize = pageSize })" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                            </a>
+                            </li>
+                            </ul>
+                            </nav>
+                            </div>
+                            </div>
+                            *@
+                            <!-- Page Size Selector -->
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Tax Modal -->
+<div class="modal fade" id="addTaxModal" tabindex="-1" aria-labelledby="addTaxModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addTaxModalLabel">Add Tax</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="TaxMasterForm" action="@Url.Action("TaxAdd", "TaxMaster")" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                    @Html.AntiForgeryToken()
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <h5 class="mb-3" style="background-color: whitesmoke; color: black; padding: 10px; text-transform: uppercase;">Tax Details</h5>
+                        </div>
+                        <div class="col-lg-6">
+                            <label for="Ledger">Tax Name *</label>
+                            <select class="form-control" id="Ledger" name="TaxName" required>
+                                <option value="">--Select Tax--</option>
+                                @if (ViewBag.Ledger != null)
+                                {
+                                    foreach (var item in ViewBag.Ledger)
+                                    {
+                                        <option value="@item.AccHead">@item.AccHead</option>
+                                    }
+                                }
+                            </select>
+                            <div class="invalid-feedback">Please select a tax name.</div>
+                        </div>
+                        <div class="col-lg-6">
+                            <label for="TaxType">Tax Type *</label>
+                            <select class="form-control" id="TaxType" name="TaxType" required>
+                                <option value="">--Select--</option>
+                                <option value="AllState">AllState</option>
+                                <option value="IntraState">IntraState</option>
+                                <option value="InterState">InterState</option>
+                            </select>
+                            <div class="invalid-feedback">Please select a tax type.</div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4 align-items-center">
+                        <div class="col-lg-4">
+                            <label for="Status">Status *</label>
+                            <select class="form-control" id="Status" name="Status" required>
+                                <option value="">Select</option>
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+                            <div class="invalid-feedback">Please select a status.</div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-check mt-4">
+                                <input type="checkbox" class="form-check-input" id="IsCommonTax" name="IsCommonTax" value="true" />
+                                <input type="hidden" name="IsCommonTax" value="false" />
+                                <label class="form-check-label" for="IsCommonTax">Common Tax</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-check mt-4">
+                                <input type="checkbox" class="form-check-input" id="IsTCSTax" name="IsTCSTax" value="true" />
+                                <input type="hidden" name="IsTCSTax" value="false" />
+                                <label class="form-check-label" for="IsTCSTax">Is TCS Tax</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <button type="submit" class="btn btn-primary">Save</button>
+                            <button type="reset" class="btn btn-success">Reset</button>
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Tax Modal -->
+<div class="modal fade" id="editTaxModal" tabindex="-1" aria-labelledby="editTaxModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editTaxModalLabel">Edit Tax</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editTaxForm" action="@Url.Action("TaxUpdate", "TaxMaster")" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="TaxId" id="editTaxId" value="" />
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <h5 class="mb-3" style="background-color: whitesmoke; color: black; padding: 10px; text-transform: uppercase;">Tax Details</h5>
+                        </div>
+                        <div class="col-lg-6">
+                            <label for="editTaxName">Tax Name *</label>
+                            <select class="form-control" id="editTaxName" name="TaxName" required>
+                                <option value="">--Select Tax--</option>
+                                @if (ViewBag.Ledger != null)
+                                {
+                                    foreach (var item in ViewBag.Ledger)
+                                    {
+                                        <option value="@item.AccHead">@item.AccHead</option>
+                                    }
+                                }
+                            </select>
+                            <div class="invalid-feedback">Please select a tax name.</div>
+                        </div>
+                        <div class="col-lg-6">
+                            <label for="editTaxType">Tax Type *</label>
+                            <select class="form-control" id="editTaxType" name="TaxType" required>
+                                <option value="">--Select--</option>
+                                <option value="AllState">AllState</option>
+                                <option value="IntraState">IntraState</option>
+                                <option value="InterState">InterState</option>
+                            </select>
+                            <div class="invalid-feedback">Please select a tax type.</div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4 align-items-center">
+                        <div class="col-lg-4">
+                            <label for="editStatus">Status *</label>
+                            <select class="form-control" id="editStatus" name="Status" required>
+                                <option value="">Select</option>
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+                            <div class="invalid-feedback">Please select a status.</div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-check mt-4">
+                                <input type="checkbox" class="form-check-input" id="editIsCommonTax" name="IsCommonTax" value="true" />
+                                <input type="hidden" name="IsCommonTax" value="false" />
+                                <label class="form-check-label" for="editIsCommonTax">Common Tax</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-check mt-4">
+                                <input type="checkbox" class="form-check-input" id="editIsTCSTax" name="IsTCSTax" value="true" />
+                                <input type="hidden" name="IsTCSTax" value="false" />
+                                <label class="form-check-label" for="editIsTCSTax">Is TCS Tax</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <button type="submit" class="btn btn-primary">Update</button>
+                            <button type="reset" class="btn btn-success">Reset</button>
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include jQuery and SweetAlert2 -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- Include Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        // Handle search button click
+        $('#searchButton').click(function () {
+            var searchValue = $('#searchInput').val();
+            window.location.href = '@Url.Action("TaxIndex", "TaxMaster")' + '?searchTerm=' + encodeURIComponent(searchValue) + '&pageSize=' + @pageSize;
+        });
+
+        // Allow search on Enter key
+        $('#searchInput').keypress(function (e) {
+            if (e.which === 13) { // Enter key
+                $('#searchButton').click();
+            }
+        });
+
+        // Handle page size changes
+        $('#pageSizeSelector').change(function () {
+            var selectedPageSize = $(this).val();
+            window.location.href = '@Url.Action("TaxIndex", "TaxMaster")' + '?searchTerm=' + encodeURIComponent('@searchTerm') + '&pageSize=' + selectedPageSize;
+        });
+
+        // Add Tax Form Submission with validation
+        $('#TaxMasterForm').submit(function (e) {
+            e.preventDefault();
+
+            // Check form validity using the HTML5 validation API
+            if (!this.checkValidity()) {
+                e.stopPropagation();
+                $(this).addClass('was-validated');
+                return false;
+            }
+
+            // Validate dropdown fields manually
+            var taxName = $('#Ledger').val();
+            var taxType = $('#TaxType').val();
+            var status = $('#Status').val();
+
+            // Check if valid options are selected (not the placeholder values)
+            if (!taxName || taxName === "" || !taxType || !status) {
+                Swal.fire("Validation Error!", "Please fill in all required fields correctly.", "error");
+                return false;
+            }
+
+            var formData = new FormData(this);
+            $.ajax({
+                url: '@Url.Action("TaxAdd", "TaxMaster")',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'  // Mark as AJAX request
+                },
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire("Success!", "Tax added successfully.", "success")
+                            .then(() => {
+                                window.location.reload();
+                            });
+                    } else {
+                        Swal.fire("Error!", response.message || "Tax name already exists.", "error");
+                    }
+                },
+                error: function () {
+                    Swal.fire("Error!", "There was an error processing your request.", "error");
+                }
+            });
+        });
+
+        // Edit Tax Form Submission with validation
+        $('#editTaxForm').submit(function (e) {
+            e.preventDefault();
+
+            // Check form validity
+            if (!this.checkValidity()) {
+                e.stopPropagation();
+                $(this).addClass('was-validated');
+                return false;
+            }
+
+            // Validate dropdown fields manually
+            var taxName = $('#editTaxName').val();
+            var taxType = $('#editTaxType').val();
+            var status = $('#editStatus').val();
+
+            // Check if valid options are selected
+            if (!taxName || taxName === "" || !taxType || !status) {
+                Swal.fire("Validation Error!", "Please fill in all required fields correctly.", "error");
+                return false;
+            }
+
+            var formData = new FormData(this);
+            $.ajax({
+                url: '@Url.Action("TaxUpdate", "TaxMaster")',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire("Updated!", "Tax updated successfully.", "success").then(() => {
+                            $('#editTaxModal').modal('hide');
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire("Error!", response.message || "Failed to update Tax.", "error");
+                    }
+                },
+                error: function () {
+                    Swal.fire("Error!", "An error occurred while updating the Tax.", "error");
+                }
+            });
+        });
+
+        // Clear any existing messages on modal open
+        $('#addTaxModal').on('show.bs.modal', function () {
+            $('#TaxMasterForm').removeClass('was-validated');
+            $('#TaxMasterForm')[0].reset();
+        });
+
+        $('#editTaxModal').on('show.bs.modal', function () {
+            $('#editTaxForm').removeClass('was-validated');
+        });
+    });
+
+    // Edit Tax Function
+    function EditTax(taxId, taxName, taxType, isCommonTax, status, isTCSTax, ledgerId) {
+        // Set the hidden ID field
+        $("#editTaxId").val(taxId);
+
+        // Set the correct Tax Name in the dropdown
+        $("#editTaxName").val(taxName);
+
+        // Set other values
+        $("#editTaxType").val(taxType);
+        $("#editStatus").val(status);
+
+        // Handle checkbox values properly
+        $("#editIsCommonTax").prop("checked", isCommonTax === "True" || isCommonTax === "true");
+        $("#editIsTCSTax").prop("checked", isTCSTax === "True" || isTCSTax === "true");
+
+        // Show the edit modal
+        $('#editTaxModal').modal('show');
+    }
+
+    // Delete Tax Function
+    function DeleteTax(taxId) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '@Url.Action("Delete", "TaxMaster")/' + taxId,
+                    type: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire("Deleted!", "Tax has been deleted.", "success").then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire("Error!", response.message || "There was an issue deleting the Tax.", "error");
+                        }
+                    },
+                    error: function () {
+                        Swal.fire("Error!", "There was an error processing your request.", "error");
+                    }
+                });
+            }
+        });
+    }
+</script>

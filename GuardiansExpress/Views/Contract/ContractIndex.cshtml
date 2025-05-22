@@ -1,0 +1,539 @@
+﻿@model IEnumerable<GuardiansExpress.Models.DTOs.ContractModel>
+@{
+    int rCnt = 1;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    .required {
+        color: red;
+    }
+
+    .modal-dialog {
+        max-width: 90%;
+        width: 90%;
+    }
+</style>
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="row">
+            <div class="col-md-12 mt-3">
+                <div class="card">
+
+                    <div class="card-header">
+                        <h4 class="card-title">Contract List</h4>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addContractModal">
+                                <i class="fas fa-plus"></i> Add Contract
+                            </button>
+                        </div>
+                    </div>
+                    <div class="box-body">
+                        <div class="table-responsive">
+                            <table id="example1" class="text-fade table table-bordered" style="width:100%">
+                                <thead>
+                                    <tr class="text-dark">
+                                        <th>S.No</th>
+                                        <th>Branch</th>
+                                        <th>Client Name</th>
+                                        <th>Contract Type</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var contract in Model)
+                                    {
+                                            <tr>
+                                                <td scope="row">@(rCnt++)</td>
+                                                <td>@contract.BranchName</td>
+                                                <td>@contract.ClientName</td>
+                                                <td>@contract.ContractType</td>
+                                                <td>@(contract.IsActive == true ? "Active" : contract.TempClose == false ? "Temporarily Closed" : contract.DisableContract == false ? "Disabled" : "Inactive")</td>
+                                                <td>
+                                                    <a href="#" onclick="EditContracts(@contract.ContractId)" class="btn btn-link p-0 me-2" title="Edit">
+                                                          <button type="button" class="waves-effect waves-circle btn btn-circle btn-dark btn-xs"><i class="fa fa-pencil"></i></button>
+                                                        </a>
+                                                    <a href="#" onclick="DeleteContract(@contract.ContractId)" class="btn btn-link p-0" title="Delete">
+                                                             <button type="button" class="waves-effect waves-circle btn btn-circle btn-danger btn-xs"><i class="fa fa-trash"></i></button>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Contract Modal -->
+<div class="modal fade" id="addContractModal" tabindex="-1" role="dialog" aria-labelledby="addContractModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addContractModalLabel">Add Contract</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="ContractForm" action="@Url.Action("CreateContract", "Contract")" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="ContractId" name="ContractId" value="0" />
+                    <input type="hidden" id="InvoiceId" name="InvoiceId" value="0" />
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <label>Branch *</label>
+                            <select class="form-control" name="BranchMasterId" id="BranchMasterId" required>
+                                @foreach (var b in ViewBag.Branches)
+                                {
+                                        <option value="@b.id">@b.BranchName</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-lg-4">
+                            <label for="ClientName">Client Name *</label>
+                            <input type="text" class="form-control" id="ClientName" name="ClientName" required>
+                        </div>
+                        <div class="col-lg-4">
+                            <label for="ReferenceName">Reference Name</label>
+                            <input type="text" class="form-control" id="ReferenceName" name="ReferenceName">
+                        </div>
+                        <div class="col-lg-4">
+                            <label for="LastInvDate">Last Invoice Date</label>
+                            <input type="date" class="form-control" id="LastInvDate" name="LastInvDate">
+                        </div>
+
+                        <div class="col-lg-4">
+                            <label>InvoiceType *</label>
+                            <select class="form-control" name="InvoiceType" id="InvoiceType" required>
+                                @foreach (var b in ViewBag.invoices)
+                                {
+                                        <option value="@b.Id">@b.InvoiceType</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-lg-4">
+                            <label for="LastInvNo">Last Invoice Number</label>
+                            <input type="text" class="form-control" id="LastInvNo" name="LastInvNo">
+                        </div>
+
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-lg-4">
+                            <label for="ContractType">Contract Type *</label>
+                            <select class="form-control" id="ContractType" name="ContractType" required>
+                                <option value="">Select Contract Type</option>
+                                <option value="Monthly">Monthly</option>
+                                <option value="Quarterly">Quarterly</option>
+                                <option value="Half-Yearly">Half-Yearly</option>
+                                <option value="Yearly">Yearly</option>
+                                <option value="One-Time">One-Time</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-4">
+                            <label for="InvoiceNo">Invoice Number *</label>
+                            <input type="text" class="form-control" id="InvoiceNo" name="InvoiceNo" required>
+                        </div>
+
+                        <div class="col-lg-4">
+                            <label for="SaleDate">Contract Start Date *</label>
+                            <input type="date" id="SaleDate" class="form-control" name="SaleDate" required>
+                        </div>
+
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-lg-4">
+                            <label for="DueDate">Due Date *</label>
+                            <input type="date" class="form-control" id="DueDate" name="DueDate" required>
+                        </div>
+                        <div class="col-lg-4">
+                            <label for="ContractEndDate">Contract End Date</label>
+                           <input type="date" id="ContractEndDate" class="form-control" name="ContractEndDate">
+
+                        </div>
+
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-lg-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="AutoInvoice" name="AutoInvoice">
+                                <label class="form-check-label" for="AutoInvoice">Auto Invoice</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="EndRental" name="EndRental">
+                                <label class="form-check-label" for="EndRental">End Rental</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="TempClose" name="TempClose">
+                                <label class="form-check-label" for="TempClose">Temporarily Close</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="DisableContract" name="DisableContract">
+                                <label class="form-check-label" for="DisableContract">Disable Contract</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-lg-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="EmailReminder" name="EmailReminder">
+                                <label class="form-check-label" for="EmailReminder">Email Reminder</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="SMSReminder" name="SMSReminder">
+                                <label class="form-check-label" for="SMSReminder">SMS Reminder</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="WhatsAppReminder" name="WhatsAppReminder">
+                                <label class="form-check-label" for="WhatsAppReminder">WhatsApp Reminder</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-lg-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="IsActive" name="IsActive" checked>
+                                <label class="form-check-label" for="IsActive">Active</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h5 class="mt-4">Contract Items</h5>
+                    <!-- Contract Items Table -->
+                    <table class="table table-bordered mt-3">
+                        <thead>
+                            <tr>
+                                <th>Material Description</th>
+                                <th>From</th>
+                                <th>To</th>
+                                <th>Vehicle Type</th>
+                                <th>Freight Rate</th>
+                                <th>Vehicle Size</th>
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="contractItemsTableBody">
+                            <tr>
+                                <!-- Material Description -->
+                                <td><input type="text" class="form-control item-name" name="Items[0].Item" required></td>
+                                <!-- From -->
+                                <td><input type="text" class="form-control billing-item" name="Items[0].From" required></td>
+                                <!-- To -->
+                                <td><input type="text" class="form-control" name="Items[0].To"></td>
+                                <!-- Vehicle Type -->
+                                <td><input type="text" class="form-control" name="Items[0].VehicleType"></td>
+                                <!-- Freight Rate -->
+                                <td><input type="number" class="form-control item-rate" name="Items[0].FreightRate" value="0.00" step="0.01" onchange="calculateItemAmount(this)"></td>
+                                <!-- Vehicle Size -->
+                                <td>
+                                    <select class="form-control item-qty" name="Items[0].VehicleSize" onchange="calculateItemAmount(this)">
+                                        <option value="ODC">ODC</option>
+                                        <option value="Normal">Normal</option>
+                                        <option value="OWC">OWC</option>
+                                        <option value="CARGO">CARGO</option>
+                                    </select>
+                                </td>
+                                <!-- Start Date -->
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <input type="date" class="form-control item-start-date" name="Items[0].StartDate" required>
+                                        <span class="ms-2 text-muted start-date-display"></span>
+                                    </div>
+                                </td>
+
+                                <!-- End Date -->
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <input type="date" class="form-control item-end-date" name="Items[0].EndDate" required>
+                                        <span class="ms-2 text-muted end-date-display"></span>
+                                    </div>
+                                </td>
+                                <!-- Action -->
+                                <td><button type="button" class="btn btn-danger btn-sm" onclick="removeContractItem(this)">✖</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <!-- Add Item Button -->
+                    <button type="button" class="btn btn-primary" onclick="addContractItems()">Add Item</button>
+
+
+                    <div class="row mt-3">
+                        <div class="col-md-12 text-left">
+                            <button type="submit" class="btn btn-success">Save</button>
+                            <button type="reset" class="btn btn-secondary">Reset</button>
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include jQuery and Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Global variable
+    let itemCounters = 1; // Start from 1 since we already have 0 in the template
+
+    function addContractItems() {
+        const tableBody = document.getElementById('contractItemsTableBody');
+        const newRow = document.createElement('tr');
+
+        // Get selected contract start and end dates
+        const contractStartDate = document.getElementById('SaleDate').value || '';
+        const contractEndDate = document.getElementById('ContractEndDate').value || '';
+
+        newRow.innerHTML = `
+                <td><input type="text" class="form-control item-name" name="Items[${itemCounters}].Item" required></td>
+                <td><input type="text" class="form-control billing-item" name="Items[${itemCounters}].From" required></td>
+                <td><input type="text" class="form-control" name="Items[${itemCounters}].To"></td>
+                <td><input type="text" class="form-control" name="Items[${itemCounters}].VehicleType"></td>
+                <td><input type="number" class="form-control item-rate" name="Items[${itemCounters}].FreightRate" value="0.00" step="0.01"></td>
+                <td>
+                    <select class="form-control item-qty" name="Items[${itemCounters}].VehicleSize">
+                        <option value="ODC">ODC</option>
+                        <option value="Normal">Normal</option>
+                        <option value="OWC">OWC</option>
+                        <option value="CARGO">CARGO</option>
+                    </select>
+                </td>
+                <td><input type="date" class="form-control item-start-date" name="Items[${itemCounters}].StartDate" value="${contractStartDate}" required></td>
+                <td><input type="date" class="form-control item-end-date" name="Items[${itemCounters}].EndDate" value="${contractEndDate}" required></td>
+                <td><button type="button" class="btn btn-danger btn-sm" onclick="removeContractItem(this)">✖</button></td>
+            `;
+
+        tableBody.appendChild(newRow);
+        itemCounters++; // Increment the counter for the next row
+    }
+
+    function removeContractItem(button) {
+        const row = button.closest('tr');
+        if (document.getElementById('contractItemsTableBody').rows.length > 1) {
+            row.remove();
+        } else {
+            alert('At least one item is required!');
+        }
+    }
+
+    // Function to update contract item dates based on contract dates
+    function updateContractItemDates() {
+        const startDate = document.getElementById('SaleDate').value || '';
+        const endDate = document.getElementById('ContractEndDate').value || '';
+
+        // Update all item date fields
+        document.querySelectorAll('.item-start-date').forEach(input => {
+            input.value = startDate;
+        });
+
+        document.querySelectorAll('.item-end-date').forEach(input => {
+            input.value = endDate;
+        });
+    }
+
+    // Helper function to format date for form inputs
+    function formatDateForInput(dateString) {
+        if (!dateString) return '';
+
+        // Try to create a valid date object
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return '';
+
+        // Format as YYYY-MM-DD for input[type="date"]
+        return date.toISOString().split('T')[0];
+    }
+
+    function EditContracts(contractId) {
+        console.log('EditContract called with contractId:', contractId);
+
+        // Reset form
+        const form = document.getElementById('ContractForm');
+        form.reset();
+
+        // Set contract ID and update form action
+        document.getElementById('ContractId').value = contractId;
+        form.action = '@Url.Action("ContractEdit", "Contract")';
+
+        // Change modal title
+        document.getElementById('addContractModalLabel').textContent = 'Edit Contract';
+
+        // Clear existing items
+        const tableBody = document.getElementById('contractItemsTableBody');
+        while (tableBody.rows.length > 0) {
+            tableBody.deleteRow(0);
+        }
+
+        // Fetch contract data
+        fetch(`/Contract/GetContractById/${contractId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Contract data:', data);
+
+                // Populate form fields
+                document.getElementById('ContractId').value = data.contractId;
+                document.getElementById('BranchMasterId').value = data.branchMasterId;
+                document.getElementById('InvoiceId').value = data.invoiceId || 0;
+                document.getElementById('DisableContract').checked = data.disableContract || false;
+                document.getElementById('AutoInvoice').checked = data.autoInvoice || false;
+                document.getElementById('TempClose').checked = data.tempClose || false;
+                document.getElementById('ClientName').value = data.clientName || '';
+                document.getElementById('ReferenceName').value = data.referenceName || '';
+                document.getElementById('InvoiceType').value = data.invoiceTypeId || '';
+                document.getElementById('ContractType').value = data.contractType || '';
+                document.getElementById('LastInvDate').value = formatDateForInput(data.lastInvDate);
+                document.getElementById('LastInvNo').value = data.lastInvNo || '';
+                document.getElementById('InvoiceNo').value = data.invoiceNo || '';
+
+                // Handle dates properly
+                document.getElementById('SaleDate').value = formatDateForInput(data.contractStartDate);
+                document.getElementById('ContractEndDate').value = formatDateForInput(data.contractEndDate);
+                document.getElementById('DueDate').value = formatDateForInput(data.dueDate);
+
+                // Set checkboxes
+                document.getElementById('EndRental').checked = data.endRental || false;
+                document.getElementById('EmailReminder').checked = data.emailReminder || false;
+                document.getElementById('SMSReminder').checked = data.smsReminder || false;
+                document.getElementById('WhatsAppReminder').checked = data.whatsAppReminder || false;
+                document.getElementById('IsActive').checked = data.isActive || false;
+
+                // Populate contract items
+                if (data.items && data.items.length > 0) {
+                    data.items.forEach((item, index) => {
+                        const newRow = document.createElement('tr');
+                        newRow.innerHTML = `
+                                <td><input type="text" class="form-control item-name" name="Items[${index}].Item" value="${item.materialDescription || ''}" required></td>
+                                <td><input type="text" class="form-control billing-item" name="Items[${index}].From" value="${item.fromPlace || ''}" required></td>
+                                <td><input type="text" class="form-control" name="Items[${index}].To" value="${item.toPlace || ''}"></td>
+                                <td><input type="text" class="form-control" name="Items[${index}].VehicleType" value="${item.vehicleType || ''}"></td>
+                                <td><input type="number" class="form-control item-rate" name="Items[${index}].FreightRate" value="${item.freightRate || 0}" step="0.01"></td>
+                                <td>
+                                    <select class="form-control item-qty" name="Items[${index}].VehicleSize">
+                                        <option value="ODC" ${item.vehicleSize === 'ODC' ? 'selected' : ''}>ODC</option>
+                                        <option value="Normal" ${item.vehicleSize === 'Normal' ? 'selected' : ''}>Normal</option>
+                                        <option value="OWC" ${item.vehicleSize === 'OWC' ? 'selected' : ''}>OWC</option>
+                                        <option value="CARGO" ${item.vehicleSize === 'CARGO' ? 'selected' : ''}>CARGO</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <input type="date" class="form-control item-start-date" name="Items[${index}].StartDate" value="${formatDateForInput(item.startDate)}" required>
+                                        <span class="ms-2 text-muted start-date-display"></span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <input type="date" class="form-control item-end-date" name="Items[${index}].EndDate" value="${formatDateForInput(item.endDate)}" required>
+                                        <span class="ms-2 text-muted end-date-display"></span>
+                                    </div>
+                                </td>
+                                <td><button type="button" class="btn btn-danger btn-sm" onclick="removeContractItem(this)">✖</button></td>
+                            `;
+                        tableBody.appendChild(newRow);
+                        itemCounters = index + 1;
+                    });
+                } else {
+                    // Add default row if no items
+                    addContractItems();
+                }
+
+                // Update itemCounters for next item addition
+                itemCounters = tableBody.rows.length;
+
+                // Show the modal
+                const modal = new bootstrap.Modal(document.getElementById('addContractModal'));
+                modal.show();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while loading the contract data');
+            });
+    }
+
+    function DeleteContract(id) {
+    Swal.fire({
+        title: "Are you sure?",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Yes, delete it!"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: '/Contract/DeleteContract/' + id,  // Ensure the correct URL is used
+                type: 'POST',
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire("Deleted!", "Contract has been deleted.", "success").then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire("Error!", response.message || "There was an issue deleting the contract.", "error");
+                    }
+                },
+                error: function (xhr, status, error) {
+                    // Use the error message from the response if available
+                    let errorMessage = "There was an error processing your request.";
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;  // Fetch error message from the response
+                    }
+                    Swal.fire("Error!", errorMessage, "error");
+                }
+            });
+        }
+    });
+}
+
+    // Initialize when the document is ready
+    document.addEventListener('DOMContentLoaded', function () {
+        // Set up event handlers for contract start/end date changes
+        const contractStartDateInput = document.getElementById('SaleDate');
+        const contractEndDateInput = document.getElementById('ContractEndDate');
+
+        if (contractStartDateInput) {
+            contractStartDateInput.addEventListener('change', updateContractItemDates);
+        }
+
+        if (contractEndDateInput) {
+            contractEndDateInput.addEventListener('change', updateContractItemDates);
+        }
+
+        // Initialize datatable if needed
+        if ($.fn.DataTable) {
+            $('#example1').DataTable({
+                responsive: true,
+                lengthChange: false,
+                autoWidth: false,
+                pageLength: 10,
+                buttons: ["copy", "csv", "excel", "pdf", "print"]
+            });
+        }
+    });
+</script/>

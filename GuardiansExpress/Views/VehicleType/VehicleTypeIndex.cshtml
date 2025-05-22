@@ -1,0 +1,308 @@
+﻿@model IEnumerable<GuardiansExpress.Models.DTOs.VehicleTypeDTO>
+@{
+    int rCnt = 1;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="row">
+            <div class="col-md-12 mt-3">
+                <div class="card">
+                    <div class="card-header">
+
+                      <h4 class="card-title">Vehicle Type List</h4>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addVehicleTypeModal">
+                                <i class="fas fa-plus"></i> Add Vehicle Type
+                            </button>
+                      
+                    </div>
+
+        
+                    <div class="box-body">
+                        <div class="table-responsive">
+                            <table id="example1" class="text-fade table table-bordered" style="width:100%">
+                                <thead>
+                                    <tr class="text-dark">
+                                                <th>S.No</th>
+                                                <th>Vehicle Type</th>
+                                                <th>Vehicle Image</th>
+                                                <th>Active Status</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var vehicleType in Model)
+                                            {
+                                                <tr> 
+                                                    <td scope="row">@(rCnt++)</td>
+                                                    <td> <a href="#" onclick="EditVehicleType(@vehicleType.Id, '@vehicleType.VehicleType')" class="btn btn-link p-0" title="Edit">@vehicleType.VehicleType</a></td>
+                                                    <td>
+                                                        @if (!string.IsNullOrEmpty(vehicleType.VehicleImage))
+                                                        {
+                                                            <img src="@vehicleType.VehicleImage" alt="Vehicle Type" style="max-width: 100px; max-height: 100px;" />
+                                                        }
+                                                        else
+                                                        {
+                                                            <span>No Image</span>
+                                                        }
+                                                    </td>
+                                                    <td>@(vehicleType.IsActive==true ? "Active" : "Inactive")</td>
+                                                    <td>
+                                                        <a href="#" onclick="DeleteVehicleType(@vehicleType.Id)" class="btn btn-link p-0" title="Delete">
+                                                    <button type="button" class="waves-effect waves-circle btn btn-circle btn-danger btn-xs"><i class="fa fa-trash"></i></button>
+
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Vehicle Type Modal -->
+<div class="modal fade" id="addVehicleTypeModal" tabindex="-1" role="dialog" aria-labelledby="addVehicleTypeModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addVehicleTypeModalLabel">Add Vehicle Type</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="vehicleTypeForm" action="@Url.Action("VehicleTypeAdd", "VehicleType")" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <h5 class="mb-3" style="background-color: whitesmoke; color: black; padding: 10px; text-transform: uppercase;">Vehicle Type Information</h5>
+                        </div>
+                        <div class="col-lg-6">
+                            <label for="VehicleType">Vehicle Type *</label>
+                            <input type="text" class="form-control" id="VehicleType" name="VehicleType" maxlength="20"
+                                   required>
+                           
+                        </div>
+                        <div class="col-lg-6">
+                            <label for="VehicleImage">Vehicle Image</label>
+                            <input type="file" class="form-control" id="VehicleImage" name="VehicleImage" accept="image/*">
+                        </div>
+                        <div class="col-lg-6 mt-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="IsActive" name="IsActive" checked>
+                                <label class="form-check-label" for="IsActive">
+                                    Is Active
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <button type="submit" class="btn btn-primary">Save</button>
+                            <button type="reset" class="btn btn-success">Reset</button>
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Vehicle Type Modal -->
+<div class="modal fade" id="editVehicleTypeModal" tabindex="-1" role="dialog" aria-labelledby="editVehicleTypeModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editVehicleTypeModalLabel">Edit Vehicle Type</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editVehicleTypeForm" action="@Url.Action("VehicleTypeUpdate", "VehicleType")" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="Id" id="editVehicleTypeId" value="" />
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <h5 class="mb-3" style="background-color: whitesmoke; color: black; padding: 10px; text-transform: uppercase;">Edit Vehicle Type</h5>
+                        </div>
+                        <div class="col-lg-6">
+                            <label for="editVehicleType">Vehicle Type *</label>
+                            <input type="text" class="form-control" id="editVehicleType" name="VehicleType" maxlength="20"
+                                   pattern="[A-Za-z ]{1,20}" title="Please enter alphabets only (max 20 characters)" required>
+                            <div class="invalid-feedback">Please enter a valid Vehicle Type (max 20 characters, alphabets only).</div>
+                        </div>
+                        <div class="col-lg-6">
+                            <label for="editVehicleImage">Vehicle Image</label>
+                            <input type="file" class="form-control" id="editVehicleImage" name="VehicleImage" accept="image/*">
+                            <div id="currentImagePreview"></div>
+                        </div>
+                        <div class="col-lg-6 mt-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="editIsActive" name="IsActive">
+                                <label class="form-check-label" for="editIsActive">
+                                    Is Active
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <button type="submit" class="btn btn-primary">Update</button>
+                            <button type="reset" class="btn btn-success">Reset</button>
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('#vehicleTypeList').DataTable();
+
+        $('#vehicleTypeForm').submit(function (e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+            $.ajax({
+                url: '/VehicleType/VehicleTypeAdd',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire("Success!", "Vehicle Type added successfully.", "success")
+                        .then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire("Error!", response.message || "There was an issue adding the Vehicle Type.", "error");
+                    }
+                },
+                error: function () {
+                    Swal.fire("Error!", "There was an error processing your request.", "error");
+                }
+            });
+        });
+
+        $('#editVehicleTypeForm').submit(function (e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+            $.ajax({
+                url: '/VehicleType/VehicleTypeUpdate',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire("Success!", "Vehicle Type updated successfully.", "success")
+                        .then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire("Error!", response.message || "There was an issue updating the Vehicle Type.", "error");
+                    }
+                },
+                error: function () {
+                    Swal.fire("Error!", "There was an error processing your request.", "error");
+                }
+            });
+        });
+    });
+
+    function EditVehicleType(id, vehicleType) {
+        $.ajax({
+            url: '/VehicleType/GetVehicleTypeDetails/' + id,
+            type: 'GET',
+            dataType: 'json',
+            success: function (response) {
+                $("#editVehicleTypeId").val(response.id);
+                $("#editVehicleType").val(response.vehicleType);
+                $("#editIsActive").prop('checked', response.isActive);
+
+                if (response.vehicleImage && response.vehicleImage.trim() !== '') {
+                    $("#currentImagePreview").html(`<img src="${response.vehicleImage}" alt="Current Vehicle Type Image" style="max-width: 100px; max-height: 100px; margin-top: 10px;">`);
+                } else {
+                    $("#currentImagePreview").html('<span>No current image</span>');
+                }
+
+                $('#editVehicleTypeModal').modal('show');
+            },
+            error: function (xhr, status, error) {
+                Swal.fire("Error!", "Unable to retrieve Vehicle Type details. Error: " + error, "error");
+            }
+        });
+    }
+
+    function DeleteVehicleType(id) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/VehicleType/Delete/' + id,
+                    type: 'POST',
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire("Deleted!", "Vehicle Type has been deleted.", "success").then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire("Error!", response.message || "There was an issue deleting the Vehicle Type.", "error");
+                        }
+                    },
+                    error: function (xhr) {
+                        Swal.fire("Error!", "There was an error processing your request. " + xhr.responseText, "error");
+                    }
+                });
+            }
+        });
+    }
+
+    function searchTable() {
+        var idInput = document.getElementById("searchId").value.toLowerCase();
+        var vehicleTypeInput = document.getElementById("searchVehicleType").value.toLowerCase();
+        var table = document.getElementById("vehicleTypeList");
+        var rows = table.getElementsByTagName("tr");
+
+        for (var i = 1; i < rows.length; i++) {
+            var idColumn = rows[i].getElementsByTagName("td")[1];
+            var vehicleTypeColumn = rows[i].getElementsByTagName("td")[2];
+
+            if (idColumn && vehicleTypeColumn) {
+                var idText = idColumn.textContent.toLowerCase();
+                var vehicleTypeText = vehicleTypeColumn.textContent.toLowerCase();
+
+                if (idText.includes(idInput) && vehicleTypeText.includes(vehicleTypeInput)) {
+                    rows[i].style.display = "";
+                } else {
+                    rows[i].style.display = "none";
+                }
+            }
+        }
+    }
+</script>

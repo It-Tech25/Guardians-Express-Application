@@ -1,0 +1,35 @@
+﻿@model GuardiansExpress.Models.Entity.InvoiceTypeMasterEntity
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="row flex-row-reverse">
+            <div class="col-md-12 mt-3">
+                <div class="card">
+                    <div class="card-header"> Add/Edit Invoice Type </div>
+                    <div class="card-body">
+                        <form action="@Url.Action("AddOrUpdateInvoiceType", "InvoiceType")" method="post" enctype="multipart/form-data">
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <div class="form-group">
+                                        <input type="hidden" id="Id" name="Id" value="@Model?.Id" />
+                                        <label>Invoice Type</label><span class="text-danger">*</span>
+                                        <input class="form-control" name="InvoiceType" id="InvoiceType" type="text" value="@Model?.InvoiceType" placeholder="Enter Invoice Type">
+                                        <label>Status</label><span class="text-danger">*</span>
+                                        <input class="form-control" name="Status" id="Status" type="text" value="@Model?.Status" placeholder="Status">
+                                    </div>
+                                </div>
+                                <br />
+                                <div class="col-md-6 pt-4">
+                                    <div class="row">
+
+                                        <div id="UpdateBt" class="col-sm-6">
+                                            <button type="submit" class="btn btn-success">Update</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+

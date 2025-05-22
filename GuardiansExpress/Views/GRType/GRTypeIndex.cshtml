@@ -1,0 +1,299 @@
+﻿@model IEnumerable<GuardiansExpress.Models.Entity.GRType>
+@{
+    int rCnt = 1;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .required {
+        color: red;
+    }
+</style>
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="row">
+            <div class="col-md-12 mt-3">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4 class="card-title mb-0">GR Type List</h4>
+                        <button type="button"
+                                onclick="addGRTypeModal();"
+                                class="btn btn-success btn-sm px-3"
+                                data-bs-toggle="modal"
+                                data-bs-target="#addGRTypeModal">
+                            <i class="fa fa-plus me-2"></i> Add GR Type
+                        </button>
+                    </div>
+                </div>
+
+                    <div class="box-body">
+                        <div class="table-responsive">
+                            <table id="example1" class="text-fade table table-bordered" style="width:100%">
+                                <thead>
+                                    <tr class="text-dark">
+                                        <th>S.No</th>
+                                        <th>Type Name</th>
+                                        <th>Is Default</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var grType in Model)
+                                    {
+                                        <tr>
+                                            <td scope="row">@(rCnt++)</td>
+                                            <td>
+                                                <a href="#" onclick="EditGRType(@grType.GRTypeId, '@grType.TypeName', '@grType.IsDefault')" class="btn btn-link p-0" title="Edit">@grType.TypeName</a>
+                                            </td>
+                                                
+                                            <td>@grType.IsDefault</td>
+                                            <td>
+                                                <button onclick="DeleteGRType(@grType.GRTypeId)"
+                                                        class="waves-effect waves-circle btn btn-circle btn-danger btn-xs" title="Delete">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    
+
+<!-- Add GR Type Modal -->
+<div class="modal fade" id="addGRTypeModal" tabindex="-1" role="dialog" aria-labelledby="addGRTypeModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addGRTypeModalLabel">Add GR Type</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="grTypeForm" action="@Url.Action("GRTypeAdd", "GRType")" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <h5 class="mb-3" style="background-color: whitesmoke; color: black; padding: 10px; text-transform: uppercase;">GR Type Details</h5>
+                        </div>
+                        <div class="col-lg-6">
+                            <label for="TypeName">Type Name <span class="required">*</span></label>
+                            <input type="text" class="form-control" id="TypeName" name="TypeName" maxlength="50" required>
+                        </div>
+                        <div class="col-lg-6 mt-3">
+                            <!-- Hidden input to submit 'false' if the checkbox is unchecked -->
+                            <input type="hidden" name="IsDefault" value="false" />
+
+                            <!-- Checkbox input for 'IsDefault' -->
+                            <input type="checkbox" id="IsDefault" name="IsDefault" value="true">
+                            <label for="IsDefault">Is Default</label>
+                        </div>
+
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <button type="submit" class="btn btn-primary">Save</button>
+                            <button type="reset" class="btn btn-success">Reset</button>
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit GR Type Modal -->
+<div class="modal fade" id="editGRTypeModal" tabindex="-1" role="dialog" aria-labelledby="editGRTypeModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editGRTypeModalLabel">Edit GR Type</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editGRTypeForm" action="@Url.Action("GRUpdate", "GRType")" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="GRTypeId" id="editGRTypeId" value="" />
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <h5 class="mb-3" style="background-color: whitesmoke; color: black; padding: 10px; text-transform: uppercase;">GR Type Details</h5>
+                        </div>
+                        <div class="col-lg-6">
+                            <label for="editTypeName">Type Name <span class="required">*</span></label>
+                            <input type="text" class="form-control" id="editTypeName" name="TypeName" required>
+                        </div>
+                        <input type="hidden" name="IsDefault" value="false" />
+
+                        <div class="col-lg-6 mt-3">
+                            <!-- Checkbox input for 'editIsDefault' -->
+                            <input type="checkbox" id="editIsDefault" name="IsDefault" value="true">
+                            <label for="editIsDefault">Is Default</label>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <button type="submit" class="btn btn-primary">Update</button>
+                            <button type="reset" class="btn btn-success">Reset</button>
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('#grTypeList').DataTable();
+
+        // Form submission for Add GR Type
+        $('#grTypeForm').submit(function (e) {
+            e.preventDefault();
+
+            // Ensure checkbox value is correctly set
+            if (!$('#IsDefault').is(':checked')) {
+                $('input[name="IsDefault"]').val('false');
+            } else {
+                $('input[name="IsDefault"]').val('true');
+            }
+
+            var formData = new FormData(this);
+            $.ajax({
+                url: '/GRType/GRTypeAdd',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire("Success!", "GR Type added successfully.", "success")
+                            .then(() => {
+                                window.location.reload();
+                            });
+                    } else {
+                        Swal.fire("Error!", response.message || "There was an issue adding the GR Type.", "error");
+                    }
+                },
+                error: function () {
+                    Swal.fire("Error!", "There was an error processing your request.", "error");
+                }
+            });
+        });
+
+        // Form submission for Edit GR Type
+        $('#editGRTypeForm').submit(function (e) {
+            e.preventDefault();
+
+            // Ensure checkbox value is correctly set
+            if (!$('#editIsDefault').is(':checked')) {
+                $('input[name="IsDefault"]').val('false');
+            } else {
+                $('input[name="IsDefault"]').val('true');
+            }
+
+            var formData = new FormData(this);
+            $.ajax({
+                url: '/GRType/GRUpdate',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire("Success!", "GR Type updated successfully.", "success")
+                            .then(() => {
+                                window.location.reload();
+                            });
+                    } else {
+                        Swal.fire("Error!", response.message || "Failed to update GR Type.", "error");
+                    }
+                },
+                error: function () {
+                    Swal.fire("Error!", "An error occurred while updating the GR Type.", "error");
+                }
+            });
+        });
+    });
+
+    function EditGRType(id, typeName, isDefault) {
+        console.log("isDefault received:", isDefault); // Check what value is being received
+
+        $("#editGRTypeId").val(id);
+        $("#editTypeName").val(typeName);
+
+        if (isDefault === true || isDefault === "true" || isDefault === 1) {
+            console.log("Checking the checkbox");
+            $("#editIsDefault").prop("checked", true);
+        } else {
+            console.log("Unchecking the checkbox");
+            $("#editIsDefault").prop("checked", false);
+        }
+
+        $('#editGRTypeModal').modal('show');
+    }
+
+    function DeleteGRType(id) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/GRType/Delete/' + id,
+                    type: 'POST',
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire("Deleted!", "GR Type has been deleted.", "success").then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire("Error!", response.message || "There was an issue deleting the GR Type.", "error");
+                        }
+                    },
+                    error: function () {
+                        Swal.fire("Error!", "There was an error processing your request.", "error");
+                    }
+                });
+            }
+        });
+    }
+
+    function searchTable() {
+        var typeNameInput = document.getElementById("searchTypeName").value.toLowerCase();
+        var table = document.getElementById("grTypeList");
+        var rows = table.getElementsByTagName("tr");
+
+        for (var i = 1; i < rows.length; i++) { // Skip header row
+            var typeNameColumn = rows[i].getElementsByTagName("td")[1]; // Type Name is in the second column
+
+            if (typeNameColumn) {
+                var typeNameText = typeNameColumn.textContent.toLowerCase();
+
+                if (typeNameText.includes(typeNameInput)) {
+                    rows[i].style.display = "";
+                } else {
+                    rows[i].style.display = "none";
+                }
+            }
+        }
+    }
+</script>

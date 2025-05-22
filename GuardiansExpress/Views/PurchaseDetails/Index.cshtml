@@ -1,0 +1,264 @@
+﻿@model IEnumerable<GuardiansExpress.Models.DTOs.PurchaseDetailsDTO>
+@{
+    int rCnt = 1;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var searchTerm = ViewData["SearchTerm"] as string;
+}
+
+<!-- Include required libraries -->
+<script src="~/js/site.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="row">
+            <div class="col-md-12 mt-3">
+
+                
+                    <h5 class="bg-light p-2">Purchase Order Details</h5>
+                    <form>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label class="form-label">Branch<span class="text-danger">*</span></label>
+                            <select class="form-select" name="Branch" id="Branch">
+                                @foreach (var t in ViewBag.s)
+                                {
+                                    <option value="@t.id">@t.BranchName</option>
+                                }
+                            </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Voucher Date<span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" name="VoucherDate" id="VoucherDate">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Client Name<span class="text-danger">*</span></label>
+                                <div class="d-flex">
+                                    <input type="text" class="form-control">
+                                    <button type="button" class="btn btn-success ms-2">+</button>
+                                </div>
+                            </div>
+                        </div>
+                        </form>
+
+                        <div class="row mt-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Transport</label>
+                            <select class="form-select" name="Transport" id="Transport">
+                                <option value="">--Select--</option>
+                                <option value="N.A">N.A.</option>
+                                    <option>N.A.</option>
+                                    <option>N.A.</option>
+                                    <option>N.A.</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Insurance</label>
+                                <select class="form-select">
+                                <option value="">--Select--</option>
+                                <option value="N.A">N.A.</option>
+                                <option>N.A.</option>
+                                <option>N.A.</option>
+                                <option>N.A.</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Freight</label>
+                                <select class="form-select">
+                                <option value="">--Select--</option>
+                                <option value="N.A">N.A.</option>
+                                <option>N.A.</option>
+                                <option>N.A.</option>
+                                <option>N.A.</option>
+                                </select>
+                            </div>
+                        </div>
+                   <h5 class="bg-light p-2">Item Details</h5>
+                                    <form>
+                                        <table class="table table-bordered" id="itemTable">
+                                            <thead>
+                                                <tr>
+                                                    <th>Item & Description</th>
+                                                    <th>Purchase Acc</th>
+                                                    <th>HSN/SAC</th>
+                                                    <th>MRP</th>
+                                                    <th>Rate</th>
+                                                    <th>Disc(%)</th>
+                                                    <th>Qty</th>
+                                                    <th>Free Qty</th>
+                                                    <th>Unit</th>
+                                                    <th>Amount</th>
+                                                    <th>Tax%</th>
+                                                    <th>Tax Amt</th>
+                                                    <th>Total</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            </form>
+                                            <tbody id="itemTableBody">
+                                                <tr>
+                                                    <td><input type="text" class="form-control" name="Items[0].ItemName" placeholder="Item Name"></td>
+                                                    <td><input type="text" class="form-control" name="Items[0].PurchaseAcc" placeholder="Purchase Acc"></td>
+                                                    <td><input type="text" class="form-control" name="Items[0].HSNSAC" placeholder="HSN/SAC"></td>
+                                                    <td><input type="number" class="form-control" name="Items[0].MRP" value="0.00"></td>
+                                                    <td><input type="number" class="form-control calc" name="Items[0].Rate" value="0.00"></td>
+                                                    <td><input type="number" class="form-control calc" name="Items[0].Discount" value="0.00"></td>
+                                                    <td><input type="number" class="form-control calc" name="Items[0].Qty" value="0"></td>
+                                                    <td><input type="number" class="form-control" name="Items[0].FreeQty" value="0"></td>
+                                                    <td><input type="text" class="form-control" name="Items[0].Unit" placeholder="Unit"></td>
+                                                    <td><input type="number" class="form-control" name="Items[0].Amount" readonly value="0.00"></td>
+                                                    <td>
+                                                        <select class="form-select calc" name="Items[0].Tax">
+                                                            <option value="0">GST@0%</option>
+                                                            <option value="5">GST@5%</option>
+                                                            <option value="12">GST@12%</option>
+                                                            <option value="18">GST@18%</option>
+                                                        </select>
+                                                    </td>
+                                                    <td><input type="number" class="form-control" name="Items[0].TaxAmt" readonly value="0.00"></td>
+                                                    <td><input type="number" class="form-control" name="Items[0].Total" readonly value="0.00"></td>
+                                                    <td><button type="button" class="btn btn-danger" onclick="removeRow(this)">X</button></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>  <button type="button" class="btn btn-primary" onclick="addMoreItem()">Add More</button>
+                                        <div class="container mt-4">
+                                            <div class="container mt-4">
+                                                <h5 class="bg-light p-2">Total Amount And Tax Details</h5>
+
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <label for="notes" class="form-label">Notes:</label>
+                                                        <textarea id="notes" class="form-control" rows="4" placeholder="Enter any notes..."></textarea>
+                                                    </div>
+
+                                                    <div class="col-md-6">
+                                                        <table class="table table-bordered">
+                                                            <tr>
+                                                                <td>Gross Amount</td>
+                                                                <td id="grossAmount">₹ 0.00</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Discount</td>
+                                                                <td id="totalDiscount">₹ 0.00</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Tax</td>
+                                                                <td id="totalTax">₹ 0.00</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Round Off</td>
+                                                                <td id="roundOff">₹ 0.00</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td><b>Net Amount</b></td>
+                                                                <td><b class="text-danger" id="netAmount">₹ 0.00</b></td>
+                                                            </tr>
+                                                        </table>
+                                                    </div>
+                                                    <div class="row mt-3">
+                                                        <div class="col-md-6">
+                                                            <button class="btn btn-success">
+                                                                <i class="bi bi-check-circle"></i> Save
+                                                            </button>
+                                                            <button class="btn btn-secondary" onclick="resetForm()">
+                                                                <i class="bi bi-arrow-counterclockwise"></i> Reset
+                                                            </button>
+
+                    <script>
+                        function calculateGrossAmount() {
+                            let rows = document.querySelectorAll('#itemTable tbody tr');
+                            let grossAmount = 0;
+
+                            rows.forEach(row => {
+                                let mrp = parseFloat(row.querySelector('td:nth-child(4) input').value) || 0;
+                                let rate = parseFloat(row.querySelector('td:nth-child(5) input').value) || 0;
+                                let qty = parseFloat(row.querySelector('td:nth-child(7) input').value) || 0;
+                                let discount = parseFloat(row.querySelector('td:nth-child(6) input').value) || 0;
+
+                                // Calculate the amount
+                                let amount = (rate * qty) - ((discount / 100) * (rate * qty));
+                                row.querySelector('td:nth-child(9) input').value = amount.toFixed(2);
+
+                                grossAmount += amount;
+                            });
+
+                            // Update the gross amount
+                            document.getElementById('grossAmount').innerText = '₹ ' + grossAmount.toFixed(2);
+                        }
+
+                        // Function to handle input change event
+                        document.querySelectorAll('#itemTable input').forEach(input => {
+                            input.addEventListener('input', calculateGrossAmount);
+                        });
+
+                        // Function to add a new row dynamically (if required)
+                        function addMoreItem() {
+                            let table = document.getElementById('itemTable').getElementsByTagName('tbody')[0];
+                            let newRow = table.insertRow(table.rows.length);
+
+                            newRow.innerHTML = `
+                                <td><input type="text" class="form-control"></td>
+                                <td><input type="text" class="form-control"></td>
+                                <td><input type="text" class="form-control"></td>
+                                <td><input type="number" class="form-control" value="0.00"></td>
+                                <td><input type="number" class="form-control" value="0.00"></td>
+                                <td><input type="number" class="form-control" value="0.00"></td>
+                                <td><input type="number" class="form-control" value="0.00"></td>
+                                <td><input type="text" class="form-control" readonly value="0.00"></td>
+                                <td><input type="text" class="form-control" readonly value="0.00"></td>
+                                <td>
+                                    <select class="form-select">
+                                        <option>GST@0%</option>
+                                    </select>
+                                </td>
+                                <td><input type="text" class="form-control" readonly value="0.00"></td>
+                                <td><button type="button" class="btn btn-danger" onclick="removeRow(this)">X</button></td>
+                            `;
+                        }
+
+                        // Function to remove a row
+                        function removeRow(button) {
+                            button.closest('tr').remove();
+                            calculateGrossAmount();
+                        }
+
+                        // Call calculateGrossAmount when the page loads to initialize the amount
+                        window.onload = calculateGrossAmount;
+                    </script>
+
+
+
+<script>
+    function addMoreItem() {
+        let table = document.getElementById("itemTable").getElementsByTagName('tbody')[0];
+        let newRow = table.rows[0].cloneNode(true);
+        // Reset values for the cloned row
+        let inputs = newRow.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.value = '';  // Reset the input values
+        });
+        table.appendChild(newRow);
+    }
+
+    function removeRow(btn) {
+        let row = btn.closest("tr");
+        let table = document.getElementById("itemTable");
+        if (table.rows.length > 2) {
+            row.remove();
+        } else {
+            alert("At least one item is required.");
+        }
+    }
+
+</script>
+
+
+
+
+

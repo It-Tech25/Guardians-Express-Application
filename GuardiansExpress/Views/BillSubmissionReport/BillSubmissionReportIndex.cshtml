@@ -1,0 +1,245 @@
+﻿@model IEnumerable<GuardiansExpress.Models.DTOs.BillSubmissionReportDTO>
+
+@{
+    ViewData["Title"] = "Bill Submission Report";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+}
+
+<style>
+    .dropdown-menu {
+        width: 100%;
+    }
+    /* Add custom styles if needed */
+</style>
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="container-full">
+            <div class="content">
+                <div class="row">
+                    <div class="col-md-12 mt-3">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h4 class="card-title">Bill Submission Report</h4>
+                                <div>
+                                    <a asp-action="ExportToExcel" asp-controller="BillSubmissionReport" asp-route-ClientName="@ViewBag.ClientName" asp-route-BillNo="@ViewBag.BillNo" class="btn btn-success">Export to Excel</a>
+
+                                    <a asp-action="ExportToPdf" asp-controller="BillSubmissionReport" asp-route-ClientName="@ViewBag.ClientName" asp-route-BillNo="@ViewBag.BillNo" class="btn btn-danger">Export to PDF</a>
+
+                                </div>
+                            </div>
+                            <div class="box-body">
+                                <form asp-action="Search" method="post" id="searchForm">
+                                    <div class="row g-3">
+
+                                        <!-- Client Name -->
+                                        <div class="col-md-3">
+                                            <label>Client Name</label>
+                                            <input type="text" name="ClientName" class="form-control"
+                                                   value="@Context.Request.Query["ClientName"]" />
+                                        </div>
+
+                                        <!-- Bill No -->
+                                        <div class="col-md-3">
+                                            <label>Bill No</label>
+                                            <input type="text" name="BillNo" class="form-control"
+                                                   value="@Context.Request.Query["BillNo"]" />
+                                        </div>
+
+                                       
+                                        <!-- Column Selector -->
+                                        <div class="col-md-3">
+                                            <label>Columns</label>
+                                            <div class="dropdown">
+                                                <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button"
+                                                        id="columnsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    Select Columns
+                                                </button>
+                                                <ul class="dropdown-menu p-2 w-100" id="columnsDropdownMenu" style="max-height: 300px; overflow-y: auto;">
+                                                    @foreach (var column in ViewBag.TableColumns as List<string>)
+                                                    {
+                                                        <li>
+                                                            <div class="form-check">
+                                                                <input class="form-check-input column-checkbox" type="checkbox"
+                                                                       name="SelectedColumns" value="@column" id="chk_@column"
+                                                                @(ViewBag.SelectedColumns != null && ((List<string>)ViewBag.SelectedColumns).Contains(column) ? "checked" : "") />
+                                                                <label class="form-check-label" for="chk_@column">@column</label>
+                                                            </div>
+                                                        </li>
+                                                    }
+                                                </ul>
+                                            </div>
+                                        </div>
+
+
+
+                                        <!-- Action Buttons -->
+                                        <div class="text-end mt-3">
+                                          @*   <button type="submit" class="btn btn-success me-2">
+                                                <i class="fa fa-search"></i> Search
+                                            </button> *@
+                                            <button class="btn btn-primary mt-2" id="searchBtn">Search</button>
+                                            <button type="reset" class="btn btn-outline-secondary" onclick="resetForm()">
+                                                <i class="fa fa-refresh"></i> Reset
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                                @if (Model != null && Model.Any())
+                                {
+                                    var selectedColumns = ViewBag.SelectedColumns as List<string>;
+
+                                    <div class="table-responsive mt-4">
+                                        <table class="table table-bordered table-striped">
+                                            <thead>
+                                                <tr>
+                                                    @if (selectedColumns.Contains("BillSubmissionId"))
+                                                    {
+                                                        <th>Bill Submission ID</th>
+                                                    }
+                                                    @if (selectedColumns.Contains("ClientName"))
+                                                    {
+                                                        <th>Client Name</th>
+                                                    }
+                                                    @if (selectedColumns.Contains("BillNo"))
+                                                    {
+                                                        <th>Bill No</th>
+                                                    }
+                                                    @if (selectedColumns.Contains("BillSubDate"))
+                                                    {
+                                                        <th>Bill Submission Date</th>
+                                                    }
+                                                    @if (selectedColumns.Contains("BillSubmissionBy"))
+                                                    {
+                                                        <th>Bill Submission By</th>
+                                                    }
+                                                    @if (selectedColumns.Contains("ReceivedBy"))
+                                                    {
+                                                        <th>Received By</th>
+                                                    }
+                                                    @if (selectedColumns.Contains("HandedOverBy"))
+                                                    {
+                                                        <th>Handed Over By</th>
+                                                    }
+                                                    @if (selectedColumns.Contains("DocketNo"))
+                                                    {
+                                                        <th>Docket No</th>
+                                                    }
+                                                    @if (selectedColumns.Contains("CourierName"))
+                                                    {
+                                                        <th>Courier Name</th>
+                                                    }
+                                                    @if (selectedColumns.Contains("IsActive"))
+                                                    {
+                                                        <th>Is Active</th>
+                                                    }
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var item in Model)
+                                                {
+                                                    <tr>
+                                                        @if (selectedColumns.Contains("BillSubmissionId"))
+                                                        {
+                                                            <td>@item.BillSubmissionId</td>
+                                                        }
+                                                        @if (selectedColumns.Contains("ClientName"))
+                                                        {
+                                                            <td>@item.ClientName</td>
+                                                        }
+                                                        @if (selectedColumns.Contains("BillNo"))
+                                                        {
+                                                            <td>@item.BillNo</td>
+                                                        }
+                                                        @if (selectedColumns.Contains("BillSubDate"))
+                                                        {
+                                                            <td>@item.BillSubDate?.ToString("dd-MM-yyyy")</td>
+                                                        }
+                                                        @if (selectedColumns.Contains("BillSubmissionBy"))
+                                                        {
+                                                            <td>@item.BillSubmissionBy</td>
+                                                        }
+                                                        @if (selectedColumns.Contains("ReceivedBy"))
+                                                        {
+                                                            <td>@item.ReceivedBy</td>
+                                                        }
+                                                        @if (selectedColumns.Contains("HandedOverBy"))
+                                                        {
+                                                            <td>@item.HandedOverBy</td>
+                                                        }
+                                                        @if (selectedColumns.Contains("DocketNo"))
+                                                        {
+                                                            <td>@item.DocketNo</td>
+                                                        }
+                                                        @if (selectedColumns.Contains("CourierName"))
+                                                        {
+                                                            <td>@item.CourierName</td>
+                                                        }
+                                                        @if (selectedColumns.Contains("IsActive"))
+                                                        {
+                                                            <td>@(item.IsActive ? "Yes" : "No")</td>
+                                                        }
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <p class="mt-4 text-muted">No data available.</p>
+                                }
+
+                               
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function resetForm() {
+            // Clear input fields
+            document.querySelector('input[name="ClientName"]').value = '';
+            document.querySelector('input[name="BillNo"]').value = '';
+
+            // Check all column checkboxes
+            document.querySelectorAll('.column-checkbox').forEach(cb => {
+                cb.checked = true;
+            });
+
+            // Submit the form after resetting (optional)
+            document.getElementById('searchForm').submit();
+        }
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Prevent dropdown from closing on checkbox click
+            document.querySelectorAll('#columnsDropdownMenu input').forEach(function (checkbox) {
+                checkbox.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                });
+            });
+
+            // On search button click, submit form and close dropdown
+            document.getElementById('searchBtn').addEventListener('click', function (e) {
+                e.preventDefault(); // Prevent default form submission
+
+                // Submit the form manually
+                document.getElementById('searchForm').submit();
+
+                // Close the dropdown after submitting
+                const dropdownButton = document.getElementById('columnsDropdown');
+                const dropdownInstance = bootstrap.Dropdown.getInstance(dropdownButton);
+                if (dropdownInstance) {
+                    dropdownInstance.hide();
+                }
+            });
+        });
+    </script>
+}

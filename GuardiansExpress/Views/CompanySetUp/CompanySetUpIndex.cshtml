@@ -1,0 +1,348 @@
+﻿@model IEnumerable<GuardiansExpress.Models.Entity.CompanySetupMasterEntity>
+@{
+    int rCnt = 1;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .required {
+        color: red;
+    }
+
+    .modal-xl {
+        max-width: 95% !important;
+    }
+
+    .modal-content {
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .form-check-label, label {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Add styling for clickable company names */
+    .clickable-cell {
+        cursor: pointer;
+        color: #0d6efd;
+        text-decoration: underline;
+    }
+
+        .clickable-cell:hover {
+            color: #0a58ca;
+        }
+</style>
+
+
+<div class="content-wrapper">
+    <div class="container-full">
+        <div class="content">
+            <div class="col-md-12 mt-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Company Setup</h4>
+                        <button type="button" class="btn btn-primary">
+                            <a href="javascript:void(0);" onclick="openPopups();" class="text-white">
+                                <i class="fa fa-plus" aria-hidden="true"></i> Company Setup
+                            </a>
+                        </button>
+                    </div>
+
+                    <div class="box-body">
+                        <div class="table-responsive">
+                            <table id="example1" class="text-fade table table-bordered" style="width:100%">
+                                <thead>
+                                    <tr class="text-dark">
+                                        <th>S.No</th>
+                                        <th>Company Name</th>
+                                        <th>Invoice Prefix</th>
+                                        <th>CN Prefix</th>
+                                        <th>DN Prefix</th>
+                                        <th>Advance Against GR Dispatch</th>
+                                        <th>Payment Receipt</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var company in Model)
+                                    {
+                                        <tr>
+                                            <td scope="row">@(rCnt++)</td>
+                                            <td class="clickable-cell" onclick="EditCompany(@company.Id, '@company.CompanyName', '@company.InvoicePrefix', '@company.CNPrefix', '@company.ONPrefix', '@company.AdvanceAgainstGRDispatch', '@company.PaymentReceipt')">
+                                                @company.CompanyName
+                                            </td>
+                                            <td>@company.InvoicePrefix</td>
+                                            <td>@company.CNPrefix</td>
+                                            <td>@company.ONPrefix</td>
+                                            <td>@company.AdvanceAgainstGRDispatch</td>
+                                            <td>@company.PaymentReceipt</td>
+                                            <td>
+
+                                                <a href="#" onclick="DeleteCompany(@company.Id)">
+                                                    <button type="button" class="waves-effect waves-circle btn btn-circle btn-danger btn-xs"><i class="fa fa-trash"></i></button>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+
+    <!-- Add Company Modal -->
+    <div class="modal fade" id="companyModal" tabindex="-1" aria-labelledby="addCompanyModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+            @*     <div class="modal-header">
+                    <h5 class="modal-title" id="companyModalLabel">Add New Company</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div> *@
+                <form id="companySetupForm" action="@Url.Action("CompanyAdd", "CompanySetUp")" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                    <div class="modal-body">
+                        @Html.AntiForgeryToken()
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <h5 class="mb-3" style="background-color: whitesmoke; color: black; padding: 10px; text-transform: uppercase;">Company</h5>
+                            </div>
+                            <div class="col-lg-6">
+                                <label for="CompanyName">Company Name <span class="required">*</span></label>
+                                <select class="form-control" id="CompanyName" name="CompanyName" required>
+                                    <option value="Guardians Xpress Private Limited" selected>Guardians Xpress Private Limited</option>
+                                </select>
+                                <div class="invalid-feedback">Please select a company.</div>
+                            </div>
+                        </div>
+                        <div class="row mt-4">
+                            <div class="col-lg-12">
+                                <h5 class="mb-3" style="background-color: whitesmoke; color: black; padding: 10px; text-transform: uppercase;">Company Setup Details</h5>
+                            </div>
+                            <div class="col-lg-6">
+                                <label for="InvoicePrefix">Invoice Prefix <span class="required">*</span></label>
+                                <input type="text" class="form-control" id="InvoicePrefix" name="InvoicePrefix" required pattern="^[A-Za-z0-9]+$" maxlength="10" title="Only alphanumeric characters are allowed (max 10 characters)">
+                                <div class="invalid-feedback">Please enter a valid invoice prefix (alphanumeric, max 10 characters).</div>
+                            </div>
+                            <div class="col-lg-6">
+                                <label for="CNPrefix">CN Prefix <span class="required">*</span></label>
+                                <input type="text" class="form-control" id="CNPrefix" name="CNPrefix" required pattern="^[A-Za-z0-9]+$" maxlength="10" title="Only alphanumeric characters are allowed (max 10 characters)">
+                                <div class="invalid-feedback">Please enter a valid CN prefix (alphanumeric, max 10 characters).</div>
+                            </div>
+                            <div class="col-lg-6">
+                                <label for="ONPrefix">DN Prefix <span class="required">*</span></label>
+                                <input type="text" class="form-control" id="ONPrefix" name="ONPrefix" required pattern="^[A-Za-z0-9]+$" maxlength="10" title="Only alphanumeric characters are allowed (max 10 characters)">
+                                <div class="invalid-feedback">Please enter a valid ON prefix (alphanumeric, max 10 characters).</div>
+                            </div>
+                            <div class="col-lg-6">
+                                <label for="AdvanceAgainstGRDispatch">Advance Against GR Dispatch <span class="required">*</span></label>
+                                <input type="text" class="form-control" id="AdvanceAgainstGRDispatch" name="AdvanceAgainstGRDispatch" required pattern="^[A-Za-z0-9\s]+$" maxlength="100" title="Please enter a valid string (alphanumeric characters allowed, max 100 characters)">
+                                <div class="invalid-feedback">Please enter a valid amount or description (alphanumeric characters allowed, max 100 characters).</div>
+                            </div>
+                            <div class="col-lg-6">
+                                <label for="PaymentReceipt">Payment Receipt <span class="required">*</span></label>
+                                <input type="text" class="form-control" id="PaymentReceipt" name="PaymentReceipt" required pattern="^[A-Za-z0-9]+$" maxlength="20" title="Only alphanumeric characters are allowed (max 20 characters)">
+                                <div class="invalid-feedback">Please enter a valid payment receipt (alphanumeric, max 20 characters).</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="reset" class="btn btn-success">Reset</button>
+                        <button type="submit" class="btn btn-primary">Add ComapnySetUp</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Company Modal -->
+    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+              @*   <div class="modal-header">
+                    <h5 class="modal-title" id="editModalLabel">Edit Company</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div> *@
+
+ <form id="editCompanySetupForm" action="@Url.Action("CompanyUpdate", "CompanySetUp")" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="Id" id="editCompanyId" value="" />
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <h5 class="mb-3" style="background-color: whitesmoke; color: black; padding: 10px; text-transform: uppercase;">Company</h5>
+                            </div>
+                            <div class="col-lg-6">
+                                <label for="editCompanyName">Company Name</label>
+                                <select class="form-control" id="editCompanyName" name="CompanyName">
+                                    <option value="Guardians Xpress Private Limited">Guardians Xpress Private Limited</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-lg-12">
+                                <h5 class="mb-3" style="background-color: whitesmoke; color: black; padding: 10px; text-transform: uppercase;">Company Setup Details</h5>
+                            </div>
+                            <div class="col-lg-6">
+                                <label for="editInvoicePrefix">Invoice Prefix <span class="required">*</span></label>
+                                <input type="text" class="form-control" id="editInvoicePrefix" name="InvoicePrefix" required pattern="^[A-Za-z0-9]+$" maxlength="10">
+                                <div class="invalid-feedback">Please enter a valid invoice prefix (alphanumeric, max 10 characters).</div>
+                            </div>
+                            <div class="col-lg-6">
+                                <label for="editCNPrefix">CN Prefix <span class="required">*</span></label>
+                                <input type="text" class="form-control" id="editCNPrefix" name="CNPrefix" required pattern="^[A-Za-z0-9]+$" maxlength="10">
+                                <div class="invalid-feedback">Please enter a valid CN prefix (alphanumeric, max 10 characters).</div>
+                            </div>
+                            <div class="col-lg-6">
+                                <label for="editONPrefix">DN Prefix <span class="required">*</span></label>
+                                <input type="text" class="form-control" id="editONPrefix" name="ONPrefix" required pattern="^[A-Za-z0-9]+$" maxlength="10">
+                                <div class="invalid-feedback">Please enter a valid ON prefix (alphanumeric, max 10 characters).</div>
+                            </div>
+                            <div class="col-lg-6">
+                                <label for="editAdvanceAgainstGRDispatch">Advance Against GR Dispatch <span class="required">*</span></label>
+                                <input type="text" class="form-control" id="editAdvanceAgainstGRDispatch" name="AdvanceAgainstGRDispatch" required pattern="^[A-Za-z0-9\s]+$" maxlength="100">
+                                <div class="invalid-feedback">Please enter a valid amount or description (alphanumeric characters allowed, max 100 characters).</div>
+                            </div>
+                            <div class="col-lg-6">
+                                <label for="editPaymentReceipt">Payment Receipt <span class="required">*</span></label>
+                                <input type="text" class="form-control" id="editPaymentReceipt" name="PaymentReceipt" required pattern="^[A-Za-z0-9]+$" maxlength="20">
+                                <div class="invalid-feedback">Please enter a valid payment receipt (alphanumeric, max 20 characters).</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="reset" class="btn btn-success">Reset</button>
+                        <button type="submit" class="btn btn-primary">Update</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+<script>
+    $(document).ready(function () {
+        $('#example1').DataTable();
+
+            $('#companySetupForm, #editCompanySetupForm').on('submit', function (e) {
+        e.preventDefault();
+        if (!this.checkValidity()) {
+            e.stopPropagation();
+            $(this).addClass('was-validated');
+            return false;
+        }
+
+        const form = this;
+        const isEditForm = form.id === 'editCompanySetupForm';
+        const url = isEditForm ? '/CompanySetUp/Edit' : '/CompanySetUp/CompanyAdd';
+        const formData = new FormData(form);
+
+        // Add anti-forgery token
+        const token = $('input[name="__RequestVerificationToken"]').val();
+        formData.append('__RequestVerificationToken', token);
+
+        fetch(url, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'Accept': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire('Success!', data.message, 'success').then(() => {
+                    location.reload();
+                });
+            } else {
+                Swal.fire('Error!', data.message, 'error');
+            }
+        })
+        .catch(err => {
+            Swal.fire('Error!', 'Something went wrong.', 'error');
+        });
+    });
+    });
+
+    function openPopups() {
+        $('#companySetupForm')[0].reset();
+        $('#companySetupForm').removeClass('was-validated');
+        $('#companyModal').modal('show');
+    }
+
+    function EditCompany(id, companyName, invoicePrefix, cnPrefix, onPrefix, advanceAgainstGRDispatch, paymentReceipt) {
+        $("#editCompanyId").val(id);
+        $("#editCompanyName").val(companyName);
+        $("#editInvoicePrefix").val(invoicePrefix);
+        $("#editCNPrefix").val(cnPrefix);
+        $("#editONPrefix").val(onPrefix);
+        $("#editAdvanceAgainstGRDispatch").val(advanceAgainstGRDispatch);
+        $("#editPaymentReceipt").val(paymentReceipt);
+        $('#editModal').modal('show');
+    }
+
+    // Function to delete a company
+    function DeleteCompany(id) {
+        if (!id) {
+            console.error("Invalid company ID");
+            return;
+        }
+
+        Swal.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Create the anti-forgery token
+                var token = $('input[name="__RequestVerificationToken"]').val();
+
+                $.ajax({
+                    url: '/CompanySetUp/Delete/' + id,
+                    type: 'POST',
+                    data: {
+                        __RequestVerificationToken: token
+                    },
+                    contentType: 'application/x-www-form-urlencoded',
+                    dataType: 'json',
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire("Deleted!", "Company Setup has been deleted.", "success").then(() => {
+                                location.reload();  // Reload to refresh the table data
+                            });
+                        } else {
+                            Swal.fire("Error!", response.message || "There was an issue deleting the company setup.", "error");
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Delete error:", error);
+                        console.error("Response status:", xhr.status);
+                        console.error("Response text:", xhr.responseText);
+                        Swal.fire("Error!", "There was an error processing your request.", "error");
+                    }
+                });
+            }
+        });
+    }
+
+        
+    
+
+
+</script>

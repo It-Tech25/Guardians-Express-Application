@@ -1,0 +1,358 @@
+﻿@model IEnumerable<GuardiansExpress.Models.Entity.Routes>
+@{
+    int rCnt = 1;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var searchTerm = ViewData["SearchTerm"] as string;
+    int currentPage = ViewData["CurrentPage"] as int? ?? 1;
+    int totalPages = ViewData["TotalPages"] as int? ?? 1;
+    int pageSize = ViewData["PageSize"] as int? ?? 10;
+}
+
+<!-- Include necessary scripts and styles -->
+<script src="~/js/site.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="row">
+            <div class="col-md-12 mt-3">
+                <div class="card">
+                    <div class="col-lg-12">
+                        <div class="pull-right">
+                            <form method="get" action="@Url.Action("RoutesIndex", "Routes")" style="width:250px">
+                                <div class="input-group">
+                                    <label class="mt-2 mr-1">No. of records:</label>
+                                    <select name="pageSize" id="PageSize" class="form-select" onchange="this.form.submit()">
+                                        <option value="10" selected="@(pageSize == 10)">10</option>
+                                        <option value="25" selected="@(pageSize == 25)">25</option>
+                                        <option value="50" selected="@(pageSize == 50)">50</option>
+                                        <option value="100" selected="@(pageSize == 100)">100</option>
+                                    </select>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="card-header">
+                        <ul class="nav nav-tabs" id="myTab" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="list-tab" data-bs-toggle="tab" href="#list" role="tab">List of Routes</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="add-tab" data-bs-toggle="tab" href="#add" role="tab">Add Route</a>
+                            </li>
+                            <li class="nav-item d-none" id="editTabItem">
+                                <a class="nav-link" id="edit-tab" data-bs-toggle="tab" href="#edit" role="tab">Edit Route</a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="tab-content">
+                            <div class="tab-pane fade show active" id="list" role="tabpanel">
+                                <div class="table-responsive">
+                                    <div class="row mb-3">
+                                        <div class="col-md-4">
+                                            <label>Search From Place</label>
+                                            <input type="text" id="searchFromPlace" class="form-control" placeholder="From Place" onkeyup="searchTable()">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label>Search To Place</label>
+                                            <input type="text" id="searchToPlace" class="form-control" placeholder="To Place" onkeyup="searchTable()">
+                                        </div>
+                                    </div>
+                                    <table id="routesList" class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>S.No</th>
+                                                <th>From Place</th>
+                                                <th>To Place</th>
+                                                <th>Vehicle Type</th>
+                                                <th>Advance</th>
+                                                <th>Kilometer</th>
+                                                <th>Trip Time (HR)</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var route in Model)
+                                            {
+                                                <tr>
+                                                    <td scope="row">@(rCnt++)</td>
+                                                    <td>@route.from_place</td>
+                                                    <td>@route.to_place</td>
+                                                    <td>@route.vehicle_type</td>
+                                                    <td>@route.advance</td>
+                                                    <td>@route.kilometers</td>
+                                                    <td>@route.trip_time_hours</td>
+                                                    <td>
+                                                        <a href="#" onclick="EditRoute(@route.id, '@route.from_place', '@route.to_place', '@route.vehicle_type', @route.advance, @route.kilometers, @route.trip_time_hours)" class="btn btn-primary">Edit</a>
+                                                        <a href="#" onclick="DeleteRoute(@route.id)" class="btn btn-danger">Delete</a>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <nav>
+                                    <ul class="pagination">
+                                        @if (currentPage > 1)
+                                        {
+                                            <li class="page-item">
+                                                <a class="page-link" href="@Url.Action("RoutesIndex", new { searchTerm = searchTerm, pageNumber = currentPage - 1 })">Previous</a>
+                                            </li>
+                                        }
+                                        @for (int i = 1; i <= totalPages; i++)
+                                        {
+                                            <li class="page-item @(i == currentPage ? "active" : "")">
+                                                <a class="page-link" href="@Url.Action("RoutesIndex", new { searchTerm = searchTerm, pageNumber = i })">@i</a>
+                                            </li>
+                                        }
+                                        @if (currentPage < totalPages)
+                                        {
+                                            <li class="page-item">
+                                                <a class="page-link" href="@Url.Action("RoutesIndex", new { searchTerm = searchTerm, pageNumber = currentPage + 1 })">Next</a>
+                                            </li>
+                                        }
+                                    </ul>
+                                </nav>
+                            </div>
+
+                            <!-- Add Route Tab -->
+                            <div class="tab-pane fade" id="add" role="tabpanel">
+                                <form id="routeForm" action="@Url.Action("RouteAdd", "Routes")" method="post" enctype="multipart/form-data">
+                                    @Html.AntiForgeryToken()
+                                    <div class="row">
+                                        <div class="col-lg-6">
+                                            <label for="from_place">From Place *</label>
+                                            <input type="text" class="form-control" id="from_place" name="from_place" required>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <label for="to_place">To Place *</label>
+                                            <input type="text" class="form-control" id="to_place" name="to_place" required>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <label for="vehicle_type">Vehicle Type *</label>
+                                            <select class="form-control" id="vehicle_type" name="vehicle_type" required>
+                                                <option value="Fuel">Fuel</option>
+                                                <option value="Diesel">Diesel</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <label for="advance">Advance *</label>
+                                            <input type="number" class="form-control" id="advance" name="advance" required>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <label for="kilometer">Kilometer *</label>
+                                            <input type="number" class="form-control" id="kilometer" name="kilometer" required>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <label for="trip_time">Trip Time (HR) *</label>
+                                            <input type="number" class="form-control" id="trip_time" name="trip_time" required>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-3">
+                                        <div class="col-md-6">
+                                            <button type="submit" class="btn btn-primary">Save</button>
+                                            <button type="reset" class="btn btn-success">Reset</button>
+                                            <button type="button" class="btn btn-danger" onclick="window.location.href='/Routes/RoutesIndex'">Cancel</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- Edit Route Tab -->
+                            <div class="tab-pane fade" id="edit" role="tabpanel">
+                                <form id="editRouteForm" action="@Url.Action("RouteUpdate", "Routes")" method="post" enctype="multipart/form-data">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="Id" id="editRouteId" value="" />
+                                    <div class="row">
+                                        <div class="col-lg-6">
+                                            <label for="editFromPlace">From Place *</label>
+                                            <input type="text" class="form-control" id="editFromPlace" name="from_place" required>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <label for="editToPlace">To Place *</label>
+                                            <input type="text" class="form-control" id="editToPlace" name="to_place" required>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <label for="editVehicleType">Vehicle Type *</label>
+                                            <select class="form-control" id="editVehicleType" name="vehicle_type" required>
+                                                <option value="Fuel">Fuel</option>
+                                                <option value="Diesel">Diesel</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <label for="editAdvance">Advance *</label>
+                                            <input type="number" class="form-control" id="editAdvance" name="advance" required>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <label for="editKilometer">Kilometer *</label>
+                                            <input type="number" class="form-control" id="editKilometer" name="kilometer" required>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <label for="editTripTime">Trip Time (HR) *</label>
+                                            <input type="number" class="form-control" id="editTripTime" name="trip_time" required>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-3">
+                                        <div class="col-md-6">
+                                            <button type="submit" class="btn btn-primary">Update</button>
+                                            <button type="reset" class="btn btn-success">Reset</button>
+                                            <button type="button" class="btn btn-danger" onclick="window.location.href='/Routes/RoutesIndex'">Cancel</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('#routesList').DataTable();
+
+        $('#routeForm').submit(function (e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+            $.ajax({
+                url: '/Routes/RouteAdd',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire("Success!", "Route added successfully.", "success")
+                            .then(() => {
+                                window.location.reload();
+                            });
+                    } else {
+                        Swal.fire("Error!", response.message || "There was an issue adding the route.", "error");
+                    }
+                },
+                error: function () {
+                    Swal.fire("Error!", "There was an error processing your request.", "error");
+                }
+            });
+        });
+
+        $('#editRouteForm').submit(function (e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+            $.ajax({
+                url: '/Routes/RouteUpdate',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire("Updated!", "Route updated successfully.", "success").then(() => {
+                            $('#editTabItem').addClass('d-none');
+                            $('#add-tab').parent().removeClass('d-none');
+                            $('#add-tab').tab('show');
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire("Error!", response.message || "Failed to update route.", "error");
+                    }
+                },
+                error: function () {
+                    Swal.fire("Error!", "An error occurred while updating the route.", "error");
+                }
+            });
+        });
+    });
+
+    function EditRoute(id, fromPlace, toPlace, vehicleType, advance, kilometer, tripTime) {
+        $("#editRouteId").val(id);
+        $("#editFromPlace").val(fromPlace);
+        $("#editToPlace").val(toPlace);
+        $("#editVehicleType").val(vehicleType);
+        $("#editAdvance").val(advance);
+        $("#editKilometer").val(kilometer);
+        $("#editTripTime").val(tripTime);
+
+        $('#add-tab').parent().addClass('d-none');
+        $('#editTabItem').removeClass('d-none');
+        $('#edit-tab').tab('show');
+    }
+
+    function DeleteRoute(id) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/Routes/Delete/' + id,
+                    type: 'POST',
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire("Deleted!", "Route has been deleted.", "success").then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire("Error!", response.message || "There was an issue deleting the route.", "error");
+                        }
+                    },
+                    error: function () {
+                        Swal.fire("Error!", "There was an error processing your request.", "error");
+                    }
+                });
+            }
+        });
+    }
+
+    function searchTable() {
+        var fromPlaceInput = document.getElementById("searchFromPlace").value.toLowerCase();
+        var toPlaceInput = document.getElementById("searchToPlace").value.toLowerCase();
+        var table = document.getElementById("routesList");
+        var rows = table.getElementsByTagName("tr");
+
+        for (var i = 1; i < rows.length; i++) { // Skip header row
+            var fromPlaceColumn = rows[i].getElementsByTagName("td")[1]; // From Place is in the second column
+            var toPlaceColumn = rows[i].getElementsByTagName("td")[2]; // To Place is in the third column
+
+            if (fromPlaceColumn && toPlaceColumn) {
+                var fromPlaceText = fromPlaceColumn.textContent.toLowerCase();
+                var toPlaceText = toPlaceColumn.textContent.toLowerCase();
+
+                // Check if both fields match
+                if (fromPlaceText.includes(fromPlaceInput) && toPlaceText.includes(toPlaceInput)) {
+                    rows[i].style.display = "";
+                } else {
+                    rows[i].style.display = "none";
+                }
+            }
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        let searchInput = document.querySelector("input[name='searchTerm']");
+        let paginationLinks = document.querySelectorAll(".pagination .page-link");
+
+        paginationLinks.forEach(link => {
+            let url = new URL(link.href);
+            if (searchInput && searchInput.value) {
+                url.searchParams.set("searchTerm", searchInput.value);
+            }
+            link.href = url.toString();
+        });
+    });
+</script>

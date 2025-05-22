@@ -1,0 +1,485 @@
+@model IEnumerable<GuardiansExpress.Models.DTOs.TaxCategoryDTO>
+@{
+    int rCnt = 1;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    .required {
+        color: red;
+    }
+
+    .modal-dialog {
+        max-width: 90%;
+        width: 90%;
+    }
+</style>
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="content">
+            <div class="row">
+                <div class="col-md-12 mt-3">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">Tax Category List</h4>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTaxCategoryModal">
+                                <i class="fa fa-plus"></i> Add Tax Category
+                            </button>
+                        </div>
+                        <div class="box-body">
+                            <div class="table-responsive">
+                                <table id="example1" class="text-fade table table-bordered" style="width:100%">
+                                    <thead>
+                                        <tr class="text-dark">
+                                            <th>S.No</th>
+                                            <th>Category Name</th>
+                                            <th>Status</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var category in Model)
+                                        {
+                                            <tr>
+                                                <td scope="row">@(rCnt++)</td>
+                                                <td>
+                                                    <a href="#" onclick="EditTaxCategory(@category.ID)" class="btn btn-link p-0" title="Edit">@category.CategoryName</a>
+                                                </td>
+                                                <td>@category.Status</td>
+                                                <td>
+                                                    <a href="#" onclick="DeleteTaxCategory(@category.ID)" class="btn btn-link p-0" title="Delete">
+                                                        <button type="button" class="waves-effect waves-circle btn btn-circle btn-danger btn-xs">
+                                                            <i class="fa fa-trash"></i>
+                                                        </button>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Add Tax Category Modal -->
+<div class="modal fade" id="addTaxCategoryModal" tabindex="-1" role="dialog" aria-labelledby="addTaxCategoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addTaxCategoryModalLabel">Add Tax Category</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="TaxCategoryForm" action="@Url.Action("CreateTax", "TaxCategory")" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="TaxCategoryID" name="ID" value="0" />
+
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <label for="CategoryName">Category Name <span class="required">*</span></label>
+                            <input type="text" class="form-control" id="CategoryName" name="CategoryName" required>
+                        </div>
+                        <div class="col-lg-6">
+                            <label for="Status">Status <span class="required">*</span></label>
+                            <select class="form-control" id="Status" name="Status">
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <input type="hidden" id="serializedTaxDetails" name="serializedTaxDetails" />
+
+                    <h5 class="mt-4">Tax Details</h5>
+                    <table class="table table-bordered mt-3">
+                        <thead>
+                            <tr>
+                                <th style="width: 35%;">Tax Master</th>
+                                <th style="width: 25%;">Value (%)</th>
+                                <th style="width: 30%;">Tax For</th>
+                                <th style="width: 10%;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="taxDetailsTableBody">
+                            <tr>
+                                <td>
+                                    <select class="form-control tax-master" name="TaxDetails[0].TaxMasterID" required>
+                                        <option value="">Select Tax Master</option>
+                                        @foreach (var taxMaster in ViewBag.TaxMasters)
+                                        {
+                                            <option value="@taxMaster.TaxId">@taxMaster.TaxName</option>
+                                        }
+                                    </select>
+                                </td>
+                                <td><input type="number" class="form-control tax-value" name="TaxDetails[0].Value" value="0.00" step="0.01" required></td>
+                                <td>
+                                    <select class="form-control tax-for" name="TaxDetails[0].TaxFor">
+                                        <option value="All">All</option>
+                                        <option value="Purchase">Purchase</option>
+                                        <option value="Sale">Sale</option>
+                                    </select>
+                                </td>
+                                <td><button type="button" class="btn btn-danger btn-sm" onclick="removeTaxDetail(this)">✖</button></td>
+                            </tr>
+                        </tbody>
+
+                    </table>
+                    <button type="button" class="btn btn-primary" onclick="addTaxDetail()">Add Tax Detail</button>
+
+                    <div class="row mt-3">
+                        <div class="col-md-12 text-left">
+                            <button type="submit" class="btn btn-success">Save</button>
+                            <button type="reset" class="btn btn-secondary">Reset</button>
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Tax Category Modal -->
+<div class="modal fade" id="editTaxCategoryModal" tabindex="-1" role="dialog" aria-labelledby="editTaxCategoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editTaxCategoryModalLabel">Edit Tax Category</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const taxMasters = @Html.Raw(Json.Serialize(ViewBag.TaxMasters ?? new List<object>()));
+    </script>
+
+    <script>
+                let taxDetailCounter = 1;
+
+                function addTaxDetail() {
+                    const tableBody = document.getElementById('taxDetailsTableBody');
+                    const newRow = document.createElement('tr');
+
+                            let taxMasterOptions = '<option value="">Select Tax Master</option>';
+        taxMasters.forEach(t => {
+            taxMasterOptions += `<option value="${t.taxId}">${t.taxName}</option>`;
+        });
+
+                    newRow.innerHTML = `
+                        <td>
+                            <select class="form-control tax-master" name="TaxDetails[${taxDetailCounter}].TaxMasterID" required>
+                                ${taxMasterOptions}
+                            </select>
+                        </td>
+                        <td>
+                            <input type="number" class="form-control tax-value" name="TaxDetails[${taxDetailCounter}].Value" value="0.00" step="0.01" required>
+                        </td>
+                        <td>
+                            <select class="form-control tax-for" name="TaxDetails[${taxDetailCounter}].TaxFor">
+                                <option value="All">All</option>
+                                <option value="Purchase">Purchase</option>
+                                <option value="Sale">Sale</option>
+                            </select>
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="removeTaxDetail(this)">✖</button>
+                        </td>
+                    `;
+
+                    tableBody.appendChild(newRow);
+                    taxDetailCounter++;
+                }
+
+
+
+        function removeTaxDetail(button) {
+                const row = button.closest('tr');
+                if (document.getElementById('taxDetailsTableBody').rows.length > 1) {
+                    row.remove();
+                } else {
+                    alert('At least one tax detail is required!');
+                }
+            }
+
+
+            function serializeTaxDetails() {
+
+                var taxDetails = [];
+
+
+                $("#taxDetailsTableBody tr").each(function (index, row) {
+                    var detailData = {
+                        TaxMasterID: $(row).find('.tax-master').val(),
+                        Value: parseFloat($(row).find('.tax-value').val()),
+                        TaxFor: $(row).find('.tax-for').val(),
+                        IsActive: true
+                    };
+
+                    taxDetails.push(detailData);
+                });
+
+
+                $("#serializedTaxDetails").val(JSON.stringify(taxDetails));
+            }
+
+
+            function EditTaxCategory(id) {
+
+                fetch(`/TaxCategory/GetTaxCategory/${id}`)
+                    .then(response => response.json())
+                    .then(data => {
+
+                        $('#editTaxCategoryModal .modal-body').html(`
+                            <form id="EditTaxCategoryForm" action="@Url.Action("UpdateTaxCategory", "TaxCategory")" method="post">
+        @Html.AntiForgeryToken()
+                                <input type="hidden" id="EditTaxCategoryID" name="ID" value="${data.id}" />
+
+                                <div class="row">
+                                    <div class="col-lg-6">
+                                        <label for="EditCategoryName">Category Name *</label>
+                                        <input type="text" class="form-control" id="EditCategoryName" name="CategoryName" value="${data.categoryName}" required>
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <label for="EditStatus">Status *</label>
+                                        <select class="form-control" id="EditStatus" name="Status">
+                                            <option value="Active" ${data.isActive ? 'selected' : ''}>Active</option>
+                                            <option value="Inactive" ${!data.isActive ? 'selected' : ''}>Inactive</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <input type="hidden" id="editSerializedTaxDetails" name="serializedTaxDetails" />
+
+                                <h5 class="mt-4">Tax Details</h5>
+                                <table class="table table-bordered mt-3">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 35%;">Tax Master</th>
+                                            <th style="width: 25%;">Value (%)</th>
+                                            <th style="width: 30%;">Tax For</th>
+                                            <th style="width: 10%;">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="editTaxDetailsTableBody">
+                                        ${data.taxDetails.map((detail, index) => `
+                                            <tr>
+                                                <td>
+                                                    <input type="text" class="form-control edit-tax-master" name="TaxDetails[${index}].TaxMasterID" value="${detail.taxMasterID}" required>
+                                                </td>
+                                                <td><input type="number" class="form-control edit-tax-value" name="TaxDetails[${index}].Value" value="${detail.value}" step="0.01" required></td>
+                                                <td>
+                                                    <select class="form-control edit-tax-for" name="TaxDetails[${index}].TaxFor">
+                                                        <option value="All" ${detail.taxFor === 'All' ? 'selected' : ''}>All</option>
+                                                        <option value="Purchase" ${detail.taxFor === 'Purchase' ? 'selected' : ''}>Purchase</option>
+                                                        <option value="Sale" ${detail.taxFor === 'Sale' ? 'selected' : ''}>Sale</option>
+                                                    </select>
+                                                </td>
+                                                <td><button type="button" class="btn btn-danger btn-sm" onclick="removeEditTaxDetail(this)">✖</button></td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                                <button type="button" class="btn btn-primary" onclick="addEditTaxDetail()">Add Tax Detail</button>
+
+                                <div class="row mt-3">
+                                    <div class="col-md-12 text-left">
+                                        <button type="submit" class="btn btn-success">Update</button>
+                                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                                    </div>
+                                </div>
+                            </form>
+                        `);
+
+
+                        $('#editTaxCategoryModal').modal('show');
+
+
+                        document.getElementById('EditTaxCategoryForm').addEventListener('submit', function(event) {
+                            if (!validateEditForm()) {
+                                event.preventDefault();
+                            } else {
+
+                                serializeEditTaxDetails();
+                            }
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Failed to fetch tax category data');
+                    });
+            }
+
+
+            let editTaxDetailCounter = 0;
+
+
+            function addEditTaxDetail() {
+                const tableBody = document.getElementById('editTaxDetailsTableBody');
+                editTaxDetailCounter = tableBody.rows.length;
+
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                    <td>
+                        <input type="text" class="form-control edit-tax-master" name="TaxDetails[${editTaxDetailCounter}].TaxMasterID" required>
+                    </td>
+                    <td><input type="number" class="form-control edit-tax-value" name="TaxDetails[${editTaxDetailCounter}].Value" value="0.00" step="0.01" required></td>
+                    <td>
+                        <select class="form-control edit-tax-for" name="TaxDetails[${editTaxDetailCounter}].TaxFor">
+                            <option value="All">All</option>
+                            <option value="Purchase">Purchase</option>
+                            <option value="Sale">Sale</option>
+                        </select>
+                    </td>
+                    <td><button type="button" class="btn btn-danger btn-sm" onclick="removeEditTaxDetail(this)">✖</button></td>
+                `;
+
+                tableBody.appendChild(newRow);
+                editTaxDetailCounter++;
+            }
+
+
+            function removeEditTaxDetail(button) {
+                const row = button.closest('tr');
+                if (document.getElementById('editTaxDetailsTableBody').rows.length > 1) {
+                    row.remove();
+                } else {
+                    alert('At least one tax detail is required!');
+                }
+            }
+
+
+            function serializeEditTaxDetails() {
+
+                var taxDetails = [];
+
+
+                $("#editTaxDetailsTableBody tr").each(function (index, row) {
+                    var detailData = {
+                        TaxMasterID: $(row).find('.edit-tax-master').val(),
+                        Value: parseFloat($(row).find('.edit-tax-value').val()),
+                        TaxFor: $(row).find('.edit-tax-for').val(),
+                        IsActive: true
+                    };
+
+                    taxDetails.push(detailData);
+                });
+
+
+                $("#editSerializedTaxDetails").val(JSON.stringify(taxDetails));
+            }
+
+
+            function DeleteTaxCategory(id) {
+                if (confirm('Are you sure you want to delete this Tax Category?')) {
+
+                    fetch(`/TaxCategory/DeleteTaxCategory/${id}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                        }
+                    })
+                    .then(response => {
+                        if (response.ok) {
+
+                            window.location.reload();
+                        } else {
+                            alert('Failed to delete the tax category');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while deleting the tax category');
+                    });
+                }
+            }
+
+
+            function validateForm() {
+                const categoryName = document.getElementById('CategoryName').value.trim();
+
+                if (!categoryName) {
+                    alert('Please enter Category Name');
+                    return false;
+                }
+
+
+                const taxDetails = document.querySelectorAll('#taxDetailsTableBody tr');
+
+                if (taxDetails.length === 0) {
+                    alert('Please add at least one tax detail');
+                    return false;
+                }
+
+                return true;
+            }
+
+
+            function validateEditForm() {
+                const categoryName = document.getElementById('EditCategoryName').value.trim();
+
+                if (!categoryName) {
+                    alert('Please enter Category Name');
+                    return false;
+                }
+
+
+                const taxDetails = document.querySelectorAll('#editTaxDetailsTableBody tr');
+
+                if (taxDetails.length === 0) {
+                    alert('Please add at least one tax detail');
+                    return false;
+                }
+
+                return true;
+            }
+
+
+            document.addEventListener('DOMContentLoaded', function() {
+
+                document.getElementById('TaxCategoryForm').addEventListener('submit', function(event) {
+                    if (!validateForm()) {
+                        event.preventDefault();
+                    } else {
+
+                        serializeTaxDetails();
+
+                    }
+                });
+
+
+                $('#example1').DataTable({
+                    "responsive": true,
+                    "lengthChange": true,
+                    "autoWidth": false,
+                    "ordering": true,
+                    "paging": true,
+                    "info": true,
+                    "language": {
+                        "search": "Search:",
+                        "lengthMenu": "Show _MENU_ entries",
+                        "info": "Showing _START_ to _END_ of _TOTAL_ entries",
+                        "infoEmpty": "Showing 0 to 0 of 0 entries",
+                        "infoFiltered": "(filtered from _MAX_ total entries)"
+                    }
+                });
+            });
+    </script>
+}

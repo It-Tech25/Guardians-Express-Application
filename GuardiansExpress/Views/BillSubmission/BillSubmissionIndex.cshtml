@@ -1,0 +1,394 @@
+﻿@model IEnumerable<GuardiansExpress.Models.Entity.BillSubmissionEntity>
+
+<style>
+    /* ... (keep your existing styles) ... */
+    .modal-content {
+        border-radius: 10px;
+    }
+
+    .modal-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .modal-title {
+        color: #00b894;
+        font-weight: bold;
+    }
+
+    .modal-body {
+        padding: 20px;
+    }
+
+    .modal-footer {
+        border-top: 1px solid #dee2e6;
+    }
+</style>
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="row">
+            <div class="col-md-12 mt-3">
+                <div class="card">
+
+                    <div class="card-header">
+                        <h4 class="card-title">Bill Submission</h4>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBillModal">
+                            <i class="fas fa-plus"></i> Add Bill Submission
+                        </button>
+                    </div>
+
+                    <!-- Message Container -->
+                    <div id="messageContainer" class="alert" style="display:none;"></div>
+
+                    <div class="card-body">
+                        <!-- List Section -->
+                        <div class="section-title">Bill Submission List</div>
+                        @if (Model.Any())
+                        {
+                            <table class="table table-bordered" id="dataTable">
+                                <thead>
+                                    <tr>
+                                        <th>Bill No</th>
+                                        <th>Bill Date</th>
+                                        <th>Client Name</th>
+                                        <th>Submitted By</th>
+                                        <th>Received By</th>
+                                        <th>Handed Over By</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model)
+                                    {
+                                        <tr>
+                                            <td>@item.BillNo</td>
+                                            <td>@(item.BillSubDate?.ToString("dd/MM/yyyy") ?? "N/A")</td>
+                                            <td>@item.ClientName</td>
+                                            <td>@item.BillSubmissionBy</td>
+                                            <td>@item.ReceivedBy</td>
+                                            <td>@item.HandedOverBy</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-primary btn-edit"
+                                                        data-id="@item.BillSubmissionId"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#editBillModal">
+                                                    Edit
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-danger"
+                                                        onclick="DeleteBillSubmission(@item.BillSubmissionId)">
+                                                    Delete
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                        else
+                        {
+                            <div class="no-records">No bill submissions found</div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Bill Modal -->
+<div class="modal fade" id="addBillModal" tabindex="-1" aria-labelledby="addBillModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addBillModalLabel">Add Bill Submission</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="addBillForm" action="@Url.Action("Create", "BillSubmission")" method="post">
+                <div class="modal-body">
+                    @Html.AntiForgeryToken()
+
+                    <div class="form-row d-flex flex-wrap">
+                        <div class="form-group col-md-2">
+                            <label class="required">Bill No.</label>
+                            <input type="text" id="BillNo" name="BillNo" class="form-control">
+                            <span id="BillNo-error" class="field-validation-error text-danger"></span>
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label class="required">Bill Date</label>
+                            <input type="date" id="BillSubDate" name="BillSubDate" class="form-control">
+                            <span id="BillSubDate-error" class="field-validation-error text-danger"></span>
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label class="required">Client Name</label>
+                            <input type="text" id="ClientName" name="ClientName" class="form-control">
+                            <span id="ClientName-error" class="field-validation-error text-danger"></span>
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label class="required">Bill Submitted By</label>
+                            <input type="text" id="BillSubmissionBy" name="BillSubmissionBy" class="form-control">
+                            <span id="BillSubmissionBy-error" class="field-validation-error text-danger"></span>
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label class="required">Received By</label>
+                            <input type="text" id="ReceivedBy" name="ReceivedBy" class="form-control">
+                            <span id="ReceivedBy-error" class="field-validation-error text-danger"></span>
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label class="required">Handed Over By</label>
+                            <select class="form-control" name="HandedOverBy" required id="HandedOverBy">
+                                <option value="">--SELECT--</option>
+                                <option value="By Handed">By Handed</option>
+                                <option value="Courier">Courier</option>
+                            </select>
+                            <span id="HandedOverBy-error" class="field-validation-error text-danger"></span>
+                        </div>
+                        <div class="form-group col-md-2 courier-group" id="courierGroup" style="display: none;">
+                            <label>Courier Name</label>
+                            <input type="text" id="CourierName" name="CourierName" class="form-control">
+                            <span id="CourierName-error" class="field-validation-error text-danger"></span>
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label>Remarks</label>
+                            <textarea class="form-control" name="Remarks" id="Remarks" rows="1"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Bill Modal -->
+<div class="modal fade" id="editBillModal" tabindex="-1" aria-labelledby="editBillModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editBillModalLabel">Edit Bill Submission</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editBillForm" action="@Url.Action("Edit", "BillSubmission")" method="post">
+                <div class="modal-body">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="Edit_BillSubmissionId" name="BillSubmissionId">
+
+                    <div class="form-row d-flex flex-wrap">
+                        <div class="form-group col-md-2">
+                            <label class="required">Bill No.</label>
+                            <input type="text" id="Edit_BillNo" name="BillNo" class="form-control">
+                            <span id="Edit_BillNo-error" class="text-danger"></span>
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label class="required">Bill Date</label>
+                            <input type="date" id="Edit_BillSubDate" name="BillSubDate" class="form-control">
+                            <span id="Edit_BillSubDate-error" class="text-danger"></span>
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label class="required">Client Name</label>
+                            <input type="text" id="Edit_ClientName" name="ClientName" class="form-control">
+                            <span id="Edit_ClientName-error" class="text-danger"></span>
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label class="required">Bill Submitted By</label>
+                            <input type="text" id="Edit_BillSubmissionBy" name="BillSubmissionBy" class="form-control">
+                            <span id="Edit_BillSubmissionBy-error" class="text-danger"></span>
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label class="required">Received By</label>
+                            <input type="text" id="Edit_ReceivedBy" name="ReceivedBy" class="form-control">
+                            <span id="Edit_ReceivedBy-error" class="text-danger"></span>
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label class="required">Handed Over By</label>
+                            <select class="form-control" name="HandedOverBy" required id="Edit_HandedOverBy">
+                                <option value="">--SELECT--</option>
+                                <option value="By Handed">By Handed</option>
+                                <option value="Courier">Courier</option>
+                            </select>
+                            <span id="Edit_HandedOverBy-error" class="text-danger"></span>
+                        </div>
+                        <div class="form-group col-md-2 courier-group" id="Edit_courierGroup" style="display: none;">
+                            <label>Courier Name</label>
+                            <input type="text" id="Edit_CourierName" name="CourierName" class="form-control">
+                            <span id="Edit_CourierName-error" class="text-danger"></span>
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label>Remarks</label>
+                            <textarea class="form-control" name="Remarks" id="Edit_Remarks" rows="1"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Initialize DataTable
+            $('#dataTable').DataTable();
+
+            // Handle Add Form Submission
+            $('#addBillForm').submit(function (e) {
+                e.preventDefault();
+                var formData = $(this).serialize();
+                $.ajax({
+                    url: '/BillSubmission/Create',
+                    type: 'POST',
+                    data: formData,
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire("Success!", "Bill submitted successfully.", "success")
+                                .then(() => {
+                                    window.location.reload();
+                                });
+                        } else {
+                            Swal.fire("Error!", response.message || "There was an issue submitting the bill.", "error");
+                        }
+                    },
+                    error: function () {
+                        Swal.fire("Error!", "There was an error processing your request.", "error");
+                    }
+                });
+            });
+
+            // Handle Edit Form Submission
+            $('#editBillForm').submit(function (e) {
+                e.preventDefault();
+                var formData = $(this).serialize();
+                $.ajax({
+                    url: '/BillSubmission/Edit',
+                    type: 'POST',
+                    data: formData,
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire("Success!", "Bill updated successfully.", "success")
+                                .then(() => {
+                                    window.location.reload();
+                                });
+                        } else {
+                            Swal.fire("Error!", response.message || "There was an issue updating the bill.", "error");
+                        }
+                    },
+                    error: function () {
+                        Swal.fire("Error!", "There was an error processing your request.", "error");
+                    }
+                });
+            });
+
+            // Show/hide courier field based on selection
+            $('select[name="HandedOverBy"]').change(function () {
+                var modal = $(this).closest('.modal');
+                var courierGroup = modal.find('.courier-group');
+                if ($(this).val() === 'Courier') {
+                    courierGroup.show();
+                } else {
+                    courierGroup.hide();
+                    modal.find('input[name="CourierName"]').val('');
+                }
+            });
+
+            // Reset form when modal is closed
+            $('.modal').on('hidden.bs.modal', function () {
+                $(this).find('form')[0].reset();
+                $(this).find('.field-validation-error').text('');
+            });
+
+            // Load edit data when edit button is clicked
+            $('.btn-edit').click(function () {
+                var id = $(this).data('id');
+
+                // Make an AJAX call to get the bill details
+                $.ajax({
+                    url: '/BillSubmission/GetById',
+                    type: 'GET',
+                    data: { id: id },
+                    success: function (data) {
+                        if (data) {
+                            $('#Edit_BillSubmissionId').val(data.billSubmissionId);
+                            $('#Edit_BillNo').val(data.billNo);
+                            $('#Edit_BillSubDate').val(data.billSubDate ? data.billSubDate.split('T')[0] : '');
+                            $('#Edit_ClientName').val(data.clientName);
+                            $('#Edit_BillSubmissionBy').val(data.billSubmissionBy);
+                            $('#Edit_ReceivedBy').val(data.receivedBy);
+                            $('#Edit_HandedOverBy').val(data.handedOverBy);
+                            $('#Edit_Remarks').val(data.remarks);
+
+                            // Show/hide courier fields
+                            if (data.handedOverBy === 'Courier') {
+                                $('#Edit_courierGroup').show();
+                                $('#Edit_CourierName').val(data.courierName);
+                            } else {
+                                $('#Edit_courierGroup').hide();
+                            }
+                        }
+                    },
+                    error: function () {
+                        Swal.fire("Error!", "Failed to retrieve bill data.", "error");
+                    }
+                });
+            });
+        });
+
+        // Function to delete bill submission with SweetAlert confirmation
+        function DeleteBillSubmission(billSubmissionId) {
+            Swal.fire({
+                title: "Are you sure?",
+                text: "Do you want to delete this Bill Submission?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#d33",
+                cancelButtonColor: "#3085d6",
+                confirmButtonText: "Yes, delete it!",
+                cancelButtonText: "Cancel"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Send delete request using AJAX with CSRF token
+                    $.ajax({
+                        url: "/BillSubmission/Delete",
+                        type: "POST",
+                        data: {
+                            id: billSubmissionId,
+                            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                Swal.fire({
+                                    title: "Deleted!",
+                                    text: response.message,
+                                    icon: "success"
+                                }).then(() => {
+                                    window.location.reload();
+                                });
+                            } else {
+                                Swal.fire({
+                                    title: "Error!",
+                                    text: response.message,
+                                    icon: "error"
+                                });
+                            }
+                        },
+                        error: function () {
+                            Swal.fire({
+                                title: "Error!",
+                                text: "An unexpected error occurred.",
+                                icon: "error"
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+}

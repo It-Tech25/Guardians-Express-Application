@@ -1,0 +1,474 @@
+﻿@model IEnumerable<GuardiansExpress.Models.DTOs.CreditNoteModel>
+@{
+    int rcnt = 1;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var searchTerm = ViewData["SearchTerm"] as string;
+    int currentPage = ViewData["CurrentPage"] as int? ?? 1;
+    int totalPages = ViewData["TotalPages"] as int? ?? 1;
+    int pageSize = ViewData["PageSize"] as int? ?? 10;
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Add custom CSS for table alignment -->
+<style>
+    /* Ensure the table takes full width */
+    #creditNoteTable {
+        width: 100%;
+        table-layout: fixed; /* Fixed layout for consistent column widths */
+    }
+
+        /* Set column widths */
+        #creditNoteTable th,
+        #creditNoteTable td {
+            padding: 8px; /* Add padding for better spacing */
+            text-align: left; /* Align text to the left */
+            word-wrap: break-word; /* Wrap long text */
+        }
+
+            /* Specific column widths */
+            #creditNoteTable th:nth-child(1),
+            #creditNoteTable td:nth-child(1) {
+                width: 5%; /* S.No column */
+            }
+
+            #creditNoteTable th:nth-child(2),
+            #creditNoteTable td:nth-child(2) {
+                width: 10%; /* Branch Name column */
+            }
+
+            #creditNoteTable th:nth-child(3),
+            #creditNoteTable td:nth-child(3) {
+                width: 10%; /* Note No. column */
+            }
+
+            #creditNoteTable th:nth-child(4),
+            #creditNoteTable td:nth-child(4) {
+                width: 10%; /* Note Date column */
+            }
+
+            #creditNoteTable th:nth-child(5),
+            #creditNoteTable td:nth-child(5) {
+                width: 10%; /* Bill No. column */
+            }
+
+            #creditNoteTable th:nth-child(6),
+            #creditNoteTable td:nth-child(6) {
+                width: 10%; /* Bill Date column */
+            }
+
+            #creditNoteTable th:nth-child(7),
+            #creditNoteTable td:nth-child(7) {
+                width: 15%; /* Acc Head column */
+            }
+
+            #creditNoteTable th:nth-child(8),
+            #creditNoteTable td:nth-child(8) {
+                width: 10%; /* Net Amount column */
+            }
+
+            #creditNoteTable th:nth-child(9),
+            #creditNoteTable td:nth-child(9) {
+                width: 10%; /* Created By column */
+            }
+
+            #creditNoteTable th:nth-child(10),
+            #creditNoteTable td:nth-child(10) {
+                width: 10%; /* Action column */
+            }
+
+            /* Center align action buttons */
+            #creditNoteTable td:nth-child(10) {
+                text-align: center;
+            }
+</style>
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="row">
+            <div class="col-md-12 mt-3">
+                <!-- Changed col-md-2 to col-md-12 for full width -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4 class="card-title mb-0">Debit/CreditNote List</h4>
+                        <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#addCreditNoteModal">
+                            <i class="fa fa-plus" aria-hidden="true"></i> Add Credit Note
+                        </button>
+                    </div>
+
+                   @*  <div class="card-body">
+                        <!-- Search Box -->
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <input type="text" id="searchBox" class="form-control" placeholder="Search by Branch, Note No., Bill No., etc..." value="@searchTerm">
+                            </div>
+                        </div> *@
+
+                        <!-- Table -->
+                        <div class="table-responsive">
+                            <table id="creditNoteTable" class="text-fade table table-bordered" style="width:100%">
+                                <thead>
+                                    <tr class="text-dark">
+                                        <th>S.No</th>
+                                        <th>Branch Name</th>
+                                        <th>Note No.</th>
+                                        <th>Note Date</th>
+                                        <th>Bill No.</th>
+                                        <th>Bill Date</th>
+                                        <th>Acc Head</th>
+                                        <th>Net Amount</th>
+                                        <th>Created By</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var note in Model)
+                                    {
+                                        <tr>
+                                            <td scope="row">@(rcnt++)</td>
+                                            <td>@note.Branch</td>
+                                            <td>@note.DN_CN_No</td>
+                                            <td>@note.NoteDate?.ToString("yyyy-MM-dd")</td>
+                                            <td>@note.BillNo</td>
+                                            <td>@note.BillDate</td>
+                                            <td>@note.AccHead</td>
+                                            <td>@note.BillAmount</td>
+                                            <td>@note.CreatedAt</td>
+                                            <td>
+                                                <a href="#" onclick="EditCreditNote('@note.Id', '@note.Branch', '@note.DN_CN_No', '@note.NoteDate', '@note.BillNo', '@note.BillDate', '@note.AccHead', '@note.BillAmount')" title="Edit">
+                                                    <button type="button" class="waves-effect waves-circle btn btn-circle btn-dark btn-xs">
+                                                        <i class="fa fa-pencil"></i>
+                                                    </button>
+                                                </a>
+
+                                                <a href="#" onclick="DeleteCreditNote(@note.Id)" title="Delete">
+                                                    <button type="button" class="waves-effect waves-circle btn btn-circle btn-danger btn-xs">
+                                                        <i class="fa fa-trash"></i>
+                                                    </button>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Credit Note Modal -->
+<div class="modal fade" id="addCreditNoteModal" tabindex="-1" aria-labelledby="addCreditNoteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl custom-modal" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addCreditNoteModalLabel">Add Credit Note</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="creditNoteForm" action="@Url.Action("CreditNoteAdd", "CreditNote")" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+
+                    <!-- Validation summary -->
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <h5 class="mb-3" style="background-color: whitesmoke; color: black; padding: 10px; text-transform: uppercase;">Credit Note Details</h5>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="branch">Branch*</label>
+                            <select id="branch" name="Branch" class="form-control">
+                                <option>GXPL HYD</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="noteDate">Date*</label>
+                            <input type="date" id="noteDate" name="NoteDate" class="form-control">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="noteType">Note Type*</label>
+                            <select id="noteType" name="NoteType" class="form-control">
+                                <option value="">Select</option>
+                                <option value="Credit Note">Credit Note</option>
+                                <option value="Debit Note">Debit Note</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="dncn">DN/CN No.*</label>
+                            <input type="text" id="dncn" name="DN_CN_No" class="form-control">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="accHead">Acc Head*</label>
+                            <input type="text" id="accHead" name="AccHead" class="form-control">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="billNo">Bill No.*</label>
+                            <input type="text" id="billNo" name="BillNo" class="form-control">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="billDate">Bill Date*</label>
+                            <input type="date" id="billDate" name="BillDate" class="form-control">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="salesType">Sales Type*</label>
+                            <select id="salesType" name="SalesType" class="form-control">
+                                <option value="">Select</option>
+                                <option>R</option>
+                                <option>DE</option>
+                                <option>SEWP</option>
+                                <option>SEWOP</option>
+                                <option>WPAY</option>
+                                <option>WOPAY</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label for="billAmount">Bill Amount*</label>
+                            <input type="text" id="billAmount" name="BillAmount" class="form-control" value="0.00">
+                        </div>
+
+                        <div class="col-md-2">
+                            <label for="selectAddress">Select Address*</label>
+                            <select id="selectAddress" name="SelectAddress" class="form-control">
+                                <option>No Address Found</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label for="accGstin">Acc GSTIN</label>
+                            <input type="text" id="accGstin" name="AccGSTIN" class="form-control">
+                        </div>
+
+                        <div class="col-md-2">
+                            <label for="address">Address*</label>
+                            <input type="text" id="address" name="Address" class="form-control">
+                        </div>
+
+                        <div class="col-md-2 d-flex align-items-center">
+                            <div class="form-check">
+                                <input type="hidden" name="NoGST" value="false" />
+                                <input class="form-check-input" type="checkbox" name="NoGST" id="NoGST" value="true" />
+                                <label class="form-check-label" for="NoGST"> No GST </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Credit Note Modal -->
+<div class="modal fade" id="editCreditNoteModal" tabindex="-1" aria-labelledby="editCreditNoteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl custom-modal" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editCreditNoteModalLabel">Edit Credit Note</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editCreditNoteForm" action="@Url.Action("CreditNoteUpdate", "CreditNote")" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="Id" id="editCreditNoteId" value="" />
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <h5 class="mb-3" style="background-color: whitesmoke; color: black; padding: 10px; text-transform: uppercase;">Credit Note Details</h5>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="editBranch">Branch*</label>
+                            <select id="editBranch" name="Branch" class="form-control">
+                                <option>GXPL HYD</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="editDate">Date*</label>
+                            <input type="date" id="editDate" class="form-control" name="NoteDate">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="editNoteType">Note Type*</label>
+                            <select id="editNoteType" name="NoteType" class="form-control">
+                                <option value="">Select</option>
+                                <option value="Credit Note">Credit Note</option>
+                                <option value="Debit Note">Debit Note</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="editDncn">DN/CN No.*</label>
+                            <input type="text" id="editDncn" name="DN_CN_No" class="form-control">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="editAccHead">Acc Head*</label>
+                            <input type="text" id="editAccHead" name="AccHead" class="form-control">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="editBillNo">Bill No.*</label>
+                            <input type="text" id="editBillNo" name="BillNo" class="form-control">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="editBillDate">Bill Date*</label>
+                            <input type="date" id="editBillDate" class="form-control" name="BillDate">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="editSalesType">Sales Type*</label>
+                            <select id="editSalesType" name="SalesType" class="form-control">
+                                <option value="">Select</option>
+                                <option>R</option>
+                                <option>DE</option>
+                                <option>SEWP</option>
+                                <option>SEWOP</option>
+                                <option>WPAY</option>
+                                <option>WOPAY</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="editBillAmount">Bill Amount*</label>
+                            <input type="text" id="editBillAmount" name="BillAmount" class="form-control">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="editSelectAddress">Select Address*</label>
+                            <select id="editSelectAddress" name="SelectAddress" class="form-control">
+                                <option>No Address Found</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="editAccGstin">Acc GSTIN</label>
+                            <input type="text" id="editAccGstin" name="AccGSTIN" class="form-control">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="editAddress">Address*</label>
+                            <input type="text" id="editAddress" name="Address" class="form-control">
+                        </div>
+                        <div class="col-md-2 d-flex align-items-center">
+                            <div class="form-check">
+                                <input type="hidden" name="NoGST" value="false" />
+                                <input class="form-check-input" type="checkbox" name="NoGST" id="editNoGST" value="true" />
+                                <label class="form-check-label" for="editNoGST"> No GST </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Update</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+      $(document).ready(function () {
+        // Auto-search functionality
+        $('#searchBox').on('input', function () {
+            var searchTerm = $(this).val().toLowerCase();
+            $('#creditNoteTable tbody tr').each(function () {
+                var rowText = $(this).text().toLowerCase();
+                if (rowText.includes(searchTerm)) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        });
+
+        // Initialize DataTable (optional)
+        $('#creditNoteTable').DataTable();
+    });
+
+    function addCreditNoteModal() {
+        $('#addCreditNoteModal').modal('show');
+    }
+
+    function EditCreditNote(id, branch, dnCnNo, noteDate, billNo, billDate, accHead, billAmount) {
+        $("#editCreditNoteId").val(id);
+        $("#editBranch").val(branch);
+        $("#editDncn").val(dnCnNo);
+        $("#editDate").val(noteDate);
+        $("#editBillNo").val(billNo);
+        $("#editBillDate").val(billDate);
+        $("#editAccHead").val(accHead);
+        $("#editBillAmount").val(billAmount);
+        $('#editCreditNoteModal').modal('show');
+    }
+
+     function DeleteCreditNote(Id) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/CreditNote/Delete/' + Id,
+                    type: 'POST',
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire("Deleted!", "Credit Note has been deleted.", "success")
+                            .then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire("Error!", response.message || "There was an issue deleting the Credit Note.", "error");
+                        }
+                    },
+                    error: function () {
+                        Swal.fire("Error!", "There was an error processing your request.", "error");
+                    }
+                });
+            }
+        });
+    }
+
+    // function DeleteCreditNote(id) {
+    //     Swal.fire({
+    //         title: "Are you sure?",
+    //         text: "You won't be able to revert this!",
+    //         icon: "warning",
+    //         showCancelButton: true,
+    //         confirmButtonColor: "#d33",
+    //         cancelButtonColor: "#3085d6",
+    //     }).then((result) => {
+    //         if (result.isConfirmed) {
+    //             $.ajax({
+    //                 url: '/CreditNote/Delete/' + id,
+    //                 type: 'POST',
+    //                 success: function (response) {
+    //                     if (response.success) {
+    //                         Swal.fire("Deleted!", "Credit Note has been deleted.", "success").then(() => {
+    //                             window.location.reload();
+    //                         });
+    //                     } else {
+    //                         Swal.fire("Error!", response.message || "There was an issue deleting the Credit Note.", "error");
+    //                     }
+    //                 },
+    //                 error: function () {
+    //                     Swal.fire("Error!", "There was an error processing your request.", "error");
+    //                 }
+    //             });
+    //         }
+    //     });
+    // }
+</script>

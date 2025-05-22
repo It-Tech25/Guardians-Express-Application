@@ -1,0 +1,869 @@
+﻿@model List<GuardiansExpress.Models.Entity.Voucher>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    .modal-dialog {
+        max-width: 90%; /* Increase width to 90% of the screen */
+        width: 70%;
+    }
+
+    .modal-content {
+        height: 85vh; /* Set height to 85% of the viewport */
+        overflow-y: auto; /* Enable scrolling if content overflows */
+    }
+
+    .custom-dropdown {
+        appearance: none; /* Remove default styles */
+        background: white url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="24"><path d="M7 10l5 5 5-5H7z" fill="%23000"/></svg>') no-repeat right 10px center;
+        background-size: 16px;
+        padding-right: 30px;
+    }
+</style>
+<!-- Pagination Controls -->
+<div class="d-flex justify-content-between mt-3">
+    <div>
+        Showing @((ViewBag.CurrentPage - 1) * ViewBag.PageSize + 1) to
+        @Math.Min(ViewBag.CurrentPage * ViewBag.PageSize, ViewBag.TotalVouchers) of
+        @ViewBag.TotalVouchers records
+    </div>
+    <div>
+        @if (ViewBag.CurrentPage > 1)
+        {
+            <a href="@Url.Action("VoucherIndex", new {
+                page = ViewBag.CurrentPage - 1,
+                pageSize = ViewBag.PageSize,
+                voucherType = ViewBag.VoucherType
+            })" class="btn btn-secondary">Previous</a>
+        }
+
+        @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+        {
+            <a href="@Url.Action("VoucherIndex", new {
+                page = ViewBag.CurrentPage + 1,
+                pageSize = ViewBag.PageSize,
+                voucherType = ViewBag.VoucherType
+            })" class="btn btn-secondary">Next</a>
+        }
+    </div>
+</div>
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Voucher Type</h4>
+
+                <!-- Voucher Type Form -->
+                <form id="voucherTypeForm">
+                    <div class="form-group d-flex flex-row">
+                        <div class="form-check me-3">
+                            <input class="form-check-input" type="radio" name="voucherType" id="cashPayment" value="Cash Payment">
+                            <label class="form-check-label" for="cashPayment">Cash Payment</label>
+                        </div>
+                        <div class="form-check me-3">
+                            <input class="form-check-input" type="radio" name="voucherType" id="cashReceipt" value="Cash Receipt">
+                            <label class="form-check-label" for="cashReceipt">Cash Receipt</label>
+                        </div>
+                        <div class="form-check me-3">
+                            <input class="form-check-input" type="radio" name="voucherType" id="bankPayment" value="Bank Payment">
+                            <label class="form-check-label" for="bankPayment">Bank Payment</label>
+                        </div>
+                        <div class="form-check me-3">
+                            <input class="form-check-input" type="radio" name="voucherType" id="bankReceipt" value="Bank Receipt">
+                            <label class="form-check-label" for="bankReceipt">Bank Receipt</label>
+                        </div>
+                        <div class="form-check me-3">
+                            <input class="form-check-input" type="radio" name="voucherType" id="journalBook" value="Journal Book">
+                            <label class="form-check-label" for="journalBook">Journal Book</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="voucherType" id="Contra" value="Contra">
+                            <label class="form-check-label" for="Contra">Contra</label>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Cash Payment Modal (Used for all non-Contra voucher types) -->
+                <div class="modal fade" id="cashPaymentModal" tabindex="-1" role="dialog" aria-labelledby="cashPaymentModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="cashPaymentModalLabel">Voucher Details</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="cashPaymentForm" action="@Url.Action("Create", "Voucher")" method="post" enctype="multipart/form-data">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="VoucherType" id="voucherTypeInput" />
+
+                                    <div class="row">
+                                        <div class="form-group col-md-4">
+                                            <label class="control-label">Branch *</label>
+                                            <select name="Branch" class="form-control" required>
+                                                <option>GXPL HYD</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group col-md-2">
+                                            <label class="control-label">S No. *</label>
+                                            <input type="text" name="SerialNumber" class="form-control" required />
+                                        </div>
+                                        <div class="form-group col-md-3">
+                                            <label class="control-label">Voucher No *</label>
+                                            <input type="text" name="VoucherNumber" class="form-control" required />
+                                        </div>
+                                        <div class="form-group col-md-3">
+                                            <label class="control-label">Voucher Date *</label>
+                                            <input type="date" name="VoucherDate" class="form-control" required />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group col-md-4">
+                                        <label class="control-label">Acc Head</label>
+                                        <select name="AccountHead" id="accountHeadDropdown" class="form-control" required>
+                                            <option value="Cash" selected>Cash</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Bank Payment Fields -->
+                                    <div id="bankPaymentFields" style="display: none;">
+                                        <div class="d-flex">
+                                            <div class="form-group me-3" style="flex: 1;">
+                                                <label class="control-label">Cheque Number</label>
+                                                <input type="text" name="ChequeNumber" class="form-control" />
+                                            </div>
+                                            <div class="form-group" style="flex: 1;">
+                                                <label class="control-label">Cheque Date</label>
+                                                <input type="date" name="ChequeDate" class="form-control" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="table-responsive">
+                                        <input type="hidden" id="serializedvoucherData" name="serializedvoucherData" />
+                                        <table class="table table-bordered" id="voucherDetailsTable">
+                                            <thead>
+                                                <tr>
+                                                    <th>Bill To Party</th>
+                                                    <th>Bill No</th>
+                                                    <th>Bill Amount</th>
+                                                    <th>Txn</th>
+                                                    <th>TDS</th>
+                                                    <th>TDS Amount</th>
+                                                    <th>Received Amount</th>
+                                                    <th>Balance Amount</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>
+                                                        <select name="AccHead" class="form-control account-head-select">
+                                                            <option value="">Select Account Head</option>
+                                                            @if (ViewBag.LedgerAccounts != null)
+                                                            {
+                                                                foreach (var account in ViewBag.LedgerAccounts)
+                                                                {
+                                                                    <option value="@account">@account</option>
+                                                                }
+                                                            }
+                                                        </select>
+                                                    </td>
+                                                    <td><input type="text" name="bill_no[]" class="form-control" placeholder="Auto" disabled /></td>
+                                                    <td><input type="number" name="bill_amount[]" class="form-control bill-amount" placeholder="0.00" required /></td>
+                                                    <td>
+                                                        <select name="transaction_type[]" class="form-control" required>
+                                                            <option value="Dr">Dr</option>
+                                                            <option value="Cr">Cr</option>
+                                                        </select>
+                                                    </td>
+                                                    <td><input type="number" name="tds[]" class="form-control tds" placeholder="0.00" /></td>
+                                                    <td><input type="number" name="tds_amount[]" class="form-control tds-amount" placeholder="0.00" disabled /></td>
+                                                    <td><input type="number" name="received_amount[]" class="form-control received-amount" placeholder="0.00" required /></td>
+                                                    <td><input type="number" name="balance_amount[]" class="form-control balance-amount" placeholder="0.00" disabled /></td>
+                                                    <td>
+                                                        <button type="button" class="btn btn-danger removeRow">❌</button>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <button type="button" class="btn btn-success" id="addRow">➕ Add More</button>
+                                    </div>
+
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-primary" id="submitVoucher">Save</button>
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contra Modal - UPDATED -->
+                <div class="modal fade" id="contraModal" tabindex="-1" role="dialog" aria-labelledby="contraModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="contraModalLabel">Contra Voucher</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <!-- SIMPLIFIED CONTRA FORM - ONLY INCLUDES FIELDS SHOWN IN SCREENSHOT -->
+                                <form id="contraForm" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="VoucherType" value="Contra" />
+
+                                    <!-- Transfer From Section -->
+                                    <h5>Transfer From</h5>
+                                    <div class="row">
+                                        <div class="form-group col-md-4">
+                                            <label class="control-label">FromBank *</label>
+                                            <select name="FromBank" id="FromBank" class="form-control from-bank" required>
+                                                <option value="">Select Bank</option>
+                                                @if (ViewBag.banks != null)
+                                                {
+                                                    foreach (var item in ViewBag.banks)
+                                                    {
+                                                        <option value="@item">@item</option>
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+
+                                        <div class="form-group col-md-3">
+                                            <label class="control-label">BalanceAmount</label>
+                                            <input type="number" id="BalanceAmount" name="BalanceAmount" class="form-control from-balance" readonly />
+                                        </div>
+
+                                        <div class="form-group col-md-3">
+                                            <label class="control-label">TransferAmount</label>
+                                            <input type="number" id="TransferAmount" name="TransferAmount" class="form-control transfer-amount" required />
+                                        </div>
+                                        <div class="form-group col-md-3">
+                                            <label class="control-label">FromTransactionType</label>
+                                            <select id="FromTransactionType" name="FromTransactionType" class="form-control" required>
+                                                <option value="Dr">Dr (Withdrawal)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <!-- Transfer To Section -->
+                                    <h5 class="mt-3">Transfer To</h5>
+                                    <div class="row">
+                                        <div class="form-group col-md-4">
+                                            <label class="control-label">ToBank *</label>
+                                            <select name="ToBank" id="ToBank" class="form-control to-bank" required>
+                                                <option value="">Select Bank</option>
+                                                @if (ViewBag.banks != null)
+                                                {
+                                                    foreach (var item in ViewBag.banks)
+                                                    {
+                                                        <option value="@item">@item</option>
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+
+                                        <div class="form-group col-md-3">
+                                            <label class="control-label">ToBalanceAmount</label>
+                                            <input type="number" name="ToBalanceAmount" class="form-control to-balance" readonly />
+                                        </div>
+                                        <div class="form-group col-md-3">
+                                            <label class="control-label">ReceiveAmount</label>
+                                            <input type="number" name="ReceiveAmount" class="form-control receive-amount" required />
+                                        </div>
+                                        <div class="form-group col-md-3">
+                                            <label class="control-label">ToTransactionType</label>
+                                            <select name="ToTransactionType" id="ToTransactionType" class="form-control" required>
+                                                <option value="Cr">Cr (Deposit)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-primary" id="submitContra">Save</button>
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- with Search and Dropdown Filter -->
+                <h4 class="mt-5">Voucher List</h4>
+                <!-- Existing filter and search elements -->
+                <div class="d-flex mb-4">
+                    <input type="text" id="searchInput" class="form-control mr-4" placeholder="Search Vouchers...">
+                    <div class="position-relative w-100">
+                        <select id="filterDropdown" class="form-control custom-dropdown">
+                            <option value="">Filter by Voucher Type</option>
+                            <option value="Cash Payment">Cash Payment</option>
+                            <option value="Cash Receipt">Cash Receipt</option>
+                            <option value="Bank Payment">Bank Payment</option>
+                            <option value="Bank Receipt">Bank Receipt</option>
+                            <option value="Journal Book">Journal Book</option>
+                            <option value="Contra">Contra</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Cash Payment/Receipt Table -->
+                <table class="table table-bordered voucher-table" id="cashTable" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>S.No</th>
+                            <th>Payment Type</th>
+                            <th>Branch</th>
+                            <th>Acc Head</th>
+                            <th>Voucher No</th>
+                            <th>Voucher Date</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var voucher in Model)
+                        {
+                            if (voucher.VoucherType == "Cash Payment" || voucher.VoucherType == "Cash Receipt")
+                            {
+                                <tr data-voucher-type="@voucher.VoucherType">
+                                    <td>@voucher.VoucherId</td>
+                                    <td>@voucher.VoucherType</td>
+                                    <td>@voucher.Branch</td>
+                                    <td>@voucher.AccountHead</td>
+                                    <td>@voucher.VoucherNumber</td>
+                                    <td>@voucher.VoucherDate.ToShortDateString()</td>
+                                    <td>@voucher.TotalAmount</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+
+                <!-- Bank Payment/Receipt/Journal Table -->
+                <table class="table table-bordered voucher-table" id="bankJournalTable" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>S.No</th>
+                            <th>Payment Type</th>
+                            <th>Branch</th>
+                            <th>Acc Head</th>
+                            <th>Voucher No</th>
+                            <th>Voucher Date</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var voucher in Model)
+                        {
+                            if (voucher.VoucherType == "Bank Payment" || voucher.VoucherType == "Bank Receipt" || voucher.VoucherType == "Journal Book")
+                            {
+                                <tr data-voucher-type="@voucher.VoucherType">
+                                    <td>@voucher.VoucherId</td>
+                                    <td>@voucher.VoucherType</td>
+                                    <td>@voucher.Branch</td>
+                                    <td>@voucher.AccountHead</td>
+                                    <td>@voucher.VoucherNumber</td>
+                                    <td>@voucher.VoucherDate.ToShortDateString()</td>
+                                    <td>@voucher.TotalAmount</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+
+                <!-- Contra Table (with different columns) -->
+                <table class="table table-bordered voucher-table" id="contraTable" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>S.No</th>
+                            <th>From Bank</th>
+                            <th>To Bank</th>
+                            <th>Transfer Amount</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var voucher in Model)
+                        {
+                            if (voucher.VoucherType == "Contra")
+                            {
+                                <tr data-voucher-type="Contra">
+                                    <td>@voucher.VoucherId</td>
+                                    <td>@voucher.FromBank</td>
+                                    <td>@voucher.ToBank</td>
+                                    <td>@voucher.TransferAmount</td>
+                                    <td>@voucher.VoucherDate.ToShortDateString()</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+
+                <!-- Pagination Controls -->
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                    <div class="pagination-info">
+                        Showing @((ViewBag.CurrentPage - 1) * ViewBag.PageSize + 1) to
+                        @Math.Min(ViewBag.CurrentPage * ViewBag.PageSize, ViewBag.TotalVouchers) of
+                        @ViewBag.TotalVouchers records
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <!-- Previous Button -->
+                        @if (ViewBag.CurrentPage > 1)
+                        {
+                            <a href="@Url.Action("VoucherIndex", new {
+                page = ViewBag.CurrentPage - 1,
+                pageSize = ViewBag.PageSize,
+                voucherType = ViewBag.VoucherType
+            })" class="btn btn-outline-primary">
+                                <i class="fas fa-chevron-left me-1"></i> Previous
+                            </a>
+                        }
+                        else
+                        {
+                            <button class="btn btn-outline-secondary" disabled>
+                                <i class="fas fa-chevron-left me-1"></i> Previous
+                            </button>
+                        }
+
+                        <!-- Page Number Buttons -->
+                        <div class="btn-group">
+                            @{
+                                int startPage = Math.Max(1, ViewBag.CurrentPage - 2);
+                                int endPage = Math.Min(ViewBag.TotalPages, ViewBag.CurrentPage + 2);
+
+                                if (startPage > 1)
+                                {
+                                    <a href="@Url.Action("VoucherIndex", new {
+                        page = 1,
+                        pageSize = ViewBag.PageSize,
+                        voucherType = ViewBag.VoucherType
+                    })" class="btn btn-outline-secondary">1</a>
+                                    if (startPage > 2)
+                                    {
+                                        <button class="btn btn-outline-secondary" disabled>...</button>
+                                    }
+                                }
+
+                                for (int i = startPage; i <= endPage; i++)
+                                {
+                                    if (i == ViewBag.CurrentPage)
+                                    {
+                                        <button class="btn btn-primary" disabled>@i</button>
+                                    }
+                                    else
+                                    {
+                                        <a href="@Url.Action("VoucherIndex", new {
+                            page = i,
+                            pageSize = ViewBag.PageSize,
+                            voucherType = ViewBag.VoucherType
+                        })" class="btn btn-outline-secondary">@i</a>
+                                    }
+                                }
+
+                                if (endPage < ViewBag.TotalPages)
+                                {
+                                    if (endPage < ViewBag.TotalPages - 1)
+                                    {
+                                        <button class="btn btn-outline-secondary" disabled>...</button>
+                                    }
+                                    <a href="@Url.Action("VoucherIndex", new {
+                        page = ViewBag.TotalPages,
+                        pageSize = ViewBag.PageSize,
+                        voucherType = ViewBag.VoucherType
+                    })" class="btn btn-outline-secondary">@ViewBag.TotalPages</a>
+                                }
+                            }
+                        </div>
+
+                        <!-- Next Button -->
+                        @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                        {
+                            <a href="@Url.Action("VoucherIndex", new {
+                page = ViewBag.CurrentPage + 1,
+                pageSize = ViewBag.PageSize,
+                voucherType = ViewBag.VoucherType
+            })" class="btn btn-outline-primary">
+                                Next <i class="fas fa-chevron-right ms-1"></i>
+                            </a>
+                        }
+                        else
+                        {
+                            <button class="btn btn-outline-secondary" disabled>
+                                Next <i class="fas fa-chevron-right ms-1"></i>
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Initialize modals
+            $('#cashPaymentModal').modal({ show: false });
+            $('#contraModal').modal({ show: false });
+
+            // Handle all voucher type radio button clicks
+            $('input[name="voucherType"]').change(function () {
+                var voucherType = $(this).val();
+
+                if (voucherType === 'Contra') {
+                    // Hide cash payment modal and show contra modal
+                    $('#cashPaymentModal').modal('hide');
+                    $('#contraModal').modal('show');
+                } else {
+                    // Hide contra modal and show cash payment modal for other types
+                    $('#contraModal').modal('hide');
+
+                    // Set the voucher type in the hidden field
+                    $('#voucherTypeInput').val(voucherType);
+
+                    // Update modal title
+                    $('#cashPaymentModalLabel').text(voucherType);
+
+                    // Show/hide bank payment fields based on voucher type
+                    if (voucherType === 'Bank Payment' || voucherType === 'Bank Receipt') {
+                        $('#bankPaymentFields').show();
+                    } else {
+                        $('#bankPaymentFields').hide();
+                    }
+
+                    // Show the cash payment modal
+                    $('#cashPaymentModal').modal('show');
+                }
+            });
+
+            // Handle modal close buttons (X and Cancel)
+            $('[data-dismiss="modal"], .close').click(function (e) {
+                e.preventDefault();
+                $(this).closest('.modal').modal('hide');
+            });
+
+            // Contra modal specific functionality - bank dropdowns
+            $('.from-bank, .to-bank').change(function () {
+                // Mock bank balance - replace with actual API call
+                var mockBalance = (Math.random() * 100000).toFixed(2);
+                if ($(this).hasClass('from-bank')) {
+                    $('.from-balance').val(mockBalance);
+                } else {
+                    $('.to-balance').val(mockBalance);
+                }
+
+                // Prevent selecting the same bank for both from and to
+                var fromBank = $('.from-bank').val();
+                var toBank = $('.to-bank').val();
+
+                if (fromBank && fromBank === toBank) {
+                    alert('From Bank and To Bank cannot be the same');
+                    $(this).val('');
+                    if ($(this).hasClass('from-bank')) {
+                        $('.from-balance').val('');
+                    } else {
+                        $('.to-balance').val('');
+                    }
+                }
+            });
+
+            // Auto-match transfer and receive amounts in contra
+            $('.transfer-amount').on('input', function () {
+                $('.receive-amount').val($(this).val());
+            });
+
+            $('.receive-amount').on('input', function () {
+                $('.transfer-amount').val($(this).val());
+            });
+
+            // NEW - Contra form submission handler with AJAX
+            $('#submitContra').click(function (e) {
+                e.preventDefault();
+
+                // Validation
+                var transferAmount = parseFloat($('.transfer-amount').val()) || 0;
+                var receiveAmount = parseFloat($('.receive-amount').val()) || 0;
+                var fromBank = $('.from-bank').val();
+                var toBank = $('.to-bank').val();
+
+                if (transferAmount <= 0) {
+                    alert('Transfer amount must be greater than 0');
+                    return false;
+                }
+
+                if (transferAmount !== receiveAmount) {
+                    alert('Transfer amount and receive amount must be equal');
+                    return false;
+                }
+
+                if (!fromBank || !toBank) {
+                    alert('Please select both From Bank and To Bank');
+                    return false;
+                }
+
+                if (fromBank === toBank) {
+                    alert('From Bank and To Bank cannot be the same');
+                    return false;
+                }
+
+                // Create form data with ONLY the Contra-specific fields
+                var formData = new FormData();
+
+                // Add anti-forgery token
+                var token = $('input[name="__RequestVerificationToken"]').val();
+                formData.append("__RequestVerificationToken", token);
+
+                // Add only Contra-specific fields
+                formData.append('VoucherType', 'Contra');
+                formData.append('FromBank', $('.from-bank').val());
+                formData.append('BalanceAmount', $('.from-balance').val());
+                formData.append('TransferAmount', $('.transfer-amount').val());
+                formData.append('FromTransactionType', $('select[name="FromTransactionType"]').val());
+                formData.append('ToBank', $('.to-bank').val());
+                formData.append('ToBalanceAmount', $('.to-balance').val());
+                formData.append('ReceiveAmount', $('.receive-amount').val());
+                formData.append('ToTransactionType', $('select[name="ToTransactionType"]').val());
+
+                // Submit via AJAX
+                $.ajax({
+                    url: '/Voucher/ContraCreate',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        // Handle success
+                        $('#contraModal').modal('hide');
+                        alert('Contra voucher saved successfully!');
+                        // Reload page to see the new voucher in the list
+                        location.reload();
+                    },
+                    error: function (xhr, status, error) {
+                        // Handle error
+                        alert('Error saving Contra voucher: ' + error);
+                    }
+                });
+            });
+
+            // Regular voucher form functionality
+            $('#addRow').click(function () {
+                var newRow = $('#voucherDetailsTable tbody tr:first').clone();
+                newRow.find('input').val('');
+                newRow.find('select').val('');
+                newRow.find('input[name="bill_amount[]"]').val('0.00');
+                $('#voucherDetailsTable tbody').append(newRow);
+            });
+
+            // Remove row functionality
+            $(document).on('click', '.removeRow', function () {
+                if ($('#voucherDetailsTable tbody tr').length > 1) {
+                    $(this).closest('tr').remove();
+                }
+            });
+
+            // Calculate TDS amount when TDS percentage changes
+            $(document).on('input', '.tds', function () {
+                var row = $(this).closest('tr');
+                var billAmount = parseFloat(row.find('.bill-amount').val()) || 0;
+                var tdsPercent = parseFloat($(this).val()) || 0;
+                var tdsAmount = (billAmount * tdsPercent / 100).toFixed(2);
+                row.find('.tds-amount').val(tdsAmount);
+
+                // Update balance amount
+                var receivedAmount = parseFloat(row.find('.received-amount').val()) || 0;
+                var balance = billAmount - receivedAmount - parseFloat(tdsAmount);
+                row.find('.balance-amount').val(balance.toFixed(2));
+            });
+
+            // Calculate balance when received amount changes
+            $(document).on('input', '.received-amount', function () {
+                var row = $(this).closest('tr');
+                var billAmount = parseFloat(row.find('.bill-amount').val()) || 0;
+                var tdsAmount = parseFloat(row.find('.tds-amount').val()) || 0;
+                var receivedAmount = parseFloat($(this).val()) || 0;
+                var balance = billAmount - receivedAmount - tdsAmount;
+                row.find('.balance-amount').val(balance.toFixed(2));
+            });
+
+            // Handle voucher form submission
+            $('#submitVoucher').click(function () {
+                // Collect all voucher details
+                var voucherDetails = [];
+                var isValid = true;
+
+                $('#voucherDetailsTable tbody tr').each(function () {
+                    var row = $(this);
+
+                    // Validate required fields
+                    row.find('[required]').each(function () {
+                        if (!$(this).val()) {
+                            isValid = false;
+                            $(this).addClass('is-invalid');
+                        } else {
+                            $(this).removeClass('is-invalid');
+                        }
+                    });
+
+                    var detail = {
+                        AccHead: row.find('.account-head-select').val(),
+                        BillNo: row.find('input[name="bill_no[]"]').val(),
+                        BillAmount: row.find('.bill-amount').val(),
+                        TransactionType: row.find('select[name="transaction_type[]"]').val(),
+                        TDS: row.find('.tds').val(),
+                        TDSAmount: row.find('.tds-amount').val(),
+                        ReceivedAmount: row.find('.received-amount').val(),
+                        BalanceAmount: row.find('.balance-amount').val()
+                    };
+
+                    voucherDetails.push(detail);
+                });
+
+                if (!isValid) {
+                    alert('Please fill all required fields');
+                    return false;
+                }
+
+                // Set the serialized data
+                $('#serializedvoucherData').val(JSON.stringify(voucherDetails));
+
+                // Submit the form
+                $('#cashPaymentForm').submit();
+            });
+                // Search functionality
+                $('#searchInput').on('input', function () {
+                    var searchTerm = $(this).val().toLowerCase();
+                    $('#voucherTable tbody tr').each(function () {
+                        $(this).toggle($(this).text().toLowerCase().includes(searchTerm));
+                    });
+                });
+
+                // Filter functionality
+                $('#filterDropdown').change(function () {
+                    var filterValue = $(this).val().toLowerCase();
+                    $('#voucherTable tbody tr').each(function () {
+                        var type = $(this).find('td:nth-child(2)').text().toLowerCase();
+                        $(this).toggle(filterValue === '' || type === filterValue);
+                    });
+                });
+
+                // Pagination
+                var rowsPerPage = 10;
+                var currentPage = 1;
+
+                function renderTable() {
+                    var rows = $('#voucherTable tbody tr');
+                    rows.hide();
+                    rows.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage).show();
+                    $('#recordInfo').text('Showing ' + (Math.min((currentPage - 1) * rowsPerPage + 1, rows.length)) +
+                        ' to ' + Math.min(currentPage * rowsPerPage, rows.length) +
+                        ' of ' + rows.length + ' records');
+                }
+
+                $('#prevPage').click(function () {
+                    if (currentPage > 1) currentPage--;
+                    renderTable();
+                });
+
+                $('#nextPage').click(function () {
+                    var totalRows = $('#voucherTable tbody tr').length;
+                    if (currentPage * rowsPerPage < totalRows) currentPage++;
+                    renderTable();
+                });
+
+                renderTable();
+            });
+    </script>
+    <script>
+        $(document).ready(function () {
+            // Handle filter changes
+            $('#filterDropdown').change(function () {
+                var selectedType = $(this).val();
+                $('.voucher-table').hide(); // Hide all tables
+
+                // Determine which table to show
+                if (selectedType === "Cash Payment" || selectedType === "Cash Receipt") {
+                    $('#cashTable').show();
+                    // Filter rows to selected type
+                    $('#cashTable tbody tr').show();
+                    if (selectedType) {
+                        $('#cashTable tbody tr').each(function () {
+                            $(this).toggle($(this).data('voucher-type') === selectedType);
+                        });
+                    }
+                } else if (selectedType === "Bank Payment" || selectedType === "Bank Receipt" || selectedType === "Journal Book") {
+                    $('#bankJournalTable').show();
+                    // Filter rows to selected type
+                    $('#bankJournalTable tbody tr').show();
+                    if (selectedType) {
+                        $('#bankJournalTable tbody tr').each(function () {
+                            $(this).toggle($(this).data('voucher-type') === selectedType);
+                        });
+                    }
+                } else if (selectedType === "Contra") {
+                    $('#contraTable').show();
+                } else {
+                    $('.voucher-table').show(); // Show all if no filter
+                }
+            });
+
+            // Search functionality
+            $('#searchInput').on('input', function () {
+                var searchTerm = $(this).val().toLowerCase();
+                var visibleTable = $('.voucher-table:visible');
+                visibleTable.find('tbody tr').each(function () {
+                    $(this).toggle($(this).text().toLowerCase().includes(searchTerm));
+                });
+            });
+        });
+    </script>
+    <script>
+        // Handle FromBank selection change
+        $('#FromBank').change(function () {
+            var selectedBank = $(this).val();
+            if (selectedBank) {
+                fetchBankBalance(selectedBank, '#BalanceAmount');
+            } else {
+                $('#BalanceAmount').val('');
+            }
+        });
+
+        // Handle ToBank selection change
+        $('#ToBank').change(function () {
+            var selectedBank = $(this).val();
+            if (selectedBank) {
+                fetchBankBalance(selectedBank, '.to-balance');
+            } else {
+                $('.to-balance').val('');
+            }
+        });
+
+        // Function to fetch bank balance via AJAX
+        function fetchBankBalance(bankName, targetElement) {
+            $.ajax({
+                url: '/Voucher/GetBankBalance', // This should match your controller route
+                type: 'GET',
+                data: { bankName: bankName },
+                success: function (response) {
+                    if (response.success) {
+                        $(targetElement).val(response.balance);
+                    } else {
+                        alert('Error fetching bank balance: ' + response.message);
+                        $(targetElement).val('');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    alert('Error fetching bank balance: ' + error);
+                    $(targetElement).val('');
+                }
+            });
+        }
+    </script>
+}

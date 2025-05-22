@@ -1,0 +1,291 @@
+﻿@model IEnumerable<GuardiansExpress.Models.Entity.BillEntity>
+@{
+    int rCnt = 1;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="content">
+            <div class="row">
+                <div class="col-md-12 mt-3">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">Bill Type List</h4>
+                            <button type="button" class="btn btn-primary">
+                                <a href="javascript:void(0);" onclick="openAddModal();" class="text-white">
+                                    <i class="fa fa-plus" aria-hidden="true"></i> Add Bill Type
+                                </a>
+                            </button>
+                        </div>
+                        <div class="box-body">
+                            <div class="table-responsive">
+                                <table id="example1" class="text-fade table table-bordered" style="width:100%">
+                                    <thead>
+                                        <tr class="text-dark">
+                                            <th>S.No</th>
+                                            <th>Bill Type</th>
+                                            <th>Status</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var v in Model)
+                                        {
+                                            <tr>
+                                                <th scope="row">@(rCnt++)</th>
+                                                <td>
+                                                    <a href="#" onclick="EditBillType(@v.Id, '@v.BillType', '@v.Status')" title="Edit">
+                                                    @v.BillType
+                                                    </a></td>
+                                                <td>@v.Status</td>
+                                                <td>
+
+                                                     <a href="#" onclick="DeleteBillType(@v.Id)" title="Delete">
+                                                        <button type="button" class="waves-effect waves-circle btn btn-circle btn-danger btn-xs">
+                                                            <i class="fa fa-trash"></i>
+                                                        </button>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Bill Type Modal -->
+<div class="modal fade" id="addBillTypeModal" tabindex="-1" aria-labelledby="addBillTypeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addBillTypeModalLabel">Add Bill Type</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="billTypeForm" action="@Url.Action("BillTypeAdd", "BillType")" method="post" class="needs-validation" novalidate>
+                <div class="modal-body">
+                    @Html.AntiForgeryToken()
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <label>Bill Type <span class="text-danger">*</span></label>
+                            <input class="form-control" name="BillType" type="text" required autocomplete="off">
+                            <div class="invalid-feedback">Please enter a Bill Type.</div>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Status <span class="text-danger">*</span></label>
+                            <select class="form-control" name="Status" required autocomplete="off">
+                                <option value="" disabled selected>Select Status</option>
+                                <option value="Active">Active</option>
+                                <option value="InActive">InActive</option>
+                            </select>
+                            <div class="invalid-feedback">Please select a Status.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                    <button type="reset" class="btn btn-success">Reset</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Bill Type Modal -->
+<div class="modal fade" id="editBillTypeModal" tabindex="-1" aria-labelledby="editBillTypeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editBillTypeModalLabel">Edit Bill Type</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editBillTypeForm" action="@Url.Action("BillTypeUpdate", "BillType")" method="post" class="needs-validation" novalidate>
+                <div class="modal-body">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="Id" id="editId" value="">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <label>Bill Type <span class="text-danger">*</span></label>
+                            <input class="form-control" name="BillType" id="editBillType" type="text" required autocomplete="off">
+                            <div class="invalid-feedback">Please enter a Bill Type.</div>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Status <span class="text-danger">*</span></label>
+                            <select class="form-control" name="Status" id="editStatus" required autocomplete="off">
+                                <option value="" disabled>Select Status</option>
+                                <option value="Active">Active</option>
+                                <option value="InActive">InActive</option>
+                            </select>
+                            <div class="invalid-feedback">Please select a Status.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                    <button type="reset" class="btn btn-success">Reset</button>
+                    <button type="submit" class="btn btn-primary">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        // Initialize DataTable
+        $('#example1').DataTable();
+
+        // Form validation for Add Bill Type
+        $('#billTypeForm').on('submit', function (e) {
+            if (!this.checkValidity()) {
+                e.preventDefault();
+                e.stopPropagation();
+                $(this).addClass('was-validated');
+                return false;
+            }
+
+            e.preventDefault();
+            var formData = new FormData(this);
+
+            $.ajax({
+                url: '@Url.Action("BillTypeAdd", "BillType")',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response && response.success === false) {
+                        Swal.fire("Error!", response.message || "Failed to add Bill Type.", "error");
+                    } else {
+                        Swal.fire("Success!", "Bill Type added successfully.", "success").then(() => {
+                            window.location.reload();
+                        });
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Add error:", error);
+                    Swal.fire("Error!", "An error occurred while adding Bill Type.", "error");
+                }
+            });
+        });
+
+        // Form validation for Edit Bill Type
+        $('#editBillTypeForm').on('submit', function (e) {
+            if (!this.checkValidity()) {
+                e.preventDefault();
+                e.stopPropagation();
+                $(this).addClass('was-validated');
+                return false;
+            }
+
+            e.preventDefault();
+            var formData = new FormData(this);
+
+            $.ajax({
+                url: '@Url.Action("BillTypeUpdate", "BillType")',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response && response.success === false) {
+                        Swal.fire("Error!", response.message || "Failed to update Bill Type.", "error");
+                    } else {
+                        Swal.fire("Updated!", "Bill Type updated successfully.", "success").then(() => {
+                            $('#editBillTypeModal').modal('hide');
+                            window.location.reload();
+                        });
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Update error:", error);
+                    Swal.fire("Error!", "An error occurred while updating Bill Type.", "error");
+                }
+            });
+        });
+
+        // Reset form validation state when modals are closed
+        $('#addBillTypeModal').on('hidden.bs.modal', function () {
+            $('#billTypeForm').removeClass('was-validated');
+            $('#billTypeForm')[0].reset();
+        });
+
+        $('#editBillTypeModal').on('hidden.bs.modal', function () {
+            $('#editBillTypeForm').removeClass('was-validated');
+        });
+    });
+
+    // Function to open the Add Bill Type modal
+    function openAddModal() {
+        $('#billTypeForm')[0].reset();
+        $('#billTypeForm').removeClass('was-validated');
+        $('#addBillTypeModal').modal('show');
+    }
+
+    // Function to open the Edit Bill Type modal and populate it with data
+    function EditBillType(id, billType, status) {
+        $('#editId').val(id);
+        $('#editBillType').val(billType);
+        $('#editStatus').val(status);
+        $('#editBillTypeForm').removeClass('was-validated');
+        $('#editBillTypeModal').modal('show');
+    }
+
+    // Function to delete a bill type
+    function DeleteBillType(id) {
+        if (!id) {
+            console.error("Invalid bill type ID");
+            return;
+        }
+
+        Swal.fire({
+            title: "Are you sure?",
+            text: "Do You Want to Delete This Bill Type?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Yes, delete it!",
+            cancelButtonText: "Cancel",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Get the anti-forgery token
+                var token = $('input[name="__RequestVerificationToken"]').val();
+
+                $.ajax({
+                    url: '@Url.Action("Delete", "BillType")',
+                    type: 'POST',
+                    data: {
+                        id: id,
+                        __RequestVerificationToken: token
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire("Deleted!", "Your Bill Type has been deleted.", "success").then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire("Error!", response.message || "There was an issue deleting the Bill Type.", "error");
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Delete error:", error);
+                        console.error("Response status:", xhr.status);
+                        console.error("Response text:", xhr.responseText);
+                        Swal.fire("Error!", "There was an error processing your request.", "error");
+                    }
+                });
+            }
+        });
+    }
+</script>

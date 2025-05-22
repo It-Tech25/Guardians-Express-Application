@@ -1,0 +1,997 @@
+﻿@model IEnumerable<GuardiansExpress.Models.DTOs.UsersMasterDTO>
+@{
+    int rCnt = 1;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var searchTerm = ViewData["SearchTerm"] as string;
+    int currentPage = ViewData["CurrentPage"] as int? ?? 1;
+    int totalPages = ViewData["TotalPages"] as int? ?? 1;
+    int pageSize = ViewData["PageSize"] as int? ?? 10;
+}
+@{
+    var successMessage = TempData.Peek("SuccessMessage") as string;
+    var errorMessage = TempData.Peek("ErrorMessage") as string;
+}
+<style>
+    .is-invalid {
+        border-color: #dc3545 !important;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right calc(0.375em + 0.1875rem) center;
+        background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+    }
+
+    .error-message {
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+</style>
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="row">
+            <div class="col-md-12 mt-3">
+                <div class="card">
+                    <div class="card-header">
+                        @if (!string.IsNullOrEmpty(successMessage))
+                        {
+                            <div class="alert alert-success">
+                                <p>@successMessage</p>
+                            </div>
+                        }
+                         
+                        @if (!string.IsNullOrEmpty(errorMessage))
+                        {
+                            <div class="alert alert-danger">
+                                <p>@errorMessage</p>
+                            </div>
+                        }
+                        <ul class="nav nav-tabs" id="myTab" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="list-tab" data-bs-toggle="tab" href="#list" role="tab">List of UserMaster</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="add-tab" data-bs-toggle="tab" href="#add" role="tab">Add UserMaster</a>
+                            </li>
+                            <li class="nav-item d-none" id="editTabItem">
+                                <a class="nav-link" id="edit-tab" data-bs-toggle="tab" href="#edit" role="tab">Edit UserMaster</a>
+                            </li>
+                           
+                        </ul>
+                    </div>
+                    <div class="card-body"> 
+                        <div class="tab-content">
+                            <!-- Add UserMaster Tab -->
+                            <div class="tab-pane fade show" id="add" role="tabpanel">
+                                <form id="UserMasterForm" action="@Url.Action("UserTypeAdd", "UserMaster")" method="post" enctype="multipart/form-data">
+                                    @Html.AntiForgeryToken()
+                                    <div class="row">
+                                        <fieldset class="border p-3 mt-3">
+                                            <legend class="fw-bold">UserMaster Details</legend>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <label for="UserName" class="form-label">UserName</label>
+                                                    <input type="text" class="form-control" id="UserName" name="UserName" >
+                                                    <span class="text-danger error-message" id="UserNameError" style="display: none;">Please enter the UserName.</span>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="MobileNumber" class="form-label">MobileNumber</label>
+                                                    <input type="number" class="form-control" id="MobileNumber" name="MobileNumber" >
+                                                    <span class="text-danger error-message" id="MobileNumberError" style="display: none;">Please enter a valid 10-digit mobile number.</span>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="EmailId" class="form-label">Email</label>
+                                                    <input type="email" class="form-control" id="EmailId" name="EmailId" >
+                                                    <span class="text-danger error-message" id="EmailIdError" style="display: none;">Please enter a valid email address.</span>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="Password" class="form-label">Password</label>
+                                                    <input type="password" class="form-control" id="Password" name="Password" >
+                                                    <span class="text-danger error-message" id="PasswordError" style="display: none;">Please enter the Password.</span>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="City" class="form-label">City</label>
+                                                    <input type="text" class="form-control" id="City" name="City" >
+                                                    <span class="text-danger error-message" id="CityError" style="display: none;">Please enter the City.</span>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="State" class="form-label">State</label>
+                                                    <input type="text" class="form-control" id="State" name="State" >
+                                                    <span class="text-danger error-message" id="StateError" style="display: none;">Please enter the State.</span>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="Country" class="form-label">Country</label>
+                                                    <select class="form-select" id="Country" name="Country" >
+                                                        <option value="">Select Country</option>
+                                                        <option value="India">India</option>
+                                                        <option value="USA">USA</option>
+                                                        <option value="UK">UK</option>
+                                                        <option value="UAE">UAE</option>
+                                                        <option value="Russia">Russia</option>
+                                                    </select>
+                                                    <span class="text-danger error-message" id="CountryError" style="display: none;">Please select a Country.</span>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="Pincode" class="form-label">Pincode</label>
+                                                    <input type="number" class="form-control" id="Pincode" name="Pincode" >
+                                                    <span class="text-danger error-message" id="PincodeError" style="display: none;">Please enter a valid 6-digit pincode.</span>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="CurrentStatus" class="form-label">CurrentStatus</label>
+                                                    <select class="form-select" id="CurrentStatus" name="CurrentStatus" >
+                                                        <option value="">Select Status</option>
+                                                        <option value="Active">Active</option>
+                                                        <option value="InActive">InActive</option>
+                                                    </select>
+                                                    <span class="text-danger error-message" id="CurrentStatusError" style="display: none;">Please select a Status.</span>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="Address" class="form-label">Address</label>
+                                                    <input type="text" class="form-control" id="Address" name="Address" >
+                                                    <span class="text-danger error-message" id="AddressError" style="display: none;">Please enter the Address.</span>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="Role" class="form-label">Select Role</label>
+                                                    <select class="form-select" id="Role" name="Role" >
+                                                        <option value="">Select Role</option>
+                                                        @if (ViewBag.UserTypes != null)
+                                                        {
+                                                            foreach (var item in ViewBag.UserTypes)
+                                                            {
+                                                                <option value="@item.UserTypeName">@item.UserTypeName</option>
+                                                            }
+                                                        }
+                                                    </select>
+                                                    <span class="text-danger error-message" id="RoleError" style="display: none;">Please select a Role.</span>
+                                                </div>
+                                                <div class="col-md-6 mt-3">
+                                                    <label for="AadharCardFrontUrl">Aadhar Front Image</label>
+                                                    <input type="file" class="form-control" id="AadharCardFrontUrl"
+                                                           name="AadharCardFrontUrl" accept="image/*" 
+                                                           onchange="previewImage(this, 'frontPreview')">
+                                                    <img id="frontPreview" src="#" class="img-thumbnail mt-2"
+                                                         style="max-width: 100px; display: none;">
+                                                    <span class="text-danger error-message" id="AadharCardFrontUrlError" style="display: none;">Please upload Aadhar Front Image.</span>
+                                                </div>
+                                                <div class="col-md-6 mt-3">
+                                                    <label for="AadharCardBackUrl">Aadhar Back Image</label>
+                                                    <input type="file" class="form-control" id="AadharCardBackUrl"
+                                                           name="AadharCardBackUrl" accept="image/*" 
+                                                           onchange="previewImage(this, 'backPreview')">
+                                                    <img id="backPreview" src="#" class="img-thumbnail mt-2"
+                                                         style="max-width: 100px; display: none;">
+                                                    <span class="text-danger error-message" id="AadharCardBackUrlError" style="display: none;">Please upload Aadhar Back Image.</span>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                        <div class="col-md-12 mt-3">
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-save btn-icon"></i> Save
+                                            </button>
+                                            <button type="reset" class="btn btn-secondary">
+                                                <i class="fas fa-undo btn-icon"></i> Reset
+                                            </button>
+                                            <a href="@Url.Action("UserMaster", "UserMaster")" class="btn btn-danger">
+                                                <i class="fas fa-times btn-icon"></i> Cancel
+                                            </a>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>   
+                            <!-- Edit UserMaster Tab -->
+                            <div class="tab-pane fade" id="edit" role="tabpanel">
+                                <form id="EditUserMasterForm" action="@Url.Action("UserMasterUpdate", "UserMaster")" method="post" enctype="multipart/form-data">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="UserId" id="editUserId" />
+                                    <div class="row">
+                                        <fieldset class="border p-3 mt-3">
+                                            <legend class="fw-bold">UserMaster Details</legend>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <label for="editUserName" class="form-label">UserName</label>
+                                                    <input type="text" class="form-control" id="editUserName" name="UserName" >
+                                                    <span class="text-danger error-message d-none">Please enter the UserName.</span>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="editMobileNumber" class="form-label">MobileNumber</label>
+                                                    <input type="number" class="form-control" id="editMobileNumber" name="MobileNumber" >
+                                                    <span class="text-danger error-message d-none">Please enter the MobileNumber.</span>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="editEmailId" class="form-label">Email</label>
+                                                    <input type="email" class="form-control" id="editEmailId" name="EmailId" >
+                                                    <span class="text-danger error-message d-none">Please enter the EmailId.</span>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="editPassword" class="form-label">Password</label>
+                                                    <input type="password" class="form-control" id="editPassword" name="Password">
+                                                    <span class="text-danger error-message d-none">Please enter the Password.</span>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="editCity" class="form-label">City</label>
+                                                    <input type="text" class="form-control" id="editCity" name="City" >
+                                                    <span class="text-danger error-message d-none">Please enter the City.</span>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="editState" class="form-label">State</label>
+                                                    <input type="text" class="form-control" id="editState" name="State" >
+                                                    <span class="text-danger error-message d-none">Please enter the State.</span>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="editCountry" class="form-label">Country</label>
+                                                    <select class="form-select" id="editCountry" name="Country" >
+                                                        <option value="India">India</option>
+                                                        <option value="USA">USA</option>
+                                                        <option value="UK">UK</option>
+                                                        <option value="UAE">UAE</option>
+                                                        <option value="Russia">Russia</option>
+                                                    </select>
+                                                    <span class="text-danger error-message d-none">Please Select the Country.</span>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="editPincode" class="form-label">Pincode</label>
+                                                    <input type="number" class="form-control" id="editPincode" name="Pincode" >
+                                                    <span class="text-danger error-message d-none">Please enter the Pincode.</span>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="editCurrentStatus" class="form-label">CurrentStatus</label>
+                                                    <select class="form-select" id="editCurrentStatus" name="CurrentStatus" >
+                                                        <option value="Active">Active</option>
+                                                        <option value="InActive">InActive</option>
+                                                    </select>
+                                                    <span class="text-danger error-message d-none">Please Select the Currentstatus.</span>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="editAddress" class="form-label">Address</label>
+                                                    <input type="text" class="form-control" id="editAddress" name="Address" >
+                                                    <span class="text-danger error-message d-none">Please enter the Address.</span>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="editRole" class="form-label">Select Role</label>
+                                                    <select class="form-select" id="editRole" name="Role" >
+                                                        <option value="">Select Role</option>
+                                                        @if (ViewBag.UserTypes != null)
+                                                        {
+                                                            foreach (var item in ViewBag.UserTypes)
+                                                            {
+                                                                <option value="@item.UserTypeName">@item.UserTypeName</option>
+                                                            }
+                                                        }
+                                                    </select>
+                                                    <span class="text-danger error-message d-none">Please enter the Role.</span>
+                                                </div>
+                                                <div class="col-md-6 mt-3">
+                                                    <input type="file" class="form-control" id="editAadharCardFrontUrl"
+                                                           name="AadharCardFrontUrl" accept="image/*"
+                                                           onchange="previewImage(this, 'editAadharFrontPreview')">
+                                                    <img id="editAadharFrontPreview" src="#" class="img-thumbnail mt-2"
+                                                         style="max-width: 100px; display: none;">
+                                                </div>
+                                                <div class="col-md-6 mt-3">
+                                                    <input type="file" class="form-control" id="editAadharCardBackUrl"
+                                                           name="AadharCardBackUrl" accept="image/*"
+                                                           onchange="previewImage(this, 'editAadharBackPreview')">
+                                                    <img id="editAadharBackPreview" src="#" class="img-thumbnail mt-2"
+                                                         style="max-width: 100px; display: none;">
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                        <div class="col-md-12 mt-3">
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-save btn-icon"></i> Update
+                                            </button>
+                                            <button type="button" class="btn btn-secondary" onclick="cancelEdit()">
+                                                <i class="fas fa-undo btn-icon"></i> Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <!-- List UserMaster Tab -->
+                            <div class="tab-pane fade show active" id="list" role="tabpanel">
+                                <div class="card-header">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h4>User Master List</h4>
+                                        </div>
+                                        <div class="col-md-6 text-end">
+                                            <form method="get" action="@Url.Action("UserMaster", "UserMaster")">
+                                                <div class="input-group">
+                                                    <label class="mt-2 me-2">Records per page:</label>
+                                                    <select name="pageSize" id="PageSize" class="form-select" style="width: auto;" onchange="this.form.submit()">
+                                                        <option value="10" selected="@(pageSize == 10)">10</option>
+                                                        <option value="25" selected="@(pageSize == 25)">25</option>
+                                                        <option value="50" selected="@(pageSize == 50)">50</option>
+                                                        <option value="100" selected="@(pageSize == 100)">100</option>
+                                                    </select>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row mb-3">
+                                        <div class="col-md-4">
+                                            <input type="text" id="searchInput" class="form-control" placeholder="Search by UserName..." value="@searchTerm">
+                                        </div>
+                                        <div class="col-md-2">
+                                            <button class="btn btn-primary" onclick="searchTable()">Search</button>
+                                        </div>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table id="userMasterTable" class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>S.No</th>
+                                                    <th>UserName</th>
+                                                    <th>Aadhar Front</th>
+                                                    <th>Aadhar Back</th>
+                                                    <th>Role</th>
+                                                    <th>Status</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                               
+                                                @foreach (var user in Model)
+                                                {
+                                                    <tr>
+                                                        <td>@(rCnt++)</td>
+                                                        <td>@user.UserName</td>
+                                                        <td>
+                                                            @if (!string.IsNullOrEmpty(user.AadharCardFrontUrl))
+                                                            {
+                                                                <img src="/AadharImages/@user.AadharCardFrontUrl"
+                                                                     class="img-thumbnail"
+                                                                     style="max-width: 100px; max-height: 100px;" />
+                                                            }
+                                                        </td>
+                                                        <td>
+                                                            @if (!string.IsNullOrEmpty(user.AadharCardBackUrl))
+                                                            {
+                                                                <img src="/AadharImages/@user.AadharCardBackUrl"
+                                                                     class="img-thumbnail"
+                                                                     style="max-width: 100px; max-height: 100px;" />
+                                                            }
+                                                        </td>
+                                                        <td>@user.Role</td>
+                                                        <td>
+                                                            <span class="badge @(user.CurrentStatus == "Active" ? "bg-success" : "bg-danger")">
+                                                                @user.CurrentStatus
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <button onclick="editUserMaster('@user.UserId', '@user.UserName', '@user.MobileNumber', '@user.EmailId', '@user.City', '@user.State', '@user.Country', '@user.Pincode', '@user.CurrentStatus', '@user.Address', '@user.Role', '@user.AadharCardFrontUrl', '@user.AadharCardBackUrl')"
+                                                                    class="btn btn-sm btn-primary">
+                                                                <i class="fas fa-edit"></i>
+                                                            </button>
+                                                            <button onclick="deleteUserMaster('@user.UserId')"
+                                                                    class="btn btn-sm btn-danger">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="d-flex justify-content-end mt-3">
+                                        <nav>
+                                            <ul class="pagination pagination-sm">
+                                                <!-- Previous Button -->
+                                                <li class="page-item @( (int)ViewData["CurrentPage"] == 1 ? "disabled" : "")">
+                                                    <a class="page-link text-primary px-3 py-1 border rounded small" href="@Url.Action("UserMaster", new { searchTerm = ViewData["SearchTerm"], pageNumber = Math.Max((int)ViewData["CurrentPage"] - 1, 1), pageSize = ViewData["PageSize"] })">
+                                                        << Previous
+                                                    </a>
+                                                </li>
+
+                                                <!-- Page Numbers -->
+                                                @for (int i = 1; i <= (int)ViewData["TotalPages"]; i++)
+                                                {
+                                                    <li class="page-item @(i == (int)ViewData["CurrentPage"] ? "active" : "")">
+                                                        <a class="page-link px-3 py-1 border rounded small" href="@Url.Action("UserMaster", new { searchTerm = ViewData["SearchTerm"], pageNumber = i, pageSize = ViewData["PageSize"] })">
+                                                            @i
+                                                        </a>
+                                                    </li>
+                                                }
+
+                                                <!-- Next Button -->
+                                                <li class="page-item @( (int)ViewData["CurrentPage"] == (int)ViewData["TotalPages"] ? "disabled" : "")">
+                                                    <a class="page-link text-primary px-3 py-1 border rounded small" href="@Url.Action("UserMaster", new { searchTerm = ViewData["SearchTerm"], pageNumber = Math.Min((int)ViewData["CurrentPage"] + 1, (int)ViewData["TotalPages"]), pageSize = ViewData["PageSize"] })">
+                                                        Next >>
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </nav>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script>
+       
+       // Base configuration
+        const baseUrl = '@Url.Content("~")';
+        const aadharImagesPath = '/AadharImages/'; // Simplified path
+
+        $(document).ready(function () {
+            // Initialize tooltips
+            $('[data-toggle="tooltip"]').tooltip();
+
+            // Clear success/error messages after 5 seconds
+            setTimeout(function () {
+                $('.alert').fadeOut('slow');
+            }, 5000);
+
+             // Initialize table images without fallback
+            $('#userMasterTable img').each(function() {
+                const $img = $(this);
+                const currentSrc = $img.attr('src');
+                
+                // Ensure proper path construction
+                if (currentSrc && !currentSrc.startsWith('http') && !currentSrc.startsWith('/')) {
+                    $img.attr('src', aadharImagesPath + currentSrc);
+                }
+            });
+        });
+       
+        // Edit User Master function
+        function editUserMaster(userId, userName, mobileNumber, emailId, city, state,
+            country, pincode, currentStatus, address, role,
+            aadharFront, aadharBack) {
+             console.log("Editing User:", userId);
+            
+            // Clean paths by removing any existing /AadharImages/ prefix
+            const cleanFront = aadharFront ? aadharFront.replace('/AadharImages/', '') : '';
+            const cleanBack = aadharBack ? aadharBack.replace('/AadharImages/', '') : '';
+            
+            // Populate form fields
+            $('#editUserId').val(userId);
+            $('#editUserName').val(userName);
+            $('#editMobileNumber').val(mobileNumber);
+            $('#editEmailId').val(emailId);
+            $('#editCity').val(city);
+            $('#editState').val(state);
+            $('#editCountry').val(country);
+            $('#editPincode').val(pincode);
+            $('#editCurrentStatus').val(currentStatus);
+            $('#editAddress').val(address);
+            $('#editRole').val(role);
+
+            // Handle images with proper fallback
+            if (cleanFront) {
+                $('#editAadharFrontPreview').attr('src', aadharImagesPath + cleanFront).show();
+            }
+            if (cleanBack) {
+                $('#editAadharBackPreview').attr('src', aadharImagesPath + cleanBack).show();
+            }
+            // 3. Switch tabs properly
+            $('.nav-tabs .nav-link').removeClass('active');
+            $('.tab-pane').removeClass('show active');
+
+            // Hide add tab and show edit tab
+            $('#add-tab').parent().addClass('d-none');
+            $('#editTabItem').removeClass('d-none');
+
+            // Activate edit tab
+            $('#edit-tab').addClass('active show');
+            $('#edit').addClass('show active');
+
+        }
+
+        // Table row image handling
+        function initializeTableImages() {
+            $('#userMasterTable img').each(function () {
+                const $img = $(this);
+                const currentSrc = $img.attr('src');
+
+                if (!currentSrc || currentSrc.trim() === "") {
+                    $img.attr('src', defaultImagePath);
+                } else if (!currentSrc.startsWith('http') && !currentSrc.startsWith('/')) {
+                    $img.attr('src', aadharImagesPath + currentSrc);
+                }
+
+                $img.on('error', function () {
+                    console.error("Failed to load image:", currentSrc);
+                    $(this).attr('src', defaultImagePath);
+                });
+            });
+        }
+
+        // Function to cancel edit
+        function cancelEdit() {
+            // 1. Reset the edit form
+            $('#EditUserMasterForm')[0].reset();
+            $('#editAadharFrontPreview, #editAadharBackPreview').hide();
+
+            // 2. Hide both edit and add tab headers
+            $('#editTabItem').addClass('d-none');
+            $('#add-tab').parent().addClass('d-none');
+
+            // 3. Show and activate the list tab
+            $('.nav-tabs .nav-link').removeClass('active');
+            $('#list-tab').addClass('active');
+
+            // 4. Hide all tab panes and show only list
+            $('.tab-pane').removeClass('show active');
+            $('#list').addClass('show active');
+
+            // Optional: Scroll to top for better UX
+            window.scrollTo(0, 0);
+        }
+        // Function to delete user master
+        function deleteUserMaster(UserId) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: 'You won\'t be able to revert this!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '@Url.Action("DeleteUserMaster", "UserMaster")',
+                        type: 'POST',
+                        data: JSON.stringify({ UserId: UserId }),
+                        contentType: 'application/json',
+                        success: function (response) {
+                            if (response.success) {
+                                Swal.fire('Deleted!', 'User has been deleted.', 'success').then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire('Error!', response.message || 'Failed to delete user.', 'error');
+                            }
+                        },
+                        error: function () {
+                            Swal.fire('Error!', 'An error occurred while deleting the user.', 'error');
+                        }
+                    });
+                }
+            });
+        }
+
+        // Function to search table
+        function searchTable() {
+            var searchTerm = $('#searchInput').val();
+            window.location.href = '@Url.Action("UserMaster", "UserMaster")?searchTerm=' + encodeURIComponent(searchTerm) + '&pageSize=@pageSize';
+        }
+
+        // Form validation function
+        function validateForm(formId) {
+            var isValid = true;
+            $('#' + formId + ' [required]').each(function () {
+                if ($(this).val() === '') {
+                    $(this).addClass('is-invalid');
+                    isValid = false;
+                } else {
+                    $(this).removeClass('is-invalid');
+                }
+            });
+            return isValid;
+        }
+
+        // Clear TempData messages
+        setTimeout(function () {
+            $('.alert').fadeOut('slow', function () {
+                $(this).remove();
+            });
+
+            $.post('@Url.Action("ClearTempData", "UserMaster")');
+        }, 5000);
+    </script>
+    <script>
+        function previewImage(input, previewId) {
+            const preview = document.getElementById(previewId);
+            const file = input.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+
+                reader.readAsDataURL(file);
+            }
+        }
+    </script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('UserMasterForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        resetErrorMessages();
+
+        let isValid = true;
+
+        isValid = validateTextField('UserName', 'Please enter the UserName') && isValid;
+        isValid = validateTextField('City', 'Please enter the City') && isValid;
+        isValid = validateTextField('State', 'Please enter the State') && isValid;
+        isValid = validateTextField('Address', 'Please enter the Address') && isValid;
+        isValid = validateEmail('EmailId') && isValid;
+        isValid = validateTextField('Password', 'Please enter the Password') && isValid;
+        isValid = validateMobileNumber('MobileNumber') && isValid;
+        isValid = validatePincode('Pincode') && isValid;
+        isValid = validateDropdown('Country', 'Please select a Country') && isValid;
+        isValid = validateDropdown('CurrentStatus', 'Please select a Status') && isValid;
+        isValid = validateDropdown('Role', 'Please select a Role') && isValid;
+        isValid = validateFile('AadharCardFrontUrl', 'Please upload Aadhar Front Image') && isValid;
+        isValid = validateFile('AadharCardBackUrl', 'Please upload Aadhar Back Image') && isValid;
+
+        if (!isValid) return; // Stop form submission if validation fails
+
+        // Prepare form data
+        var formData = new FormData(this);
+
+        // Show SweetAlert Loading
+        Swal.fire({
+            title: 'Processing...',
+            text: 'Please wait while we save your data.',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        // AJAX Submission
+        $.ajax({
+            url: $(this).attr('action'),
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                Swal.close();
+                console.log("Response from server:", response); // Debugging
+
+                if (response.success) {
+                    Swal.fire({
+                        title: 'Success!',
+                        text: response.message,
+                        icon: 'success'
+                    }).then(() => {
+                        window.location.href = response.redirectUrl || window.location.href;
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: response.message,
+                        icon: 'error'
+                    });
+                }
+            },
+            error: function (xhr) {
+                Swal.close();
+                console.error("AJAX error:", xhr); // Debugging
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'An error occurred while processing your request',
+                    icon: 'error'
+                });
+            }
+        });
+
+        return false; // Prevent default form submission
+    });
+
+    // Validation Functions
+    function validateTextField(fieldId, errorMessage) {
+        const field = document.getElementById(fieldId);
+        if (!field.value.trim()) {
+            showError(fieldId, errorMessage);
+            return false;
+        }
+        return true;
+    }
+
+    function validateEmail(fieldId) {
+        const field = document.getElementById(fieldId);
+        const emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+
+        if (!field.value.trim()) {
+            showError(fieldId, 'Please enter the Email');
+            return false;
+        } else if (!emailRegex.test(field.value)) {
+            showError(fieldId, 'Please enter a valid email (e.g., user@example.com)');
+            return false;
+        }
+        return true;
+    }
+
+    function validateMobileNumber(fieldId) {
+        const field = document.getElementById(fieldId);
+        const mobileRegex = /^\d{10}$/;
+
+        if (!field.value.trim()) {
+            showError(fieldId, 'Please enter the Mobile Number');
+            return false;
+        } else if (!mobileRegex.test(field.value)) {
+            showError(fieldId, 'Mobile number must be 10 digits');
+            return false;
+        }
+        return true;
+    }
+
+    function validatePincode(fieldId) {
+        const field = document.getElementById(fieldId);
+        const pincodeRegex = /^\d{6}$/;
+
+        if (!field.value.trim()) {
+            showError(fieldId, 'Please enter the Pincode');
+            return false;
+        } else if (!pincodeRegex.test(field.value)) {
+            showError(fieldId, 'Pincode must be 6 digits');
+            return false;
+        }
+        return true;
+    }
+
+    function validateDropdown(fieldId, errorMessage) {
+        const field = document.getElementById(fieldId);
+        if (!field.value) {
+            showError(fieldId, errorMessage);
+            return false;
+        }
+        return true;
+    }
+
+    function validateFile(fieldId, errorMessage) {
+        const field = document.getElementById(fieldId);
+        if (!field.files || field.files.length === 0) {
+            showError(fieldId, errorMessage);
+            return false;
+        }
+        return true;
+    }
+
+    function showError(fieldId, message) {
+        const errorSpan = document.getElementById(fieldId + 'Error');
+        if (errorSpan) {
+            errorSpan.textContent = message;
+            errorSpan.style.display = 'block';
+        }
+
+        const field = document.getElementById(fieldId);
+        field.classList.add('is-invalid');
+    }
+
+    function resetErrorMessages() {
+        document.querySelectorAll('.error-message').forEach(el => {
+            el.textContent = '';
+            el.style.display = 'none';
+        });
+
+        document.querySelectorAll('.is-invalid').forEach(el => {
+            el.classList.remove('is-invalid');
+        });
+    }
+});
+
+// Your existing previewImage function
+function previewImage(input, previewId) {
+    const preview = document.getElementById(previewId);
+    const file = input.files[0];
+
+    if (file) {
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+        }
+
+        reader.readAsDataURL(file);
+    }
+}
+    </script>
+    <script>
+   document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('EditUserMasterForm').addEventListener('submit', function (e) {
+        e.preventDefault(); // Prevent default form submission
+
+        resetEditFormErrors();
+        let isValid = true;
+
+        // Validate Fields
+        isValid = validateEditTextField('editUserName', 'Please enter the UserName') && isValid;
+        isValid = validateEditTextField('editCity', 'Please enter the City') && isValid;
+        isValid = validateEditTextField('editState', 'Please enter the State') && isValid;
+        isValid = validateEditTextField('editAddress', 'Please enter the Address') && isValid;
+        isValid = validateEditEmail('editEmailId') && isValid;
+        isValid = validateEditMobileNumber('editMobileNumber') && isValid;
+        isValid = validateEditPincode('editPincode') && isValid;
+        isValid = validateEditDropdown('editCountry', 'Please select a Country') && isValid;
+        isValid = validateEditDropdown('editCurrentStatus', 'Please select a Status') && isValid;
+        isValid = validateEditDropdown('editRole', 'Please select a Role') && isValid;
+
+        if (!isValid) return; // Stop if validation fails
+
+        // Show SweetAlert loading before AJAX request
+        Swal.fire({
+            title: 'Processing...',
+            html: 'Please wait...',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+        });
+
+        var formData = new FormData(this);
+
+        // AJAX Call
+        $.ajax({
+            url: $(this).attr('action'), // Get action URL from form
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                Swal.close();
+
+                if (response.success) {
+                    Swal.fire({
+                        title: 'Success!',
+                        text: response.message,
+                        icon: 'success'
+                    }).then(() => {
+                        window.location.href = response.redirectUrl || window.location.href;
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: response.message,
+                        icon: 'error'
+                    });
+                }
+            },
+            error: function (xhr) {
+                Swal.close();
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'An error occurred while processing your request',
+                    icon: 'error'
+                });
+            }
+        });
+
+        return false; // Prevent default form submission
+    });
+
+    // Validation Functions
+    function validateEditTextField(fieldId, errorMessage) {
+        const field = document.getElementById(fieldId);
+        if (!field.value.trim()) {
+            showEditError(fieldId, errorMessage);
+            return false;
+        }
+        return true;
+    }
+
+    function validateEditEmail(fieldId) {
+        const field = document.getElementById(fieldId);
+        const emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+
+        if (!field.value.trim()) {
+            showEditError(fieldId, 'Please enter the Email');
+            return false;
+        } else if (!emailRegex.test(field.value)) {
+            showEditError(fieldId, 'Please enter a valid email address');
+            return false;
+        }
+        return true;
+    }
+
+    function validateEditMobileNumber(fieldId) {
+        const field = document.getElementById(fieldId);
+        const mobileRegex = /^\d{10}$/;
+
+        if (!field.value.trim()) {
+            showEditError(fieldId, 'Please enter the Mobile Number');
+            return false;
+        } else if (!mobileRegex.test(field.value)) {
+            showEditError(fieldId, 'Mobile number must be 10 digits');
+            return false;
+        }
+        return true;
+    }
+
+    function validateEditPincode(fieldId) {
+        const field = document.getElementById(fieldId);
+        const pincodeRegex = /^\d{6}$/;
+
+        if (!field.value.trim()) {
+            showEditError(fieldId, 'Please enter the Pincode');
+            return false;
+        } else if (!pincodeRegex.test(field.value)) {
+            showEditError(fieldId, 'Pincode must be 6 digits');
+            return false;
+        }
+        return true;
+    }
+
+    function validateEditDropdown(fieldId, errorMessage) {
+        const field = document.getElementById(fieldId);
+        if (!field.value) {
+            showEditError(fieldId, errorMessage);
+            return false;
+        }
+        return true;
+    }
+
+    // Helper Functions
+    function showEditError(fieldId, message) {
+        let errorSpan = document.querySelector(`#${fieldId} + .edit-error-message`);
+        if (!errorSpan) {
+            errorSpan = document.createElement('span');
+            errorSpan.className = 'text-danger edit-error-message';
+            document.getElementById(fieldId).after(errorSpan);
+        }
+
+        errorSpan.textContent = message;
+        errorSpan.style.display = 'block';
+
+        // Highlight the field
+        document.getElementById(fieldId).classList.add('is-invalid');
+    }
+
+    function resetEditFormErrors() {
+        document.querySelectorAll('.edit-error-message').forEach(el => {
+            el.textContent = '';
+            el.style.display = 'none';
+        });
+
+        document.querySelectorAll('.is-invalid').forEach(el => {
+            el.classList.remove('is-invalid');
+        });
+    }
+
+    // Restrict input length for Mobile & Pincode
+    document.getElementById('editMobileNumber').addEventListener('input', function () {
+        if (this.value.length > 10) {
+            this.value = this.value.slice(0, 10);
+        }
+    });
+
+    document.getElementById('editPincode').addEventListener('input', function () {
+        if (this.value.length > 6) {
+            this.value = this.value.slice(0, 6);
+        }
+    });
+});
+
+    </script>
+ <script>
+
+function previewImage(input, previewId) {
+    const preview = document.getElementById(previewId);
+    const file = input.files[0];
+
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+        }
+        reader.readAsDataURL(file);
+    }
+}
+function previewImage(input, previewId) {
+    const preview = document.getElementById(previewId);
+    const file = input.files[0];
+
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+        }
+        reader.readAsDataURL(file);
+    }
+}
+    </script>
+}

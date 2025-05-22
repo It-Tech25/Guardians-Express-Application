@@ -1,0 +1,2634 @@
+﻿@model IEnumerable<GuardiansExpress.Models.DTOs.LedgerMasterDTO>
+
+@{
+    int rCnt = 1;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var searchTerm = ViewData["SearchTerm"] as string;
+    int currentPage = ViewData["CurrentPage"] as int? ?? 1;
+    int totalPages = ViewData["TotalPages"] as int? ?? 1;
+    int pageSize = ViewData["PageSize"] as int? ?? 10;
+}
+<style>
+    .form-label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control {
+        border-radius: 0.25rem;
+    }
+
+    .card {
+        border: none;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .nav-tabs .nav-link {
+        border-radius: 0.25rem 0.25rem 0 0;
+    }
+
+    .table thead th {
+        background-color: #f8f9fa;
+    }
+
+    .btn-icon {
+        margin-right: 0.5rem;
+    }
+</style>
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="content">
+            <div class="row">
+                <div class="col-md-12 mt-3">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="card-title">Ledger Management</h5>
+                            <form method="get" action="@Url.Action("LedgerMaster", "LedgerMaster")" class="d-flex align-items-center">
+                                <label class="me-2">No. of records:</label>
+                                <select name="pageSize" id="PageSize" class="form-select form-select-sm" onchange="this.form.submit()">
+                                    <option value="10" selected="@(pageSize == 10)">10</option>
+                                    <option value="25" selected="@(pageSize == 100)">100</option>
+                                    <option value="50" selected="@(pageSize == 500)">500</option>
+                                    <option value="100" selected="@(pageSize == 1000)">1000</option>
+                                </select>
+                            </form>
+                        </div>
+                        <div class="card-body">
+                            <ul class="nav nav-tabs" id="myTab" role="tablist">
+                                <li class="nav-item">
+                                    <a class="nav-link active" id="list-tab" data-bs-toggle="tab" href="#list" role="tab">
+                                        <i class="fa fa-list btn-icon"></i>List of Ledgers
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="add-tab" data-bs-toggle="tab" href="#add" role="tab">
+                                        <i class="fa fa-plus btn-icon"></i>Add Ledger
+                                    </a>
+                                </li>
+                                <li class="nav-item d-none" id="editTabItem">
+                                    <a class="nav-link" id="edit-tab" data-bs-toggle="tab" href="#edit" role="tab">
+                                        <i class="fa fa-edit btn-icon"></i>Edit Ledger
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="bal-tab" data-bs-toggle="tab" href="#openingbal" role="tab">
+                                        <i class="fa fa-balance-scale btn-icon"></i>Opening Bal.
+                                    </a>
+                                </li>
+                            </ul>
+                            <div class="tab-content mt-3">
+                                <div class="tab-pane fade" id="openingbal" role="tabpanel">
+                                    <form id="InvoiceForm" action="@Url.Action("AddFinancialLedger", "LedgerMaster")" method="post">
+                                        @Html.AntiForgeryToken()
+
+                                        <fieldset class="border p-3 rounded">
+                                            <legend class="fw-bold text-primary">Ledger Opening Balance</legend>
+
+                                            <div class="mb-3" style="max-width: 6in;">
+                                                <label for="ledgerOpeningBalance" class="form-label">Select Ledger</label>
+                                                <select class="form-select" id="AccHeadDropdown" name="AccountHead">
+                                                    <option value="">Select Account Head</option>
+                                                    @if (ViewBag.ledger != null)
+                                                    {
+                                                        foreach (var item in ViewBag.ledger)
+                                                        {
+                                                            <option value="@item.AccHead">@item.AccHead</option>
+                                                        }
+                                                    }
+                                                </select>
+                                                <span class="text-danger error-message d-none">Please select the Ledger.</span>
+                                            </div>
+                                            <table class="table table-bordered mt-3">
+                                                <thead>
+                                                    <tr>
+                                                        <th>S.No</th>
+                                                        <th>Financial Year</th>
+                                                        <th>Balance In</th>
+                                                        <th>Opening Balance</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @if (ViewBag.financialyear != null)
+                                                    {
+                                                        int index = 0;
+
+                                                        foreach (var item in ViewBag.financialyear)
+                                                        {
+                                                            <tr>
+                                                                <th scope="row">@(index + 1)</th>
+                                                                <td>
+                                                                    @item.FromYear - @item.ToYear
+
+                                                                    <input type="hidden" name="FinancialLedgers[@index].FinancialYear" value="@item.FromYear-@item.ToYear" />
+                                                                </td>
+                                                                <td>
+                                                                    <select class="form-select balanceIn" name="FinancialLedgers[@index].BalanceIn">
+                                                                        <option value="">Select</option>
+                                                                        <option value="Credit">Credit</option>
+                                                                        <option value="Debit">Debit</option>
+                                                                    </select>
+                                                                    <span class="text-danger error-message d-none">Please select Credit or Debit.</span>
+                                                                </td>
+                                                                <td>
+                                                                    <input type="number" class="form-control openingBalance" name="FinancialLedgers[@index].OpeningBalance" placeholder="Enter Opening Balance">
+                                                                    <span class="text-danger error-message d-none">Please enter the Opening Balance.</span>
+                                                                </td>
+                                                            </tr>
+                                                            index++;
+                                                        }
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </fieldset>
+                                        <div class="col-md-6 mt-3">
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fa fa-save btn-icon"></i>Save
+                                            </button>
+                                            <button type="reset" class="btn btn-secondary">
+                                                <i class="fa fa-undo btn-icon"></i>Reset
+                                            </button>
+                                            <a href="/LedgerMaster/LedgerMaster" class="btn btn-danger">
+                                                <i class="fa fa-times btn-icon"></i>Cancel
+                                            </a>
+                                        </div>
+                                    </form>
+                                </div>
+                                <!-- Add Ledger Tab -->
+
+                                <div class="tab-pane fade" id="add" role="tabpanel">
+                                    <form id="ledgerForm" action="@Url.Action("AddorUpdateLedgerMaster", "LedgerMaster")" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <fieldset class="border p-3 mb-3">
+                                            <legend class="w-auto">Ledger Details</legend>
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <label for="AccGroup" class="form-label">Account Group <span class="text-danger">*</span></label>
+                                                    <select class="form-select" id="AccGroup" name="AccGroup">
+                                                        <option value="">Select SubGroup</option>
+                                                        @if (ViewBag.subgroup != null)
+                                                        {
+                                                            foreach (var item in ViewBag.subgroup)
+                                                            {
+                                                                <option value="@item.SubGroupName">@item.SubGroupName</option>
+                                                            }
+                                                        }
+                                                    </select>
+                                                    <span class="text-danger error-message d-none">Please select the SubGroup.</span>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="AccHead" class="form-label">Account Head <span class="text-danger">*</span></label>
+                                                    <input type="text" class="form-control" id="AccHead" name="AccHead">
+                                                    <span class="text-danger error-message d-none">Please Enter the AccountHead.</span>
+                                                </div>
+
+                                                <div class="col-md-6">
+                                                    <label for="TDSPercent" class="form-label">TDS %</label>
+                                                    <input type="number" class="form-control" id="TDSPercent" name="TDSPercent" step="0.01" placeholder="0.00">
+                                                    <span class="text-danger error-message d-none">Please Enter the TDS .</span>
+                                                </div>
+                                                <div class="col-md-12">
+                                                    <div class="form-check form-check-inline">
+                                                        <input type="checkbox" class="form-check-input" id="BankAccount" name="BankAccount" value="true">
+                                                        <label for="BankAccount" class="form-check-label">Bank Account</label>
+                                                    </div>
+                                                    <div class="form-check form-check-inline">
+                                                        <input type="checkbox" class="form-check-input" id="TaxLedger" name="TaxLedger" value="true">
+                                                        <label for="TaxLedger" class="form-check-label">Tax Ledger</label>
+                                                    </div>
+                                                    <div class="form-check form-check-inline">
+                                                        <input type="checkbox" class="form-check-input" id="Taxable" name="Taxable" value="true">
+                                                        <label for="Taxable" class="form-check-label">Taxable</label>
+                                                    </div>
+                                                    <div class="form-check form-check-inline">
+                                                        <input type="checkbox" class="form-check-input" id="VehicleExpense" name="VehicleExpense" value="true">
+                                                        <label for="VehicleExpense" class="form-check-label">Vehicle Expense</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- Additional Fields (Initially Hidden) -->
+                                            <div id="additionalFields" class="d-none">
+
+                                                <!-- Contact & Address Details -->
+                                                <fieldset class="border p-3 mt-3">
+                                                    <legend class="fw-bold d-flex justify-content-between align-items-center">
+                                                        Contact & Address Details
+                                                        <button type="button" class="btn btn-primary" id="addContactBtn">
+                                                            <i class="fa fa-plus mr-1"></i> Add
+                                                        </button>
+                                                    </legend>
+
+                                                    <div id="contactForm">
+                                                        <div class="contact-section border p-3 mb-2">
+                                                            <div class="row">
+                                                                <div class="col-md-4">
+                                                                    <label for="ContactPerson" class="form-label">Contact Person</label>
+                                                                    <input type="text" class="form-control" id="ContactPerson" name="ContactPerson[]">
+                                                                    <span class="text-danger error-message d-none">Please Enter the PersonName .</span>
+                                                                </div>
+                                                                <div class="col-md-4">
+                                                                    <label for="Mobile" class="form-label">Mobile</label>
+                                                                    <input type="number" class="form-control" id="Mobile" name="Mobile[]">
+                                                                    <span class="text-danger error-message d-none">Please Enter the MobileNumber.</span>
+                                                                </div>
+                                                                <div class="col-md-4">
+                                                                    <label for="AltMobile" class="form-label">Alt. Mobile</label>
+                                                                    <input type="number" class="form-control" id="AltMobile" name="AltMobile[]">
+                                                                    <span class="text-danger error-message d-none">Please Enter the AlternateMobileNumber.</span>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="row mt-2">
+                                                                <div class="col-md-4">
+                                                                    <label for="Email" class="form-label">Email ID</label>
+                                                                    <input type="email" id="Email" class="form-control email-field" name="Email[]">
+                                                                    <span class="text-danger error-message d-none">Valid Email required (must include '@@' and '.com').</span>
+                                                                </div>
+                                                                <div class="col-md-4">
+                                                                    <label for="TelNo" class="form-label">Tel No</label>
+                                                                    <input type="number" id="TelNo" class="form-control" name="TelNo[]">
+                                                                    <span class="text-danger error-message d-none">Please Enter the TelephoneNumber.</span>
+                                                                </div>
+                                                                <div class="col-md-4">
+                                                                    <label for="RefID" class="form-label">Ref ID</label>
+                                                                    <input type="text" id="RefID" class="form-control" name="RefID[]">
+                                                                    <span class="text-danger error-message d-none">Please Enter the ReferenceId.</span>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="row mt-2">
+                                                                <div class="col-md-4">
+                                                                    <label for="CCEmailId" class="form-label">CC Email ID</label>
+                                                                    <input type="email" id="CCEmailId" class="form-control" name="CCEmailId[]">
+                                                                    <span class="text-danger error-message d-none">Please Enter the ValidCCEmailId.</span>
+                                                                </div>
+                                                                <div class="col-md-4">
+                                                                    <label for="OtherEmailId" class="form-label">Other Email ID</label>
+                                                                    <input type="email" id="OtherEmailId" class="form-control" name="OtherEmailId[]">
+                                                                    <span class="text-danger error-message d-none">Please Enter the OtherEmailId.</span>
+
+                                                                </div>
+                                                                <div class="col-md-4">
+                                                                    <label for="VendorCode" class="form-label">Vendor Code</label>
+                                                                    <input type="text" id="VendorCode" class="form-control" name="VendorCode[]">
+                                                                    <span class="text-danger error-message d-none">Please Enter the VendorCode.</span>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="row mt-2">
+                                                                <div class="col-md-6">
+                                                                    <label for="Address1" class="form-label">Address 1</label>
+                                                                    <input type="text" id="Address1" class="form-control" name="Address1[]">
+                                                                    <span class="text-danger error-message d-none">Please Enter the Correct Address.</span>
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <label for="Address2" class="form-label">Address 2</label>
+                                                                    <input type="text" id="Address2" class="form-control" name="Address2[]">
+                                                                    <span class="text-danger error-message d-none">Please Enter the Address.</span>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="row mt-2">
+                                                                <div class="col-md-4">
+                                                                    <label for="City" class="form-label">City</label>
+                                                                    <input type="text" id="City" class="form-control" name="City[]">
+                                                                    <span class="text-danger error-message d-none">Please Enter the City.</span>
+                                                                </div>
+                                                                <div class="col-md-4">
+                                                                    <label for="State" class="form-label">State*</label>
+                                                                    <select id="State" class="form-control" name="State[]">
+                                                                        <option value="Telangana" selected>Telangana</option>
+                                                                        <option value="Andhra Pradesh">Andhra Pradesh</option>
+                                                                        <option value="Karnataka">Karnataka</option>
+                                                                        <option value="Tamil Nadu">Tamil Nadu</option>
+                                                                        <option value="Maharashtra">Maharashtra</option>
+                                                                        <option value="Rajasthan">Rajasthan</option>
+                                                                        <option value="Gujrat">Gujrat</option>
+                                                                        <option value="Bihar">Bihar</option>
+                                                                        <!-- Add more states as needed -->
+                                                                    </select>
+                                                                    <span class="text-danger error-message d-none">Please Select the State.</span>
+                                                                </div>
+
+                                                                <div class="col-md-4">
+                                                                    <label for="Pincode" class="form-label">Pincode</label>
+                                                                    <input type="number" id="Pincode" class="form-control" name="Pincode[]">
+                                                                    <span class="text-danger error-message d-none">Please Enter the Pincode.</span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="row mt-2">
+                                                                <div class="col-md-4">
+                                                                    <label for="Country" class="form-label">Country*</label>
+                                                                    <select class="form-select" id="Country" name="Country[]">
+                                                                        <option value="India" selected>India</option>
+                                                                        <option value="USA">USA</option>
+                                                                        <option value="UK">UK</option>
+                                                                        <option value="Canada">Canada</option>
+                                                                        <option value="Australia">Australia</option>
+                                                                    </select>
+                                                                    <span class="text-danger error-message d-none">Please Select the Country.</span>
+                                                                </div>
+                                                            </div>
+                                                            <!-- Remove button (added dynamically for cloned elements) -->
+                                                        </div>
+                                                    </div>
+                                                </fieldset>
+                                                <!-- Document & Bank Details -->
+                                                <fieldset class="border p-3 mt-3">
+                                                    <legend class="fw-bold">Document & Bank Details</legend>
+                                                    <div class="row">
+                                                        <div class="col-md-4">
+                                                            <label for="RegistrationType" class="form-label">Registration Type</label>
+                                                            <select class="form-select" id="RegistrationType" name="RegistrationType">
+                                                                <option value="Composition">Composition</option>
+                                                                <option value="Consumer">Consumer</option>
+                                                                <option value="Regular">Regular</option>
+                                                                <option value="Unregistered">Unregistered</option>
+                                                            </select>
+                                                            <span class="text-danger error-message d-none">Please Select the RegistrationType.</span>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <label for="PartyType" class="form-label">Party Type</label>
+                                                            <input type="text" class="form-control" id="PartyType" name="PartyType">
+                                                            <span class="text-danger error-message d-none">Please Enter the PartyType.</span>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <label for="CINNo" class="form-label">CIN No</label>
+                                                            <input type="text" class="form-control" id="CINNo" name="CINNo" maxlength="25" pattern="[A-Za-z0-9]{0,25}" title="Please enter up to 20 alphanumeric characters.">
+                                                            <span class="text-danger error-message d-none">Please Enter the CINNo.</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="row mt-2">
+                                                        <div class="col-md-4">
+                                                            <label for="GSTIN" class="form-label">GSTIN</label>
+                                                            <input type="text" class="form-control" id="GSTIN" name="GSTIN">
+                                                            <span class="text-danger error-message d-none">Please Enter the Valid GSTIN.</span>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <label for="PANNo" class="form-label">PAN No</label>
+                                                            <input type="text" class="form-control" id="PANNo" name="PANNo">
+                                                            <span class="text-danger error-message d-none">Please Enter the PANNo.</span>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <label for="AAdharNumber" class="form-label">Aadhar No</label>
+                                                            <input type="number" class="form-control" id="AAdharNumber" name="AAdharNumber" maxlength="12" title="Please enter exactly 12 digits.">
+                                                            <span class="text-danger error-message d-none">Please Enter the AAdharNumber.</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row mt-2">
+                                                        <div class="col-md-4">
+                                                            <label for="AccHolderName" class="form-label">Acc. Holder Name</label>
+                                                            <input type="text" class="form-control" id="AccHolderName" name="AccHolderName">
+                                                            <span class="text-danger error-message d-none">Please Enter the AccountHolderName.</span>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <label for="BankName" class="form-label">Bank Name</label>
+                                                            <input type="text" class="form-control" id="BankName" name="BankName">
+                                                            <span class="text-danger error-message d-none">Please Enter the BankName.</span>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <label for="BankAccNo" class="form-label">Bank Acc No</label>
+                                                            <input type="text" class="form-control" id="BankAccNo" name="BankAccNo">
+                                                            <span class="text-danger error-message d-none">Please Enter the BankAccountNumber.</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row mt-2">
+                                                        <div class="col-md-4">
+                                                            <label for="BankBranch" class="form-label">Bank Branch</label>
+                                                            <input type="text" class="form-control" id="BankBranch" name="BankBranch">
+                                                            <span class="text-danger error-message d-none">Please Enter the BankBranch.</span>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <label for="IFSCCode" class="form-label">IFSC Code</label>
+                                                            <input type="text" class="form-control" id="IFSCCode" name="IFSCCode">
+                                                            <span class="text-danger error-message d-none">Please Enter the IFSCCode.</span>
+                                                        </div>
+                                                    </div>
+                                                </fieldset>
+                                                `
+                                                <!-- Balance & Other Details -->
+                                                <fieldset class="border p-3 mt-3">
+                                                    <legend class="fw-bold">Balance & Other Details</legend>
+                                                    <div class="row">
+                                                        <div class="col-md-4">
+                                                            <label for="OpeningBalance" class="form-label">Opening Balance</label>
+                                                            <input type="number" class="form-control" id="OpeningBalance" name="OpeningBalance">
+                                                            <span class="text-danger error-message d-none">Please Enter the OpeningBalance.</span>
+
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <label for="BalanceIn2" class="form-label">Balance In</label>
+                                                            <select class="form-select" id="BalanceIn2" name="BalanceIn">
+
+                                                                <option value="Credit">Credit</option>
+                                                                <option value="Debit">Debit</option>
+                                                            </select>
+                                                            <span class="text-danger error-message d-none">Please Select the BlanceIn Credit Or Debit.</span>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <label for="PaymentTerm" class="form-label">Payment Term</label>
+                                                            <input type="text" class="form-control" id="PaymentTerm" name="PaymentTerm">
+                                                            <span class="text-danger error-message d-none">Please Enter the PaymentTerm.</span>
+
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="row mt-2">
+                                                        <div class="col-md-4">
+                                                            <label for="DueDays" class="form-label">Due Days</label>
+                                                            <input type="number" class="form-control" id="DueDays" name="DueDays">
+                                                            <span class="text-danger error-message d-none">Please Enter the DueDays.</span>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <label for="Agent" class="form-label">Agent</label>
+                                                            <input type="text" class="form-control" id="Agent" name="Agent">
+                                                            <span class="text-danger error-message d-none">Please Enter the AgentName.</span>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <label for="UserName" class="form-label">Username</label>
+                                                            <input type="text" class="form-control" id="UserName" name="UserName" autocomplete="off">
+                                                            <span class="text-danger error-message d-none">Please Enter the UserName.</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="row mt-2">
+                                                        <div class="col-md-4">
+                                                            <label for="Password" class="form-label">Password</label>
+                                                            <input type="password" class="form-control" id="Password" name="Password" placeholder="**********" autocomplete="off">
+                                                            <span class="text-danger error-message d-none">Please Enter the Password Must Include .</span>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label for="Status2" class="form-label">Status</label>
+                                                            <select class="form-select" id="Status2" name="Status">
+                                                                <option value="Active">Active</option>
+                                                                <option value="Inactive">Inactive</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <div class="form-check mt-4">
+                                                                <input class="form-check-input" type="checkbox" id="WalkinLedger" name="WalkinLedger" value="true">
+                                                                <label class="form-check-label" for="WalkinLedger">Walkin Ledger</label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </fieldset>
+                                                <!-- Address Details -->
+                                                <!-- Address Details -->
+                                                <fieldset class="border p-3 mt-3">
+                                                    <legend class="fw-bold text-success">Address Details</legend>
+                                                    <table class="table table-bordered">
+                                                        <thead class="table-light">
+                                                            <tr>
+                                                                <th>Branch Name</th>
+                                                                <th>Name/Address/Mobile</th>
+                                                                <th>Address</th>
+                                                                <th>City/State/Pincode</th>
+                                                                <th>GSTIN</th>
+                                                                <th>Action</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="addressTableBody">
+                                                            <!-- Initial Address Row -->
+                                                            <tr class="addressRow">
+                                                                <td><input type="text" class="form-control" name="AddressDetails[0].BranchName"></td>
+                                                                <td><input type="text" class="form-control" name="AddressDetails[0].NameAddressMobile"></td>
+                                                                <td><input type="text" class="form-control" name="AddressDetails[0].Address"></td>
+                                                                <td><input type="text" class="form-control" name="AddressDetails[0].CityStatePincode"></td>
+                                                                <td><input type="text" class="form-control" name="AddressDetails[0].GSTIN"></td>
+                                                                <td class="text-center">
+                                                                    <button type="button" class="btn btn-danger btn-sm removeAddress">Delete</button>
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                    <button type="button" id="addMoreAddress" class="btn btn-primary">Add More</button>
+                                                </fieldset>
+                                            </div>
+
+                                            <div class="col-md-6 d-none" id="taxPercentageField">
+                                                <label for="TaxPercentage" class="form-label">Tax Percentage</label>
+                                                <input type="number" class="form-control" id="TaxPercentage" name="TaxPercentage" placeholder="0.00%">
+                                                <span class="text-danger error-message d-none">Please Enter the TaxPercentage Must Include .</span>
+                                            </div>
+                                            <div class="col-md-6 d-none" id="taxableAmountField">
+                                                <label for="TaxableInput" class="form-label">Taxable Amount</label>
+                                                <select class="form-select" id="TaxableInput" name="TaxableInput">
+                                                    <option value="">Select Taxable Amount</option>
+                                                    <option value="5%">5%</option>
+                                                    <option value="12%">12%</option>
+                                                    <option value="18%">18%</option>
+                                                    <option value="28%">28%</option>
+                                                </select>
+                                                <span class="text-danger error-message d-none">Please Enter the TaxableInput.</span>
+                                            </div>
+                                        </fieldset>
+                                        <fieldset class="border p-3 mt-3" id="balanceDetails">
+                                            <legend class="fw-bold">Balance & Other Details</legend>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <label for="BalanceOpening" class="form-label">BalanceOpening</label>
+                                                    <input type="number" class="form-control" id="BalanceOpening" name="BalanceOpening">
+                                                    <span class="text-danger error-message d-none">Please enter the Opening Balance.</span>
+                                                </div>
+
+                                                <div class="col-md-4">
+                                                    <label for="BalanceIn" class="form-label">Balance In</label>
+                                                    <select class="form-select" id="BalanceIn" name="BalanceIn">
+                                                        <option value="Credit">Credit</option>
+                                                        <option value="Debit">Debit</option>
+                                                    </select>
+                                                    <span class="text-danger error-message d-none">Please Select the BalanceIn.</span>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="Status" class="form-label">Status</label>
+                                                    <select class="form-select" id="Status" name="Status">
+                                                        <option value="Active">Active</option>
+                                                        <option value="InActive">InActive</option>
+                                                    </select>
+                                                    <span class="text-danger error-message d-none">Please Select The Status.</span>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+
+                                        <div class="col-md-6 mt-3">
+                                            <button type="submit" class="btn btn-success">
+                                                Save
+                                            </button>
+                                            <button type="reset" class="btn btn-secondary">
+                                                Reset
+                                            </button>
+                                            <a href="/LedgerMaster/LedgerMaster" class="btn btn-danger">
+                                                Cancel
+                                            </a>
+                                        </div>
+                                    </form>
+                                </div>
+                                <!---------------------------------------------------- Edit Ledger Tab -------------------------------------------------------------->
+                                <div class="tab-pane fade" id="edit" role="tabpanel">
+                                    <form id="editLedgerForm" action="@Url.Action("AddorUpdateLedgerMaster", "LedgerMaster")" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="LedgerId" id="editId" />
+
+                                        <!-- Edit Ledger Details -->
+                                        <fieldset class="border p-3">
+                                            <legend class="w-auto">Edit Ledger Details</legend>
+                                            <div class="row">
+                                                <div class="col-lg-6">
+                                                    <label for="editAccGroup">Account Group *</label>
+                                                    <select class="form-select" id="editAccGroup" name="AccGroup">
+                                                        <option value="editAccGroup">Select SubGroup</option>
+                                                        @if (ViewBag.subgroup != null)
+                                                        {
+                                                            foreach (var item in ViewBag.subgroup)
+                                                            {
+                                                                <option value="@item.SubGroupName">@item.SubGroupName</option>
+                                                            }
+                                                        }
+                                                    </select>
+
+                                                </div>
+                                                <div class="col-lg-6">
+                                                    <label for="editAccHead">Account Head *</label>
+                                                    <input type="text" class="form-control" id="editAccHead" name="AccHead">
+
+                                                </div>
+                                            </div>
+
+                                            <!-- HSN/SAC Code and TDS% Fields -->
+                                            <div class="row mt-3">
+
+                                                <div class="col-lg-3">
+                                                    <label for="editTDSPercent">TDS %</label>
+                                                    <input type="number" class="form-control" id="editTDSPercent" name="TDSPercent" step="0.01" placeholder="0.000">
+                                                    <span class="text-danger error-message d-none">Please Enter the TDS(0-100)</span>
+                                                </div>
+                                                <div class="col-lg-3 d-none" id="editTaxPercentageField">
+                                                    <label for="editTaxPercentage">Tax Percentage</label>
+                                                    <input type="number" class="form-control" id="editTaxPercentage" name="TaxPercentage" step="0.01" placeholder="0.0%">
+                                                    <span class="text-danger error-message d-none">Please Enter the Tax Percentage.</span>
+                                                </div>
+                                            </div>
+
+                                            <!-- Taxable Amount Dropdown -->
+                                            <div class="row mt-3 d-none" id="editTaxableAmountField">
+                                                <div class="col-lg-6">
+                                                    <label for="editTaxableInput">Taxable Amount</label>
+                                                    <select class="form-select" id="editTaxableInput" name="TaxableInput">
+                                                        <option value="">Select Taxable Amount</option>
+                                                        <option value="5%">5%</option>
+                                                        <option value="12%">12%</option>
+                                                        <option value="18%">18%</option>
+                                                        <option value="28%">28%</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <!-- Checkboxes -->
+                                            <div class="row mt-3">
+                                                <div class="col-lg-3">
+                                                    <input type="checkbox" class="form-check-input" name="BankAccount" id="editBankAccount" value="true">
+                                                    <label for="editBankAccount">Bank Account</label>
+
+                                                </div>
+                                                <div class="col-lg-3">
+                                                    <input type="checkbox" class="form-check-input" name="TaxLedger" id="editTaxLedger" value="true">
+                                                    <label for="editTaxLedger">Tax Ledger</label>
+                                                </div>
+                                                <div class="col-lg-3">
+                                                    <input type="checkbox" class="form-check-input" name="Taxable" id="editTaxable" value="true">
+                                                    <label for="editTaxable">Taxable</label>
+                                                </div>
+                                                <div class="col-lg-3">
+                                                    <input type="checkbox" class="form-check-input" name="VehicleExpense" id="editVehicleExpense" value="true">
+                                                    <label for="editVehicleExpense">Vehicle Expense</label>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                        <!-- Contact & Address Details (Initially Hidden) -->
+                                        <!-- Contact & Address Details (Initially Hidden) -->
+                                        <fieldset class="border p-3 mt-4 d-none" id="editContactAddressField">
+                                            <legend class="w-auto">Edit Contact & Address Details</legend>
+                                            <div id="editContactForm">
+                                                <!-- Contact Row Template (No Remove Button in the initial row) -->
+                                                <div class="contact-section border p-3 mb-2">
+                                                    <div class="row">
+                                                        <div class="col-md-4">
+                                                            <label class="form-label">Contact Person</label>
+                                                            <input type="text" class="form-control" name="ContactPerson[]">
+                                                            <span class="text-danger error-message d-none">Please Enter the ContactPerson .</span>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <label class="form-label">Mobile</label>
+                                                            <input type="text" class="form-control" name="Mobile[]">
+                                                            <span class="text-danger error-message d-none">Please Enter the MobileNumber .</span>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <label class="form-label">Alt. Mobile</label>
+                                                            <input type="text" class="form-control" name="AltMobile[]">
+                                                            <span class="text-danger error-message d-none">Please Enter the AlternateMobileNumber .</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="row mt-2">
+                                                        <div class="col-md-4">
+                                                            <label class="form-label">Email ID</label>
+                                                            <input type="email" class="form-control" name="Email[]">
+                                                            <span class="text-danger error-message d-none">Please Enter the Email .</span>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <label class="form-label">Tel No</label>
+                                                            <input type="text" class="form-control" name="TelNo[]">
+                                                            <span class="text-danger error-message d-none">Please Enter the TelephoneNumber .</span>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <label class="form-label">Ref ID</label>
+                                                            <input type="text" class="form-control" name="RefID[]">
+                                                            <span class="text-danger error-message d-none">Please Enter the ReferenceID .</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="row mt-2">
+                                                        <div class="col-md-4">
+                                                            <label class="form-label">CC Email ID</label>
+                                                            <input type="email" class="form-control" name="CCEmailId[]">
+                                                            <span class="text-danger error-message d-none">Please Enter the CCEmailId .</span>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <label class="form-label">Other Email ID</label>
+                                                            <input type="email" class="form-control" name="OtherEmailId[]">
+                                                            <span class="text-danger error-message d-none">Please Enter the OtherEmailId .</span>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <label class="form-label">Vendor Code</label>
+                                                            <input type="text" class="form-control" name="VendorCode[]">
+                                                            <span class="text-danger error-message d-none">Please Enter the VendorCode .</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="row mt-2">
+                                                        <div class="col-md-6">
+                                                            <label class="form-label">Address 1</label>
+                                                            <input type="text" class="form-control" name="Address1[]">
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label class="form-label">Address 2</label>
+                                                            <input type="text" class="form-control" name="Address2[]">
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="row mt-2">
+                                                        <div class="col-md-4">
+                                                            <label class="form-label">City</label>
+                                                            <input type="text" class="form-control" name="City[]">
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <label class="form-label">State*</label>
+                                                            <input type="text" class="form-control" name="State[]">
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <label class="form-label">Pincode</label>
+                                                            <input type="number" class="form-control" name="Pincode[]">
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="row mt-2">
+                                                        <div class="col-md-4">
+                                                            <label class="form-label">Country*</label>
+                                                            <select class="form-select" name="Country[]">
+                                                                <option value="India" selected>India</option>
+                                                                <option value="USA">USA</option>
+                                                                <option value="UK">UK</option>
+                                                                <option value="Canada">Canada</option>
+                                                                <option value="Australia">Australia</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Button to add more contacts (similar to Add) -->
+                                            <button type="button" class="btn btn-primary" id="addEditContactBtn">
+                                                <i class="fa fa-plus mr-1"></i> Add More
+                                            </button>
+                                        </fieldset>
+
+
+                                        <!-- Document & Bank Details (Initially Hidden) -->
+                                        <fieldset class="border p-3 mt-4 d-none" id="editDocumentBankField">
+                                            <legend class="w-auto">Edit Document & Bank Details</legend>
+
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <label for="editRegistrationType" class="form-label">Registration Type</label>
+                                                    <select class="form-select" id="editRegistrationType" name="RegistrationType">
+                                                        <option value="Composition">Composition</option>
+                                                        <option value="Consumer">Consumer</option>
+                                                        <option value="Regular">Regular</option>
+                                                        <option value="Unregistered">Unregistered</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label for="editPartyType" class="form-label">Party Type</label>
+                                                    <input type="text" class="form-control" id="editPartyType" name="PartyType">
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label for="editCinNumber" class="form-label">CIN No</label>
+                                                    <input type="text" class="form-control" id="editCinNumber" name="CINNo">
+
+                                                </div>
+                                            </div>
+
+                                            <div class="row mt-2">
+                                                <div class="col-md-4">
+                                                    <label for="editGstin" class="form-label">GSTIN</label>
+                                                    <input type="text" class="form-control" id="editGstin" name="GSTIN">
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label for="editPanNumber" class="form-label">PAN No</label>
+                                                    <input type="text" class="form-control" id="editPanNumber" name="PANNo">
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label for="editAadharNumber" class="form-label">Aadhar No</label>
+                                                    <input type="number" class="form-control" id="editAadharNumber" name="AAdharNumber">
+                                                </div>
+                                            </div>
+
+                                            <div class="row mt-2">
+                                                <div class="col-md-4">
+                                                    <label for="editAccountHolderName" class="form-label">Acc. Holder Name</label>
+                                                    <input type="text" class="form-control" id="editAccountHolderName" name="AccHolderName">
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label for="editBankName" class="form-label">Bank</label>
+                                                    <input type="text" class="form-control" id="editBankName" name="BankName">
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label for="editAccountNumber" class="form-label">Bank Acc No</label>
+                                                    <input type="text" class="form-control" id="editAccountNumber" name="BankAccNo">
+                                                </div>
+                                            </div>
+
+                                            <div class="row mt-2">
+                                                <div class="col-md-4">
+                                                    <label for="editBankBranch" class="form-label">Bank Branch</label>
+                                                    <input type="text" class="form-control" id="editBankBranch" name="BankBranch">
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label for="editIfscCode" class="form-label">IFSC Code</label>
+                                                    <input type="text" class="form-control" id="editIfscCode" name="IFSCCode">
+                                                </div>
+                                            </div>
+                                        </fieldset>
+
+                                        <fieldset class="border p-3 mt-4 d-none" id="editBalanceOtherDetailsField">
+                                            <legend class="w-auto">Balance and Other Details</legend>
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <label for="editOpeningBalance" class="form-label">Opening Balance</label>
+                                                    <input type="number" class="form-control" id="editOpeningBalance" name="OpeningBalance">
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label for="editBalanceIn" class="form-label">Balance In</label>
+                                                    <select class="form-select" id="editBalanceIn" name="BalanceIn">
+                                                        <option value="Credit">Credit</option>
+                                                        <option value="Debit">Debit</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label for="editPaymentTerm" class="form-label">Payment Term</label>
+                                                    <input type="text" class="form-control" id="editPaymentTerm" name="PaymentTerm">
+                                                </div>
+                                            </div>
+
+                                            <div class="row mt-2">
+                                                <div class="col-md-4">
+                                                    <label for="editDueDays" class="form-label">Due Days</label>
+                                                    <input type="number" class="form-control" id="editDueDays" name="DueDays">
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label for="editAgent" class="form-label">Agent</label>
+                                                    <input type="text" class="form-control" id="editAgent" name="Agent">
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label for="editUsername" class="form-label">Username</label>
+                                                    <input type="text" class="form-control" id="editUsername" name="Username" autocomplete="off">
+                                                </div>
+                                            </div>
+
+                                            <div class="row mt-2">
+                                                <div class="col-md-4">
+                                                    <label for="editPassword" class="form-label">Password</label>
+                                                    <input type="password" class="form-control" id="editPassword" name="Password" placeholder="**********" autocomplete="off">
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label for="editStatus" class="form-label">Status*</label>
+                                                    <select class="form-select" id="editStatus" name="Status">
+                                                        <option value="Active">Active</option>
+                                                        <option value="Inactive">Inactive</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-check mt-4">
+                                                        <input class="form-check-input" type="checkbox" id="editWalkinLedger" name="WalkinLedger">
+                                                        <label class="form-check-label" for="editWalkinLedger">Walkin Ledger</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                        <!-- Balance & Other Details (Already in Your Code) -->
+                                        <!-- Address Details (Initially Hidden) -->
+                                        <fieldset class="border p-3 mt-4 d-none" id="editAddressField">
+                                            <legend class="fw-bold text-success">Address Details</legend>
+                                            <table class="table table-bordered">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>Branch Name</th>
+                                                        <th>Name/Address/Mobile</th>
+                                                        <th>Address</th>
+                                                        <th>City/State/Pincode</th>
+                                                        <th>GSTIN</th>
+                                                        <th>Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="editAddressTableBody">
+                                                    <!-- Initial Address Row -->
+                                                    <tr class="addressRow">
+                                                        <td><input type="text" class="form-control" name="BranchName[0]"></td>
+                                                        <td><input type="text" class="form-control" name="NameAddressMobile[0]"></td>
+                                                        <td><input type="text" class="form-control" name="Address[0]"></td>
+                                                        <td><input type="text" class="form-control" name="CityStatePincode[0]"></td>
+                                                        <td><input type="text" class="form-control" name="GSTIN[0]"></td>
+                                                        <td class="text-center">
+                                                            <button type="button" class="btn btn-danger btn-sm removeAddress">Delete</button>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                            <button type="button" id="addMoreEditAddress" class="btn btn-primary">Add More</button>
+                                        </fieldset>
+
+                                        <!-- Other Details -->
+                                        <fieldset class="border p-3 mt-4 d-none" id="editOtherDetailsField">
+                                            <legend class="w-auto">Balance Details</legend>
+                                            <div class="row">
+                                                <div class="col-lg-6">
+                                                    <label for="editBalanceOpening">Balance Opening</label>
+                                                    <input type="number" class="form-control" id="editBalanceOpening" name="BalanceOpening">
+                                                    <span class="text-danger d-none"></span>
+                                                </div>
+                                                <div class="col-lg-6">
+                                                    <label for="editBalanceIn">Balance In</label>
+                                                    <select class="form-select" id="editBalanceIn" name="BalanceIn">
+                                                        <option value="">Select</option>
+                                                        <option value="Debit">Debit</option>
+                                                        <option value="Credit">Credit</option>
+                                                    </select>
+                                                    <span class="text-danger d-none"></span>
+                                                </div>
+                                            </div>
+                                            <div class="row mt-3">
+                                                <div class="col-lg-6">
+                                                    <label for="editStatus">Status</label>
+                                                    <select class="form-select" id="editStatus" name="Status">
+                                                        <option value="">Select</option>
+                                                        <option value="Active">Active</option>
+                                                        <option value="InActive">InActive</option>
+                                                    </select>
+                                                    <span class="text-danger d-none"></span>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+
+
+                                        <div class="col-md-6 mt-3">
+                                            <button type="submit" class="btn btn-success">
+                                                Save
+                                            </button>
+                                            <button type="reset" class="btn btn-secondary">
+                                                Reset
+                                            </button>
+                                            <a href="/LedgerMaster/LedgerMaster" class="btn btn-danger">
+                                                Cancel
+                                            </a>
+                                        </div>
+                                    </form>
+                                </div>
+                                <!-- List of Ledgers Tab -->
+                                <div class="tab-pane fade show active" id="list" role="tabpanel">
+                                    <div class="table-responsive">
+                                        <table id="ledgerList" class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>S.No</th>
+                                                    <th>Account Group</th>
+                                                    <th>Account Head</th>
+                                                    <th>Id</th>
+                                                    <th>Contact Details</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var ledger in Model)
+                                                {
+                                                    <tr>
+                                                        <td>@(rCnt++)</td>
+                                                        <td>
+
+                                                            @ledger.AccGroup
+
+                                                        </td>
+                                                        <td>
+                                                            <a href="javascript:void(0);" class="edit-link"
+                                                               data-id="@ledger.LedgerId"
+                                                               data-accgroup="@ledger.AccGroup"
+                                                               data-acchead="@ledger.AccHead"
+                                                               data-tds="@ledger.TDSPercent"
+                                                               data-bank="@ledger.BankAccount"
+                                                               data-taxledger="@ledger.TaxLedger"
+                                                               data-taxable="@ledger.Taxable"
+                                                               data-vehicle="@ledger.VehicleExpense"
+                                                               data-opening="@ledger.OpeningBalance"
+                                                               data-balancein="@ledger.BalanceIn"
+                                                               data-status="@ledger.Status"
+                                                               data-mobile="@ledger.Mobile"
+                                                               data-contactperson="@ledger.ContactPerson"
+                                                               data-altmobile="@ledger.AltMobile"
+                                                               data-email="@ledger.Email"
+                                                               data-telno="@ledger.TelNo"
+                                                               data-refid="@ledger.RefID"
+                                                               data-ccemail="@ledger.CCEmailId"
+                                                               data-otheremail="@ledger.OtherEmailId"
+                                                               data-vendorcode="@ledger.VendorCode"
+                                                               data-address1="@ledger.Address1"
+                                                               data-address2="@ledger.Address2"
+                                                               data-city="@ledger.City"
+                                                               data-state="@ledger.State"
+                                                               data-pincode="@ledger.Pincode"
+                                                               data-country="@ledger.Country"
+                                                               data-balanceopening="@ledger.BalanceOpening"
+                                                               data-paymentterm="@ledger.PaymentTerm"
+                                                               data-duedays="@ledger.DueDays"
+                                                               data-agent="@ledger.Agent"
+                                                               data-username="@ledger.UserName"
+                                                               data-password="@ledger.Password"
+                                                               data-walkinledger="@ledger.WalkinLedger"
+                                                               data-partytype="@ledger.PartyType"
+                                                               data-gstin="@ledger.GSTIN"
+                                                               data-aadharnumber="@ledger.AAdharNumber"
+                                                               data-accountholdername="@ledger.AccHolderName"
+                                                               data-bankname="@ledger.BankName"
+                                                               data-accountnumber="@ledger.BankAccNo"
+                                                               data-bankbranch="@ledger.BankBranch"
+                                                               data-ifsccode="@ledger.IFSCCode"
+                                                               data-ccemail="@ledger.CCEmailId"
+                                                               data-otheremail="@ledger.OtherEmailId"
+                                                               data-cinnumber="@ledger.CINNo"
+                                                               data-pan="@ledger.PANNo">
+                                                                @ledger.AccHead
+                                                            </a>
+                                                        </td>
+                                                        <td>@ledger.LedgerId</td>
+                                                        <td>@ledger.Mobile</td>
+                                                        <td>
+                                                            <button onclick="Delete(@ledger.LedgerId)" class="waves-effect waves-circle btn btn-circle btn-danger btn-xs" title="Delete">
+                                                                <i class="fa fa-trash"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-end mt-3">
+                                    <nav>
+                                        <ul class="pagination pagination-sm">
+                                            <!-- Previous Button -->
+                                            <li class="page-item @( (int)ViewData["CurrentPage"] == 1 ? "disabled" : "")">
+                                                <a class="page-link text-primary px-3 py-1 border rounded small" href="@Url.Action("LedgerMaster", new { searchTerm = ViewData["SearchTerm"], pageNumber = Math.Max((int)ViewData["CurrentPage"] - 1, 1), pageSize = ViewData["PageSize"] })">
+                                                    << Previous
+                                                </a>
+                                            </li>
+
+
+                                            <!-- Page Numbers -->
+                                            @for (int i = 1; i <= (int)ViewData["TotalPages"]; i++)
+                                            {
+                                                <li class="page-item @(i == (int)ViewData["CurrentPage"] ? "active" : "")">
+                                                    <a class="page-link px-3 py-1 border rounded small" href="@Url.Action("LedgerMaster", new { searchTerm = ViewData["SearchTerm"], pageNumber = i, pageSize = ViewData["PageSize"] })">
+                                                        @i
+                                                    </a>
+                                                </li>
+                                            }
+
+                                            <!-- Next Button -->
+                                            <li class="page-item @( (int)ViewData["CurrentPage"] == (int)ViewData["TotalPages"] ? "disabled" : "")">
+                                                <a class="page-link text-primary px-3 py-1 border rounded small" href="@Url.Action("LedgerMaster", new { searchTerm = ViewData["SearchTerm"], pageNumber = Math.Min((int)ViewData["CurrentPage"] + 1, (int)ViewData["TotalPages"]), pageSize = ViewData["PageSize"] })">
+                                                    Next >>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </nav>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- JavaScript for Enhanced Functionality -->
+<script>
+
+        $(document).ready(function () {
+            // Initialize the data table with responsive features
+            $('#addressBookTable').DataTable({
+                responsive: true,
+                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                columnDefs: [
+                    { orderable: false, targets: 12 } // Disable sorting on action column
+                ]
+            });
+
+        // Add form validation
+        function validateForm(formId) {
+                const form = document.getElementById(formId);
+        if (!form.checkValidity()) {
+            event.preventDefault();
+        event.stopPropagation();
+        $(form).addClass('was-validated');
+        return false;
+                }
+        return true;
+            }
+
+    $(document).ready(function () {
+        // Edit button click event
+        $(document).on("click", ".edit-link", function () {
+            let button = $(this);
+
+            let ledgerId = button.data("id"),
+                accGroup = button.data("accgroup"),
+                accHead = button.data("acchead"),
+                hsnsacCode = button.data("hsnsac"),
+                tds = button.data("tds"),
+                bankAccount = button.data("bank"),
+                taxLedger = button.data("taxledger"),
+                taxable = button.data("taxable"),
+                vehicleExpense = button.data("vehicle"),
+                openingBalance = button.data("opening"),
+                balanceIn = button.data("balancein"),
+                status = button.data("status");
+
+            console.log("Edit Clicked:", { ledgerId, accGroup, accHead });
+
+            // Populate Form Fields
+            $("#editId").val(ledgerId);
+            $("#editAccGroup").val(accGroup).trigger("change");
+            $("#editAccHead").val(accHead);
+            $("#editHSNSACCode").val(hsnsacCode || "");
+            $("#editTDSPercent").val(tds);
+            $("#editOpeningBalance").val(openingBalance);
+            $("#editBalanceOpening").val(openingBalance);
+            $("#editBalanceIn").val(balanceIn);
+            $("#editStatus").val(status);
+
+            // Handle Checkboxes
+            $("#editBankAccount").prop("checked", bankAccount === "true" || bankAccount === true);
+            $("#editTaxLedger").prop("checked", taxLedger === "true" || taxLedger === true);
+            $("#editTaxable").prop("checked", taxable === "true" || taxable === true);
+            $("#editVehicleExpense").prop("checked", vehicleExpense === "true" || vehicleExpense === true);
+
+            // Show/hide Tax Percentage and Taxable Amount fields
+            $("#editTaxPercentageField").toggleClass("d-none", !$("#editTaxLedger").is(":checked"));
+            $("#editTaxableAmountField").toggleClass("d-none", !$("#editTaxable").is(":checked"));
+
+            // **Fix: Keep List tab visible but ensure List content is hidden**
+            $("#add-tab").parent("li").addClass("d-none"); // Hide Add tab
+            $("#editTabItem").removeClass("d-none"); // Show Edit tab
+            $("#list-tab").parent("li").removeClass("d-none"); // Ensure List tab is visible
+
+            // **Fix: Only show Edit content, hide List content**
+            $("#edit-tab").addClass("active");
+            $("#edit").removeClass("d-none").addClass("show active");
+            $("#list").removeClass("show active").addClass("d-none"); // Hide List content
+
+            $("#edit-tab").tab("show"); // Switch to Edit tab
+        });
+
+        // Submit Form via AJAX
+        $('#editLedgerForm').submit(function (e) {
+            e.preventDefault();
+
+            var formData = new FormData(this);
+
+            $.ajax({
+                url: '/LedgerMaster/AddorUpdateLedgerMaster',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire("Updated!", "LedgerMaster updated successfully.", "success").then(() => {
+                            // **Fix: Show List tab content after saving**
+                            $("#editTabItem").addClass("d-none"); // Hide Edit tab
+                            $("#edit").addClass("d-none").removeClass("show active"); // Hide Edit content
+
+                            $("#list-tab").parent("li").removeClass("d-none"); // Ensure List tab is visible
+                            $("#list").removeClass("d-none").addClass("show active"); // Show List content
+                            $("#list-tab").tab("show"); // Switch to List tab
+                            window.location.reload();
+                        });
+                    } else {
+                        window.location.reload();
+                    }
+                },
+                error: function () {
+                    window.location.reload();
+                }
+            });
+        });
+
+        // Ensure proper tab switching
+        $("#list-tab, #edit-tab, #add-tab").click(function (e) {
+            e.preventDefault(); // Prevent default behavior
+
+            $("#list-tab, #edit-tab, #add-tab").removeClass("active"); // Remove active class from all tabs
+            $("#list, #edit, #add").removeClass("show active").addClass("d-none"); // Hide all content
+
+            var target = $(this).attr("href"); // Get target content
+
+            $(this).addClass("active"); // Activate the clicked tab
+            $(target).removeClass("d-none").addClass("show active"); // Show the clicked tab's content
+        });
+    });
+
+</script>
+<script>
+    $(document).ready(function () {
+        $('#ledgerMaster').DataTable();
+
+        $('#ledgerMaster').submit(function (e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+            $.ajax({
+                url: '/LedgerMaster/AddorUpdateLedgerMaster',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire("Success!", "LedgerMaster added successfully.", "success")
+                            .then(() => {
+                                window.location.reload();
+                            });
+                    } else {
+                        Swal.fire("Error!", response.message || "There was an issue adding the Tax.", "error");
+                    }
+                },
+                error: function () {
+                    Swal.fire("Error!", "There was an error processing your request.", "error");
+                }
+            });
+        });
+</script>
+<script>
+    $(document).ready(function () {
+        $(".edit-link").click(function () {
+            var cinNumber = $(this).data("cinnumber");
+            var panNumber = $(this).data("pan");
+
+            $("#editCinNumber").val(cinNumber);
+            $("#editPanNumber").val(panNumber);
+
+            // Show the modal if it's inside a modal
+            $("#editModal").modal("show");
+        });
+    });
+
+</script>
+<script>
+    $('#InvoiceForm').submit(function (e) {
+        e.preventDefault();
+        var formData = new FormData(this);
+
+        $.ajax({
+            url: '/LedgerMaster/AddFinancialLedger',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                if (response.success) {
+                    Swal.fire("Success!", "Invoice Type added successfully.", "success").then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire("Error!", response.message || "There was an issue adding the Invoice Type.", "error");
+                }
+            },
+            error: function () {
+                Swal.fire("Error!", "There was an error processing your request.", "error");
+            }
+        });
+    });
+</script>
+<script>
+    $(document).ready(function () {
+        $(document).ready(function () {
+            // Function to switch tabs using Bootstrap’s built-in methods
+            function switchTab(tabId) {
+                let tab = new bootstrap.Tab($(tabId)[0]); // Get Bootstrap tab instance
+                tab.show(); // Show the tab properly
+            }
+
+            // Handle List tab click
+            $("#list-tab").click(function () {
+                switchTab("#list-tab");
+                reinitializeListTab(); // Re-fetch data if necessary
+            });
+
+            // Handle Edit tab activation
+            $("#editLink").click(function (e) {
+                e.preventDefault();
+                $("#editTabItem").removeClass("d-none"); // Show Edit Tab
+                switchTab("#edit-tab");
+                reinitializeEditTab(); // Ensure edit tab functionality works
+            });
+
+            // Handle Add tab click
+            $("#add-tab").click(function () {
+                switchTab("#add-tab");
+            });
+            $("#edit-tab").click(function () {
+                switchTab("#edit-tab");
+            });
+
+            // Handle Opening Balance tab click
+            $("#bal-tab").click(function () {
+                switchTab("#bal-tab");
+            });
+
+            // Function to reinitialize data when switching tabs
+            function reinitializeListTab() {
+                // If using DataTables, reload it
+                if ($.fn.DataTable.isDataTable("#ledgerTable")) {
+                    $("#ledgerTable").DataTable().ajax.reload();
+                }
+
+                // Rebind edit click event if needed
+                $("#ledgerTable").off("click", ".edit-btn").on("click", ".edit-btn", function () {
+                    let ledgerId = $(this).data("id"); // Get Ledger ID
+                    loadEditForm(ledgerId); // Function to load edit form
+                });
+            }
+
+            // Function to ensure Edit Tab works correctly
+            function reinitializeEditTab() {
+                // Perform any necessary actions when switching to edit tab
+                console.log("Edit Tab Loaded");
+            }
+        });
+
+</script>
+<script>
+    function Delete(ledgerId) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'You won\'t be able to revert this!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/LedgerMaster/DeleteLedgerMaster',
+                    type: 'POST',
+                    data: JSON.stringify({ LedgerId: ledgerId }),
+                    contentType: 'application/json',
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire('Deleted!', 'Ledger has been deleted.', 'success').then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire('Error!', response.message || 'Failed to delete ledger.', 'error');
+                        }
+                    },
+                    error: function () {
+                        Swal.fire('Error!', 'An error occurred while deleting the ledger.', 'error');
+                    }
+                });
+            }
+        });
+    }
+
+
+</script>
+<script>
+    document.getElementById('ledgerForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        // Perform validation
+        let isValid = true;
+        // Check required fields
+        if (!document.getElementById('AccGroup').value) {
+            isValid = false;
+            // Show error message
+        }
+        // Repeat for other required fields
+
+        if (isValid) {
+            this.submit(); // Or use AJAX
+        }
+    });
+    $(document).ready(function () {
+        // Handle Taxable checkbox change
+        $("#Taxable").change(function () {
+            if ($(this).is(":checked")) {
+                $("#taxableAmountField").removeClass("d-none"); // Show Taxable Amount
+                $("#taxableAmountField").insertAfter($("#TDSPercent").parent()); // Move beside TDS
+            } else {
+                $("#taxableAmountField").addClass("d-none"); // Hide Taxable Amount
+            }
+        });
+
+        // Handle Tax Ledger checkbox change
+        $("#TaxLedger").change(function () {
+            if ($(this).is(":checked")) {
+                $("#taxPercentageField").removeClass("d-none"); // Show Tax Percentage
+                $("#taxPercentageField").insertAfter($("#TDSPercent").parent()); // Move beside TDS
+            } else {
+                $("#taxPercentageField").addClass("d-none"); // Hide Tax Percentage
+            }
+        });
+    });
+
+    $(document).ready(function () {
+        function handleEditTaxFields() {
+            // Handle Taxable checkbox
+            if ($("#editTaxable").is(":checked")) {
+                $("#editTaxableAmountField").removeClass("d-none").insertAfter($("#editTDSPercent").parent());
+            } else {
+                $("#editTaxableAmountField").addClass("d-none");
+            }
+
+            // Handle Tax Ledger checkbox
+            if ($("#editTaxLedger").is(":checked")) {
+                $("#editTaxPercentageField").removeClass("d-none").insertAfter($("#editTDSPercent").parent());
+            } else {
+                $("#editTaxPercentageField").addClass("d-none");
+            }
+        }
+
+        // Attach change event to both checkboxes in edit form
+        $("#editTaxable, #editTaxLedger").change(handleEditTaxFields);
+    });
+
+
+</script>
+<script>
+    $(document).ready(function () {
+        // Show/hide additional fields for both SundryCreditors and SundryDebtors
+          $("#AccGroup").change(function () {
+        let selected = $(this).val();
+            if (selected === "SundryCreditors" || selected === "SundryDebtors" || selected === "Owner") { // Fixed typo
+            $("#additionalFields").removeClass("d-none");
+        } else {
+            $("#additionalFields").addClass("d-none");
+        }
+    });
+
+        // Function to add more address fields
+        $("#addMoreAddress").click(function () {
+            let newRow = `
+                <tr>
+                    <td><input type="text" class="form-control" name="branchName[]"></td>
+                    <td><input type="text" class="form-control" name="nameAddressMobile[]"></td>
+                    <td><input type="text" class="form-control" name="address[]"></td>
+                    <td><input type="text" class="form-control" name="cityStatePincode[]"></td>
+                    <td><input type="text" class="form-control" name="gstin[]"></td>
+                    <td><button type="button" class="btn btn-danger btn-sm removeAddress">Delete</button></td>
+                </tr>
+            `;
+            $("#addressTableBody").append(newRow);
+        });
+
+        // Remove an address row
+        $(document).on("click", ".removeAddress", function () {
+            $(this).closest("tr").remove();
+        });
+    });
+</script>
+<script>
+        $(document).ready(function () {
+            // Function to show/hide fields when selecting "Sundry Creditors"
+            $("#editAccGroup").change(function () {
+                let selectedValue = $(this).val();
+                if (selectedValue === "SundryCreditors" || selectedValue === "SundryDebitors" || selectedValue === "Owner") {
+                    $("#editContactAddressField").removeClass("d-none");
+                    $("#editDocumentBankField").removeClass("d-none");
+                    $("#editAddressField").removeClass("d-none");
+                } else {
+                    $("#editContactAddressField").addClass("d-none");
+                    $("#editDocumentBankField").addClass("d-none");
+                    $("#editAddressField").addClass("d-none");
+                }
+            });
+
+            // Add More Address Rows in Edit
+            $("#addMoreEditAddress").click(function () {
+                let newRow = `
+        <tr class="addressRow">
+            <td><input type="text" class="form-control" name="editBranchName[]"></td>
+            <td><input type="text" class="form-control" name="editNameAddressMobile[]"></td>
+            <td><input type="text" class="form-control" name="editAddress[]"></td>
+            <td><input type="text" class="form-control" name="editCityStatePincode[]"></td>
+            <td><input type="text" class="form-control" name="editGSTIN[]"></td>
+            <td class="text-center">
+                <button type="button" class="btn btn-danger btn-sm removeEditAddress">Delete</button>
+            </td>
+        </tr>
+    `;
+
+                $("#editAddressTableBody").append(newRow);
+            });
+
+            // Remove Address Row in Edit
+            $(document).on("click", ".removeEditAddress", function () {
+                if ($("#editAddressTableBody").children().length > 1) {
+                    $(this).closest("tr").remove();
+                } else {
+                    Swal.fire("Warning!", "At least one address row is required.", "warning");
+                }
+            });
+        });
+
+            $(document).ready(function () {
+        // Show/hide additional fields for SundryCreditors AND SundryDebtors
+        $("#AccGroup").change(function () {
+            let selected = $(this).val();
+                if (selected === "SundryCreditors" || selected === "SundryDebitors" || selected === "Owner") { // Corrected typo
+                $("#additionalFields").removeClass("d-none"); // Show all extra fields
+            } else {
+                $("#additionalFields").addClass("d-none"); // Hide for other groups
+            }
+        });
+    });
+</script>
+
+<script>
+            $(document).ready(function () {
+                $("#addContactBtn").click(function () {
+                    console.log("Add button clicked!"); // Debugging
+
+                    // Clone the first section
+                    let newSection = $("#contactForm .contact-section:first").clone();
+
+                    // Clear input values in the cloned section
+                    newSection.find("input").val("");
+                    newSection.find("select").val("India");
+
+                    // Add delete button if it doesn't exist
+                    newSection.append('<button type="button" class="btn btn-danger mt-2 remove-btn"><i class="fa fa-trash"></i> Remove</button>');
+
+                    // Append the new section below the last one
+                    $("#contactForm").append(newSection);
+                });
+
+            // Event delegation to handle dynamically added remove buttons
+            $(document).on("click", ".remove-btn", function () {
+                $(this).closest(".contact-section").remove();
+        });
+    });
+
+            $(document).ready(function () {
+                // When the "Edit" button is clicked
+                $(".edit-link").click(function () {
+                    // Get data attributes from the clicked button
+                    var accGroup = $(this).data('accgroup');
+                    var accHead = $(this).data('acchead');
+                    var hsnsac = $(this).data('hsnsac');
+                    var tds = $(this).data('tds');
+                    var bank = $(this).data('bank');
+                    var taxLedger = $(this).data('taxledger');
+                    var taxable = $(this).data('taxable');
+                    var vehicle = $(this).data('vehicle');
+                    var opening = $(this).data('opening');
+                    var balanceIn = $(this).data('balancein');
+                    var status = $(this).data('status');
+                    var ledgerId = $(this).data('id');
+
+                    // Populate the form fields with the values
+                    $("#editAccGroup").val(accGroup);
+                    $("#editAccHead").val(accHead);
+                    $("#editHSNSACCode").val(hsnsac);
+                    $("#editTDSPercent").val(tds);
+                    $("#editBankAccount").prop('checked', bank);
+                    $("#editTaxLedger").prop('checked', taxLedger);
+                    $("#editTaxable").prop('checked', taxable);
+                    $("#editVehicleExpense").prop('checked', vehicle);
+                    $("#editOpeningBalance").val(opening);
+                    $("#editBalanceIn").val(balanceIn);
+
+                    $("#editStatus").val(status);
+                    $("#editId").val(ledgerId);
+
+                    // Show the hidden fields if AccountGroup is "Sundry Creditors"
+                    if (accGroup === "SundryCreditors") {
+                        $("#editTaxPercentageField").removeClass("d-none");
+                        $("#editTaxableAmountField").removeClass("d-none");
+                        $("#editContactAddressField").removeClass("d-none");
+                        $("#editDocumentBankField").removeClass("d-none");
+                        $("#editAddressField").removeClass("d-none");
+
+                        // Hide the "Other Details" fieldset for Sundry Creditors
+                        $("#editOtherDetailsField").addClass("d-none");
+                    } else {
+                        // Hide the additional fields if AccountGroup is not "Sundry Creditors"
+                        $("#editTaxPercentageField").addClass("d-none");
+                        $("#editTaxableAmountField").addClass("d-none");
+                        $("#editContactAddressField").addClass("d-none");
+                        $("#editDocumentBankField").addClass("d-none");
+                        $("#editAddressField").addClass("d-none");
+
+                        // Show the "Other Details" fieldset for non-Sundry Creditors
+                        $("#editOtherDetailsField").removeClass("d-none");
+                    }
+                });
+    });
+
+
+</script>
+
+<script>
+            $(document).ready(function () {
+                // Add More Contact Fields (when the "Add More" button is clicked)
+                $("#addEditContactBtn").click(function () {
+                    // Clone the first contact section (template row)
+                    var newContactRow = $(".contact-section:first").clone();
+
+                    // Reset all input values in the new row (clear the inputs)
+                    newContactRow.find("input").val(""); // Clear text fields
+                    newContactRow.find("select").prop("selectedIndex", 0); // Reset dropdowns
+
+                    // Add Remove Button to the newly added row
+                    newContactRow.append('<button type="button" class="btn btn-danger btn-sm remove-contact-btn mt-2">Remove</button>');
+
+                    // Append the cloned row to the form
+                    $("#editContactForm").append(newContactRow);
+                });
+
+            // Remove Contact Row (when the "Remove" button is clicked)
+            $(document).on('click', '.remove-contact-btn', function () {
+            // Ensure at least one contact section remains
+            if ($(".contact-section").length > 1) {
+                $(this).closest(".contact-section").remove();
+            } else {
+                // Show an alert if trying to remove the last row
+                alert("At least one contact row must remain.");
+            }
+        });
+    });
+
+
+</script>
+<script>
+            $(document).ready(function () {
+                // Add More Address Row (when the "Add More" button is clicked)
+                $("#addMoreEditAddress").click(function () {
+                    // Clone the first address row (template row)
+                    var newAddressRow = $(".addressRow:first").clone();
+
+                    // Reset all input values in the new row (clear the inputs)
+                    newAddressRow.find("input").val(""); // Clear text fields
+
+                    // Append the cloned row to the table body
+                    $("#editAddressTableBody").append(newAddressRow);
+                });
+
+            // Remove Address Row (when the "Delete" button is clicked)
+            $(document).on('click', '.removeEditAddress', function () {
+            // Ensure at least one address row remains
+            if ($(".addressRow").length > 1) {
+                $(this).closest(".addressRow").remove();
+            } else {
+                // Show an alert if trying to remove the last row
+                alert("At least one address row must remain.");
+            }
+        });
+    });
+
+</script>
+
+
+<script>
+                       $(document).ready(function () {
+        // Hide Balance & Other Details for SundryCreditors/Debtors
+        function toggleBalanceDetails() {
+            var selectedValue = $('#AccGroup').val().trim();
+            if (selectedValue === "SundryCreditors" || selectedValue === "SundryDebtors" || selectedValue === "Owner") { // Fixed typo
+                $('#balanceDetails').hide();
+            } else {
+                $('#balanceDetails').show();
+            }
+        }
+
+        // Trigger on page load and dropdown change
+        $("#AccGroup").change(toggleBalanceDetails);
+        toggleBalanceDetails(); // Initial check
+    });
+</script>
+
+<script>
+                    $("#addMoreEditAddress").click(function () {
+                        let index = $("#editAddressTableBody tr").length; // Get the current number of rows
+                    let newRow = `
+                    <tr class="addressRow">
+                        <td><input type="text" class="form-control" name="AddressDetails[${index}].BranchName"></td>
+                        <td><input type="text" class="form-control" name="AddressDetails[${index}].NameAddressMobile"></td>
+                        <td><input type="text" class="form-control" name="AddressDetails[${index}].Address"></td>
+                        <td><input type="text" class="form-control" name="AddressDetails[${index}].CityStatePincode"></td>
+                        <td><input type="text" class="form-control" name="AddressDetails[${index}].GSTIN"></td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-danger btn-sm removeEditAddress">Delete</button>
+                        </td>
+                    </tr>
+                    `;
+                    $("#editAddressTableBody").append(newRow);
+    });
+</script>
+
+<script>
+                    $(document).ready(function () {
+                        $(".edit-link").click(function () {
+                            var accGroup = $(this).data("accgroup"); // Get Account Group
+                            var ledgerId = $(this).data("id"); // Get Ledger ID
+
+                            // Populate Main Edit Fields
+                            $("#editId").val(ledgerId);
+                            $("#editAccGroup").val(accGroup);
+                            $("#editAccHead").val($(this).data("acchead"));
+                            $("#editHSNSACCode").val($(this).data("hsnsaccode"));
+                            $("#editTDSPercent").val($(this).data("tdspercent"));
+                            $("#editTaxPercentage").val($(this).data("taxpercentage"));
+                            $("#editTaxableInput").val($(this).data("taxableinput"));
+                            $("#editBankAccount").prop("checked", $(this).data("bankaccount") === "true");
+                            $("#editTaxLedger").prop("checked", $(this).data("taxledger") === "true");
+                            $("#editTaxable").prop("checked", $(this).data("taxable") === "true");
+                            $("#editVehicleExpense").prop("checked", $(this).data("vehicleexpense") === "true");
+
+                            // Populate Contact & Address Details
+                            if (accGroup === "SundryCreditors") {
+                                $("#editContactAddressField").removeClass("d-none"); // Show Contact Details
+
+                                // Populate Contact & Address Fields
+                                $("input[name='ContactPerson[]']").val($(this).data("contactperson"));
+                                $("input[name='Mobile[]']").val($(this).data("mobile"));
+                                $("input[name='AltMobile[]']").val($(this).data("altmobile"));
+                                $("input[name='Email[]']").val($(this).data("email"));
+                                $("input[name='TelNo[]']").val($(this).data("telno"));
+                                $("input[name='RefID[]']").val($(this).data("refid"));
+                                $("input[name='CCEmailId[]']").first().val($(this).data("ccemail"));
+                                $("input[name='OtherEmailId[]']").first().val($(this).data("otheremail"));
+                                $("input[name='VendorCode[]']").first().val($(this).data("vendorcode"));
+                                $("input[name='Address1[]']").val($(this).data("address1"));
+                                $("input[name='Address2[]']").val($(this).data("address2"));
+                                $("input[name='City[]']").val($(this).data("city"));
+                                $("input[name='State[]']").val($(this).data("state"));
+                                $("input[name='Pincode[]']").val($(this).data("pincode"));
+                                $("select[name='Country[]']").val($(this).data("country"));
+                            } else {
+                                $("#editContactAddressField").addClass("d-none"); // Hide if not Sundry Creditors
+                            }
+
+                            // Populate Document & Bank Details
+                            $("#editRegistrationType").val($(this).data("registrationtype"));
+                            $("#editPartyType").val($(this).data("partytype"));
+
+                            $("#editCinNumber").val($(this).data("cinnumber"));
+                            $("#editGstin").val($(this).data("gstin"));
+                            $("#editPanNumber").val($(this).data("pan")); // Fixed: using "pan" instead of "pannumber"
+
+                            $("#editAadharNumber").val($(this).data("aadharnumber"));
+                            $("#editAccountHolderName").val($(this).data("accountholdername"));
+                            $("#editBankName").val($(this).data("bankname"));
+                            $("#editAccountNumber").val($(this).data("accountnumber"));
+                            $("#editBankBranch").val($(this).data("bankbranch"));
+                            $("#editIfscCode").val($(this).data("ifsccode"));
+                            // Populate Balance & Other Details
+                            $("#editOpeningBalance").val($(this).data("opening") || ""); // Fix: Use correct attribute name and fallback
+                            $("#editBalanceIn").val($(this).data("balancein"));
+                            $("#editPaymentTerm").val($(this).data("paymentterm"));
+                            $("#editDueDays").val($(this).data("duedays"));
+                            $("#editAgent").val($(this).data("agent"));
+                            $("#editUsername").val($(this).data("username"));
+                            $("#editPassword").val($(this).data("password"));
+                            $("#editStatus").val($(this).data("status"));
+                            $("#editWalkinLedger").prop("checked", $(this).data("walkinledger") === "true");
+
+                            // Show Balance and Other Details Fieldset
+                            $("#editBalanceOtherDetailsField").removeClass("d-none");
+
+                            // Open Edit Tab
+                            $("#edit").tab("show");
+
+                            // Debugging
+                            console.log('Opening Balance:', $(this).data("opening"));;
+                        });
+    });
+                    $(document).ready(function () {
+                        $(".edit-link").click(function () {
+                            // Populate Document & Bank Details
+                            $("#editRegistrationType").val($(this).data("registrationtype")); // Assuming you add this data attribute
+                            $("#editPartyType").val($(this).data("partytype")); // Assuming you add this data attribute
+                            $("#editCinNumber").val($(this).data("cinnumber")); // Assuming you add this data attribute
+                            var cinNumber = $(this).data("cinnumber") || ""; // Fallback to empty string if null/undefined
+                            $("#editCinNumber").val(cinNumber); // Assuming you add this data attribute
+                            $("#editPanNumber").val($(this).data("pan")); // Already exists in your button
+                            $("#editAadharNumber").val($(this).data("aadharnumber")); // Assuming you add this data attribute
+                            $("#editAccountHolderName").val($(this).data("accountholdername")); // Assuming you add this data attribute
+                            $("#editBankName").val($(this).data("bankname")); // Assuming you add this data attribute
+                            $("#editAccountNumber").val($(this).data("accountnumber")); // Assuming you add this data attribute
+                            $("#editBankBranch").val($(this).data("bankbranch")); // Assuming you add this data attribute
+                            $("#editIfscCode").val($(this).data("ifsccode")); // Assuming you add this data attribute
+
+                            // Show Document & Bank Details Fieldset
+                            $("#editDocumentBankField").removeClass("d-none");
+                        });
+    });
+
+</script>
+<script>
+                    $(document).ready(function () {
+                        // Function to toggle fieldset visibility based on selected account group
+                        function toggleBalanceDetails() {
+                            var selectedAccGroup = $("#editAccGroup").val(); // Get selected value
+                            if (selectedAccGroup === "SundryCreditors") {
+                                $("#editBalanceOtherDetailsField").removeClass("d-none"); // Show fieldset
+                            } else {
+                                $("#editBalanceOtherDetailsField").addClass("d-none"); // Hide fieldset
+                            }
+                        }
+
+        // On dropdown change, check if it should be shown
+        $("#editAccGroup").change(function () {
+                        toggleBalanceDetails();
+        });
+
+                    // When clicking edit button, set dropdown and check condition
+                    $(".edit-link").click(function () {
+            var accGroup = $(this).data("accgroup"); // Get account group
+                    $("#editAccGroup").val(accGroup).change(); // Set dropdown value and trigger change event
+        });
+
+                    // Initial check in case page loads with pre-filled value
+                    toggleBalanceDetails();
+    });
+
+</script>
+<script>
+                    $("#addMoreEditAddress").click(function () {
+                        let index = $("#editAddressTableBody tr").length; // Get the current number of rows
+                    let newRow = `
+                    <tr class="addressRow">
+                        <td><input type="text" class="form-control" name="AddressDetails[${index}].BranchName"></td>
+                        <td><input type="text" class="form-control" name="AddressDetails[${index}].NameAddressMobile"></td>
+                        <td><input type="text" class="form-control" name="AddressDetails[${index}].Address"></td>
+                        <td><input type="text" class="form-control" name="AddressDetails[${index}].CityStatePincode"></td>
+                        <td><input type="text" class="form-control" name="AddressDetails[${index}].GSTIN"></td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-danger btn-sm removeEditAddress">Delete</button>
+                        </td>
+                    </tr>
+                    `;
+                    $("#editAddressTableBody").append(newRow);
+    });
+</script>
+<script>
+                    $(document).ready(function () {
+                        $("#InvoiceForm").on("submit", function (event) {
+                            let isValid = true;
+
+                            // Validate Select Ledger
+                            if ($("#AccHeadDropdown").val() === "") {
+                                $("#AccHeadDropdown").addClass("is-invalid");
+                                $("#AccHeadDropdown").siblings(".error-message").text("Please select the Ledger.").removeClass("d-none");
+                                isValid = false;
+                            } else {
+                                $("#AccHeadDropdown").removeClass("is-invalid");
+                                $("#AccHeadDropdown").siblings(".error-message").addClass("d-none");
+                            }
+
+                            // Validate Balance In
+                            $("select.balanceIn").each(function () {
+                                if ($(this).val() === "" || $(this).val() === "select") {
+                                    $(this).addClass("is-invalid");
+                                    $(this).siblings(".error-message").text("Please select Credit or Debit.").removeClass("d-none");
+                                    isValid = false;
+                                } else {
+                                    $(this).removeClass("is-invalid");
+                                    $(this).siblings(".error-message").addClass("d-none");
+                                }
+                            });
+
+                            // Validate Opening Balance
+                            $("input.openingBalance").each(function () {
+                                if ($(this).val().trim() === "") {
+                                    $(this).addClass("is-invalid");
+                                    $(this).siblings(".error-message").text("Please enter the Opening Balance.").removeClass("d-none");
+                                    isValid = false;
+                                } else {
+                                    $(this).removeClass("is-invalid");
+                                    $(this).siblings(".error-message").addClass("d-none");
+                                }
+                            });
+
+                            // Prevent form submission if validation fails
+                            if (!isValid) {
+                                event.preventDefault(); // Stop form submission
+                            }
+                        });
+
+                    // Real-time validation
+                    $("input.openingBalance").on("input", function () {
+            if ($(this).val().trim() !== "") {
+                        $(this).removeClass("is-invalid");
+                    $(this).siblings(".error-message").addClass("d-none");
+            }
+        });
+
+                    $("select.balanceIn").on("change", function () {
+            if ($(this).val() !== "" && $(this).val() !== "select") {
+                        $(this).removeClass("is-invalid");
+                    $(this).siblings(".error-message").addClass("d-none");
+            }
+        });
+
+                    $("#AccHeadDropdown").on("change", function () {
+            if ($(this).val() !== "") {
+                        $(this).removeClass("is-invalid");
+                    $(this).siblings(".error-message").addClass("d-none");
+            }
+        });
+    });
+
+</script>
+<script>
+                        $(document).ready(function () {
+                            // Real-time input restrictions
+                            $("#AccHead").on("input", function () {
+                                let value = $(this).val();
+                                value = value.replace(/[^a-zA-Z0-9]/g, '').substring(0, 12);
+                                $(this).val(value);
+                            });
+
+                        $("input[name='Address1[]'], input[name='Address2[]']").on("input", function () {
+                            let value = $(this).val();
+                        value = value.replace(/[^a-zA-Z0-9 ]/g, '').substring(0, 30);
+                        $(this).val(value);
+            });
+
+                        $("input[name='City[]']").on("input", function () {
+                            let value = $(this).val();
+                        value = value.replace(/[^a-zA-Z0-9 ]/g, '').substring(0, 15);
+                        $(this).val(value);
+            });
+
+                        $("input[name='Pincode[]']").on("input", function () {
+                            let value = $(this).val();
+                        value = value.replace(/\D/g, '').substring(0, 6);
+                        $(this).val(value);
+            });
+
+                        $("#TDSPercent").on("input", function () {
+                            let value = $(this).val().trim();
+                        value = value.replace(/[^0-9.]/g, '');
+                        if (value !== "" && !isNaN(value)) {
+                            let numValue = parseFloat(value);
+                    if (numValue > 100) {
+                            value = "100";
+                    }
+                }
+                        $(this).val(value);
+            });
+
+                        // Handle AccGroup change
+                        $("#AccGroup").on("change", function () {
+                            let accGroupVal = $(this).val();
+                        let conditionalFields = $("#PaymentTerm, #DueDays, #Agent, #UserName, #Password");
+
+                        if (accGroupVal === "SundryCreditors" || accGroupVal === "SundryDebitors") {
+                            conditionalFields.removeAttr("disabled").removeClass("is-invalid");
+                        conditionalFields.next(".error-message").addClass("d-none");
+                } else {
+                            conditionalFields.val("").attr("disabled", true).removeClass("is-invalid");
+                        conditionalFields.next(".error-message").addClass("d-none");
+                }
+            }).trigger("change");
+
+                        // Form submission handler
+                        $("#ledgerForm").on("submit", function (event) {
+                            let isValid = true;
+                        let accGroupVal = $("#AccGroup").val();
+
+                        // Validate Account Group
+                        if (accGroupVal === "") {
+                            $("#AccGroup").addClass("is-invalid");
+                        $("#AccGroup").next(".error-message").removeClass("d-none").text("Please select an account group");
+                        isValid = false;
+                } else {
+                            $("#AccGroup").removeClass("is-invalid");
+                        $("#AccGroup").next(".error-message").addClass("d-none");
+                }
+
+                        // Apply validation only for SundryCreditors or SundryDebitors
+                        if (accGroupVal === "SundryCreditors" || accGroupVal === "SundryDebitors") {
+                            // Validate Account Head
+                            let accHeadVal = $("#AccHead").val().trim();
+                        if (accHeadVal === "" || !/^[a-zA-Z0-9]{1, 12}$/.test(accHeadVal)) {
+                            $("#AccHead").addClass("is-invalid");
+                        $("#AccHead").next(".error-message").removeClass("d-none").text("Enter up to 12 alphanumeric characters.");
+                        isValid = false;
+                    } else {
+                            $("#AccHead").removeClass("is-invalid");
+                        $("#AccHead").next(".error-message").addClass("d-none");
+                    }
+
+                        // Validate TDS Percent
+                        let tdsValue = $("#TDSPercent").val().trim();
+                        if (tdsValue === "" || isNaN(tdsValue) || parseFloat(tdsValue) < 0 || parseFloat(tdsValue) > 100) {
+                            $("#TDSPercent").addClass("is-invalid");
+                        $("#TDSPercent").next(".error-message").removeClass("d-none").text("Please enter a valid TDS percentage (0-100).");
+                        isValid = false;
+                    } else {
+                            $("#TDSPercent").removeClass("is-invalid");
+                        $("#TDSPercent").next(".error-message").addClass("d-none");
+                    }
+
+                        // Validate Addresses
+                        $("input[name='Address1[]'], input[name='Address2[]']").each(function () {
+                        if ($(this).val().trim() === "") {
+                            $(this).addClass("is-invalid");
+                        $(this).next(".error-message").removeClass("d-none").text("Please enter a valid address.");
+                        isValid = false;
+                        } else {
+                            $(this).removeClass("is-invalid");
+                        $(this).next(".error-message").addClass("d-none");
+                        }
+                    });
+
+                        // Validate City
+                       let isValid = true; // Ensure isValid is declared
+
+    $("input[name='City[]']").each(function () {
+        let cityVal = $(this).val().trim();
+        let cityRegex = /^[a-zA-Z ]{1,15}$/; // Allow only letters and spaces, max 15 characters
+
+        if (cityVal === "" || !cityRegex.test(cityVal)) {
+            $(this).addClass("is-invalid");
+            $(this).next(".error-message").removeClass("d-none").text("City must be 1-15 alphabetic characters.");
+            isValid = false;
+        } else {
+            $(this).removeClass("is-invalid");
+            $(this).next(".error-message").addClass("d-none");
+        }
+                    });
+
+                        // Validate Pincode
+                        $("input[name='Pincode[]']").each(function () {
+                            let pincodeVal = $(this).val().trim();
+                        if (!/^\d{6}$/.test(pincodeVal)) {
+                            $(this).addClass("is-invalid");
+                        $(this).next(".error-message").removeClass("d-none").text("Please enter exactly 6 digits.");
+                        isValid = false;
+                        } else {
+                            $(this).removeClass("is-invalid");
+                        $(this).next(".error-message").addClass("d-none");
+                        }
+                    });
+                }
+
+                        // Prevent form submission if validation fails
+                        if (!isValid) {
+                            event.preventDefault();
+                        $(".is-invalid").first().get(0).scrollIntoView({
+                            behavior: "smooth",
+                        block: "center"
+                    });
+                }
+            });
+
+                        // Clear validation errors on input
+                        $("input, select").on("input change", function () {
+                if ($(this).val().trim() !== "") {
+                            $(this).removeClass("is-invalid");
+                        $(this).next(".error-message").addClass("d-none");
+                }
+            });
+        });
+</script>
+<script>
+                    $(document).ready(function () {
+                        function validateForm(form) {
+                            let isValid = true;
+                            let accGroup = $("#AccGroup").val();
+
+                            // Apply validation only if AccGroup is "SundryCreditors" or "SundryDebitors"
+                            if (accGroup === "SundryCreditors" || accGroup === "SundryDebitors") {
+                                // ✅ Aadhaar Number Validation (Exactly 12 digits)
+                                let aadhar = $("#AAdharNumber", form).val().trim();
+                                if (!/^\d{12}$/.test(aadhar)) {
+                                    $("#AAdharNumber", form).addClass("is-invalid");
+                                    $("#AAdharNumber", form).siblings(".error-message").removeClass("d-none").text("Aadhaar must be exactly 12 digits.");
+                                    isValid = false;
+                                } else {
+                                    $("#AAdharNumber", form).removeClass("is-invalid");
+                                    $("#AAdharNumber", form).siblings(".error-message").addClass("d-none");
+                                }
+
+                                // ✅ Bank Account Number Validation (Max 18 alphanumeric)
+                                let bankAccNo = $("#BankAccNo", form).val().trim();
+                                if (!/^[a-zA-Z0-9]{1,18}$/.test(bankAccNo)) {
+                                    $("#BankAccNo", form).addClass("is-invalid");
+                                    $("#BankAccNo", form).siblings(".error-message").removeClass("d-none").text("Bank Account must be up to 18 alphanumeric characters.");
+                                    isValid = false;
+                                } else {
+                                    $("#BankAccNo", form).removeClass("is-invalid");
+                                    $("#BankAccNo", form).siblings(".error-message").addClass("d-none");
+                                }
+
+                                // ✅ Contact Person Validation
+                                $("input[name='ContactPerson\\[\\]']", form).each(function () {
+                                    if ($(this).val().trim() === "") {
+                                        $(this).addClass("is-invalid");
+                                        $(this).siblings(".error-message").removeClass("d-none").text("Please enter the Contact Person.");
+                                        isValid = false;
+                                    } else {
+                                        $(this).removeClass("is-invalid");
+                                        $(this).siblings(".error-message").addClass("d-none");
+                                    }
+                                });
+
+                                // ✅ Mobile/AltMobile/TelNo Validation (Must be exactly 10 digits if not empty)
+                                $("input[name='Mobile[]'], input[name='AltMobile[]'], input[name='TelNo[]']", form).each(function () {
+                                    let value = $(this).val().trim();
+                                    if (value !== "" && !/^\d{10}$/.test(value)) {
+                                        $(this).addClass("is-invalid");
+                                        $(this).next(".error-message").removeClass("d-none").text("Please enter exactly 10 digits.");
+                                        isValid = false;
+                                    } else {
+                                        $(this).removeClass("is-invalid");
+                                        $(this).next(".error-message").addClass("d-none");
+                                    }
+                                });
+                                // ✅ Reference ID Validation
+                                $("input[name='RefID\\[\\]']", form).each(function () {
+                                    let value = $(this).val().trim();
+                                    if (value === "") {
+                                        $(this).addClass("is-invalid");
+                                        $(this).siblings(".error-message").removeClass("d-none").text("This field is required.");
+                                        isValid = false;
+                                    } else {
+                                        $(this).removeClass("is-invalid");
+                                        $(this).siblings(".error-message").addClass("d-none");
+                                    }
+                                });
+
+                                // ✅ Vendor Code Validation (Max 15 characters)
+                                $("input[name='VendorCode\\[\\]']", form).each(function () {
+                                    let value = $(this).val().trim();
+                                    if (value === "") {
+                                        $(this).addClass("is-invalid");
+                                        $(this).siblings(".error-message").removeClass("d-none").text("This field is required.");
+                                        isValid = false;
+                                    } else if (value.length > 15) {
+                                        $(this).addClass("is-invalid");
+                                        $(this).siblings(".error-message").removeClass("d-none").text("Vendor Code must be 15 characters or less.");
+                                        isValid = false;
+                                    } else {
+                                        $(this).removeClass("is-invalid");
+                                        $(this).siblings(".error-message").addClass("d-none");
+                                    }
+                                });
+
+                                // ✅ Required Fields Validation (Including Bank Details)
+                                let requiredFields = ["#RegistrationType", "#PartyType", "#GSTIN", "#PANNo", "#AAdharNumber", "#CINNo", "#BankName", "#BankAccNo", "#BankBranch", "#IFSCCode", "#AccHolderName"];
+                                requiredFields.forEach(function (field) {
+                                    if ($(field, form).val().trim() === "") {
+                                        $(field, form).addClass("is-invalid");
+                                        $(field, form).siblings(".error-message").removeClass("d-none").text("This field is required.");
+                                        isValid = false;
+                                    } else {
+                                        $(field, form).removeClass("is-invalid");
+                                        $(field, form).siblings(".error-message").addClass("d-none");
+                                    }
+                                });
+
+                                // ✅ GSTIN Validation (Exactly 15 Alphanumeric Characters)
+                                let gstin = $("#GSTIN", form).val().trim().toUpperCase();
+                                $("#GSTIN", form).val(gstin);
+                                if (!/^[0-9A-Z]{15}$/.test(gstin)) {
+                                    $("#GSTIN", form).addClass("is-invalid");
+                                    $("#GSTIN", form).siblings(".error-message").removeClass("d-none").text("Please enter a valid 15-character GSTIN.");
+                                    isValid = false;
+                                }
+                            }
+
+                            return isValid;
+                        }
+
+        // Attach validation to both forms
+        $("#ledgerForm, #editLedgerForm").on("submit", function (event) {
+            if (!validateForm($(this))) {
+                        event.preventDefault();
+                    // Scroll to the first error
+                    $(".is-invalid").first().get(0).scrollIntoView({
+                        behavior: "smooth",
+                    block: "center"
+                });
+            }
+        });
+
+                    // ✅ Real-time validation and input restrictions
+                    function attachRealTimeValidation(form) {
+                        // Aadhaar Number - restrict to 12 digits only
+                        $("#AAdharNumber", form).on("input", function () {
+                            let value = $(this).val().replace(/\D/g, '').substring(0, 12);
+                            $(this).val(value);
+
+                            if (value.length < 12 && value.length > 0) {
+                                $(this).addClass("is-invalid");
+                                $(this).siblings(".error-message").removeClass("d-none").text("Aadhaar must be exactly 12 digits.");
+                            } else {
+                                $(this).removeClass("is-invalid");
+                                $(this).siblings(".error-message").addClass("d-none");
+                            }
+                        });
+
+                    // Bank Account Number - restrict to 18 alphanumeric
+                    $("#BankAccNo", form).on("input", function () {
+                        let value = $(this).val().replace(/[^a-zA-Z0-9]/g, '').substring(0, 18);
+                    $(this).val(value);
+            });
+
+                    $("input[name='Mobile[]'], input[name='AltMobile[]'], input[name='TelNo[]']", form).on({
+                        'input': function () {
+                        // Restrict to digits only and limit to 10
+                        let value = $(this).val().replace(/\D/g, '').substring(0, 10);
+                    $(this).val(value);
+                },
+                    'blur': function () {
+                        // Validate on field exit
+                        let value = $(this).val().trim();
+                    if (value !== "" && value.length < 10) {
+                        $(this).addClass("is-invalid");
+                    $(this).next(".error-message").removeClass("d-none").text("Please enter exactly 10 digits.");
+                    } else {
+                        $(this).removeClass("is-invalid");
+                    $(this).next(".error-message").addClass("d-none");
+                    }
+                }
+            });
+                    // Vendor Code - strict 15 character limit
+                    $("input[name='VendorCode\\[\\]']", form).on("input", function () {
+                        let value = $(this).val().substring(0, 15);
+                    $(this).val(value);
+
+                // Show error if exceeds 15 characters
+                if (value.length > 15) {
+                        $(this).addClass("is-invalid");
+                    $(this).siblings(".error-message").removeClass("d-none").text("Maximum 15 characters allowed.");
+                } else {
+                        $(this).removeClass("is-invalid");
+                    $(this).siblings(".error-message").addClass("d-none");
+                }
+            });
+
+                    // Prevent paste for mobile fields
+                    $("input[name='Mobile\\[\\]'], input[name='AltMobile\\[\\]'], input[name='TelNo\\[\\]']", form).on("paste", function (e) {
+                        let pasteData = e.originalEvent.clipboardData.getData('text');
+                    if (!/^\d{0, 10}$/.test(pasteData)) {
+                        e.preventDefault();
+                }
+            });
+
+                    // Prevent paste for Vendor Code
+                    $("input[name='VendorCode\\[\\]']", form).on("paste", function (e) {
+                        let pasteData = e.originalEvent.clipboardData.getData('text');
+                if (pasteData.length > 15) {
+                        e.preventDefault();
+                }
+            });
+
+                    $("#AccGroup").on("change", function () {
+                        let accGroup = $(this).val();
+                    if (accGroup === "SundryCreditors" || accGroup === "SundryDebitors") {
+                        // Keep all real-time validations enabled
+                    } else {
+                        // Clear errors but keep the input restrictions
+                        $(".is-invalid").removeClass("is-invalid");
+                    $(".error-message").addClass("d-none");
+                }
+            }).trigger("change");
+        }
+
+                    // Attach real-time validation to both forms
+                    attachRealTimeValidation($("#ledgerForm"));
+                    attachRealTimeValidation($("#editLedgerForm"));
+    });
+</script>
+<script>
+                    $(document).ready(function () {
+                        $("#ledgerForm").on("submit", function (event) {
+                            let isValid = true;
+                            let accGroupValue = $("#AccGroup").val().trim(); // Get selected AccGroup
+
+                            // ✅ Define required fields dynamically
+                            let requiredFields = [
+                                { id: "#BalanceIn", message: "Balance In is required." }
+                            ];
+
+                            if (accGroupValue === "SundryCreditors" || accGroupValue === "SundryDebitors") {
+                                requiredFields.push(
+                                    { id: "#PaymentTerm", message: "Payment Term is required." },
+                                    { id: "#DueDays", message: "Due Days are required." },
+                                    { id: "#Agent", message: "Agent Name is required." },
+                                    { id: "#UserName", message: "Username is required." },
+                                    { id: "#Password", message: "Password is required." }
+                                );
+                            }
+
+                            // ✅ Validate Required Fields
+                            requiredFields.forEach(function (field) {
+                                let fieldValue = $(field.id).val().trim();
+                                if (fieldValue === "") {
+                                    showError(field.id, field.message);
+                                    isValid = false;
+                                } else {
+                                    removeError(field.id);
+                                }
+                            });
+
+                            // ✅ Validate Password (Only for SundryCreditors or SundryDebitors)
+                            if ((accGroupValue === "SundryCreditors" || accGroupValue === "SundryDebitors") && $("#Password").val().trim() !== "") {
+                                let password = $("#Password").val().trim();
+                                if (!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,15}$/.test(password)) {
+                                    showError("#Password", "Password must be 8-15 alphanumeric characters.");
+                                    isValid = false;
+                                }
+                            }
+                            // ✅ Validate Balance In (Only "Credit" or "Debit" Allowed)
+                            let balanceIn = $("#BalanceIn").val().trim();
+                            if (balanceIn !== "Credit" && balanceIn !== "Debit") {
+                                showError("#BalanceIn", "Please select Credit or Debit.");
+                                isValid = false;
+                            }
+
+                            // ✅ Validate Due Days (Only if AccGroup is "SundryCreditors" or "SundryDebitors")
+                            if (accGroupValue === "SundryCreditors" || accGroupValue === "SundryDebitors") {
+                                let dueDays = $("#DueDays").val().trim();
+                                if (!/^\d{1,3}$/.test(dueDays)) {
+                                    showError("#DueDays", "Due Days must be up to 3 digits.");
+                                    isValid = false;
+                                }
+                            }
+
+                            // ✅ Prevent form submission if invalid
+                            if (!isValid) {
+                                event.preventDefault();
+                                $(".is-invalid").first()[0].scrollIntoView({ behavior: "smooth", block: "center" });
+                            }
+                        });
+
+                    // ✅ Real-Time Validation (When User Inputs or Changes Fields)
+                    $("#ledgerForm input, #ledgerForm select").on("input change", function () {
+                        let field = $(this);
+                    let value = field.val().trim();
+
+                    if (value !== "") {
+                        removeError("#" + field.attr("id"));
+            }
+        });
+
+                    // ✅ Helper Functions for Showing & Removing Errors
+                    function showError(selector, message) {
+                        let inputField = $(selector);
+                    inputField.addClass("is-invalid");
+
+                    // Check if an error message exists; if not, create one
+                    if (inputField.siblings(".error-message").length === 0) {
+                        inputField.after(`<div class="error-message text-danger">${message}</div>`);
+            } else {
+                        inputField.siblings(".error-message").text(message).removeClass("d-none");
+            }
+        }
+
+                    function removeError(selector) {
+                        let inputField = $(selector);
+                    inputField.removeClass("is-invalid");
+                    inputField.siblings(".error-message").addClass("d-none");
+        }
+    });
+
+</script>
+<script>
+                    $(document).ready(function () {
+                        $("#ledgerMasterForm").on("submit", function (event) {
+                            let isValid = true;
+                            let accGroupValue = $("#AccGroup").val().trim();
+
+                            // ✅ Apply Email Validation Only if AccGroup = SundryCreditors or SundryDebitors
+                            if (accGroupValue === "SundryCreditors" || accGroupValue === "SundryDebitors") {
+                                $("#Email, #CCEmailId, #OtherEmailId").each(function () {
+                                    let emailField = $(this);
+                                    let emailValue = emailField.val().trim();
+                                    let errorMessage = "Valid Email required (must include '@@' and '.com').";
+
+                                    if (emailValue === "" || !/^[a-zA-Z0-9._%+-]+@@[a-zA-Z0-9.-]+\.[a-z]{2,}$/.test(emailValue)) {
+                                        emailField.addClass("is-invalid");
+                                        emailField.siblings(".error-message").removeClass("d-none").text(errorMessage);
+                                        isValid = false;
+                                    } else {
+                                        emailField.removeClass("is-invalid");
+                                        emailField.siblings(".error-message").addClass("d-none");
+                                    }
+                                });
+                            }
+
+                            if (!isValid) {
+                                event.preventDefault();
+                                $(".is-invalid").first()[0].scrollIntoView({ behavior: "smooth", block: "center" });
+                            }
+                        });
+
+                    // ✅ Real-time Email Validation (Check for "@@" and ".com" only when AccGroup is correct)
+                    $("#Email, #CCEmailId, #OtherEmailId").on("input", function () {
+                        let accGroupValue = $("#AccGroup").val().trim();
+
+                    if (accGroupValue === "SundryCreditors" || accGroupValue === "SundryDebitors") {
+                        let emailField = $(this);
+                    let emailValue = emailField.val().trim();
+                    let errorMessage = "Valid Email required (must include '@@' and '.com').";
+
+                    if (!/^[a-zA-Z0-9._%+-]+@@[a-zA-Z0-9.-]+\.[a-z]{2,}$/.test(emailValue)) {
+                        emailField.addClass("is-invalid");
+                    emailField.siblings(".error-message").removeClass("d-none").text(errorMessage);
+                } else {
+                        emailField.removeClass("is-invalid");
+                    emailField.siblings(".error-message").addClass("d-none");
+                }
+            }
+        });
+
+                    // ✅ Reset Email Validation When AccGroup Changes
+                    $("#AccGroup").on("change", function () {
+                        let accGroupValue = $(this).val().trim();
+
+                    if (accGroupValue !== "SundryCreditors" && accGroupValue !== "SundryDebitors") {
+                        $("#Email, #CCEmailId, #OtherEmailId").removeClass("is-invalid");
+                    $(".error-message").addClass("d-none");
+            }
+        });
+    });
+
+</script>
+<script>
+                    $(document).ready(function () {
+                        $("#ledgerForm").on("submit", function (event) {
+                            let isValid = true;
+                            let accGroupVal = $("#AccGroup").val();
+
+                            // Apply validation only if AccGroup is "SundryCreditors" or "SundryDebitors"
+                            if (accGroupVal === "SundryCreditors" || accGroupVal === "SundryDebitors") {
+
+                                // ✅ Balance Opening Validation (Required)
+                                let balanceOpening = $("#BalanceOpening").val().trim();
+                                if (balanceOpening === "") {
+                                    $("#BalanceOpening").addClass("is-invalid");
+                                    $("#BalanceOpening").siblings(".error-message").removeClass("d-none").text("Please enter the Opening Balance.");
+                                    isValid = false;
+                                } else {
+                                    $("#BalanceOpening").removeClass("is-invalid");
+                                    $("#BalanceOpening").siblings(".error-message").addClass("d-none");
+                                }
+
+                                // ✅ Balance In Validation (Must Select a Value)
+                                let balanceIn = $("#BalanceIn").val();
+                                if (!balanceIn) {
+                                    $("#BalanceIn").addClass("is-invalid");
+                                    $("#BalanceIn").siblings(".error-message").removeClass("d-none").text("Please select the Balance In.");
+                                    isValid = false;
+                                } else {
+                                    $("#BalanceIn").removeClass("is-invalid");
+                                    $("#BalanceIn").siblings(".error-message").addClass("d-none");
+                                }
+
+                                // ✅ Status Validation (Must Select a Value)
+                                let status = $("#Status").val();
+                                if (!status) {
+                                    $("#Status").addClass("is-invalid");
+                                    $("#Status").siblings(".error-message").removeClass("d-none").text("Please select the Status.");
+                                    isValid = false;
+                                } else {
+                                    $("#Status").removeClass("is-invalid");
+                                    $("#Status").siblings(".error-message").addClass("d-none");
+                                }
+                            }
+
+                            // ✅ Prevent Form Submission If Invalid
+                            if (!isValid) {
+                                event.preventDefault();
+                                $(".is-invalid").first()[0].scrollIntoView({ behavior: "smooth", block: "center" });
+                            }
+                        });
+
+                    // ✅ Real-time Validation (Removes Error Messages While Typing)
+                    $("#BalanceOpening, #BalanceIn, #Status").on("input change", function () {
+                        $(this).removeClass("is-invalid");
+                    $(this).siblings(".error-message").addClass("d-none");
+    });
+
+                    // ✅ Handle AccGroup change event
+                    $("#AccGroup").on("change", function () {
+                        let accGroupVal = $(this).val();
+                    let fieldsToReset = $("#BalanceOpening, #BalanceIn, #Status");
+
+                    if (accGroupVal === "SundryCreditors" || accGroupVal === "SundryDebitors") {
+                        // 🔹 Keep fields enabled and remove past errors
+                        fieldsToReset.removeClass("is-invalid");
+                    fieldsToReset.siblings(".error-message").addClass("d-none");
+        } else {
+                        // 🔹 If switching away, clear values but KEEP fields enabled
+                        fieldsToReset.val("").removeClass("is-invalid");
+                    fieldsToReset.siblings(".error-message").addClass("d-none");
+        }
+    }).trigger("change"); // ✅ Run on page load to apply initial state
+
+
+
+</script>
+<script>
+                    $(document).ready(function () {
+                        $("#ledgerForm").on("submit", function (event) {
+                            let isValid = true;
+
+                            // ✅ Define Required Fields
+                            let requiredFields = [
+                                { id: "#AccGroup", message: "Please select the SubGroup." },
+                                { id: "#AccHead", message: "Please enter the Account Head." },
+                                { id: "#BalanceOpening", message: "Please enter the Opening Balance." },
+                                { id: "#BalanceIn", message: "Please select the Balance In." },
+                                { id: "#Status", message: "Please select the Status." }
+                            ];
+
+                            // ✅ Validate Required Fields
+                            requiredFields.forEach(function (field) {
+                                let fieldValue = $(field.id).val().trim();
+                                if (fieldValue === "" || fieldValue === null) {
+                                    showError(field.id, field.message);
+                                    isValid = false;
+                                } else {
+                                    removeError(field.id);
+                                }
+                            });
+
+                            // ✅ Validate BalanceOpening (must be a valid number)
+                            let balanceOpening = $("#BalanceOpening").val().trim();
+                            if (balanceOpening !== "" && isNaN(balanceOpening)) {
+                                showError("#BalanceOpening", "Please enter a valid number for Opening Balance.");
+                                isValid = false;
+                            }
+
+                            // ✅ Validate TDS Percent (0-100 range)
+                            let tdsValue = $("#TDSPercent").val().trim();
+                            if (tdsValue === "" || isNaN(tdsValue) || parseFloat(tdsValue) < 0 || parseFloat(tdsValue) > 100) {
+                                showError("#TDSPercent", "Please enter a valid TDS percentage (0-100).");
+                                isValid = false;
+                            }
+
+                            // ✅ Prevent form submission if invalid
+                            if (!isValid) {
+                                event.preventDefault();
+                                $(".is-invalid").first()[0].scrollIntoView({ behavior: "smooth", block: "center" });
+                            }
+                        });
+
+                    // ✅ Restrict TDS Percent to max 100 while typing
+                    $("#TDSPercent").on("input", function () {
+                        let value = $(this).val().trim();
+                    value = value.replace(/[^0-9.]/g, ''); // Allow only numbers & decimal
+                    if (value !== "" && !isNaN(value)) {
+                        let numValue = parseFloat(value);
+                if (numValue > 100) {
+                        value = "100"; // Restrict to 100
+                }
+            }
+                    $(this).val(value);
+        });
+
+                    // ✅ Validate BalanceOpening while typing (numbers only)
+                    $("#BalanceOpening").on("input", function () {
+                        let value = $(this).val();
+                    // Allow only numbers and decimal point
+                    value = value.replace(/[^0-9.]/g, '');
+                    // Remove extra decimal points
+                    value = value.replace(/\.+/g, function (match, offset, full) {
+                return offset === full.indexOf('.') ? '.' : '';
+            });
+                    $(this).val(value);
+
+                    // Clear error if valid number
+                    if (value === "" || !isNaN(value)) {
+                        removeError("#BalanceOpening");
+            }
+        });
+
+                    // ✅ Real-Time Validation (Hides error when user starts typing/selecting)
+                    $("#ledgerForm input, #ledgerForm select").on("input change", function () {
+                        let field = $(this);
+                    let value = field.val().trim();
+
+                    if (value !== "") {
+                        removeError("#" + field.attr("id"));
+            }
+        });
+
+                    // ✅ Helper Functions for Showing & Removing Errors
+                    function showError(selector, message) {
+                        let inputField = $(selector);
+                    inputField.addClass("is-invalid");
+
+                    // Check if an error message exists; if not, create one
+                    if (inputField.siblings(".error-message").length === 0) {
+                        inputField.after(`<div class="error-message text-danger">${message}</div>`);
+            } else {
+                        inputField.siblings(".error-message").text(message).removeClass("d-none");
+            }
+        }
+
+                    function removeError(selector) {
+                        let inputField = $(selector);
+                    inputField.removeClass("is-invalid");
+                    inputField.siblings(".error-message").addClass("d-none");
+        }
+    });
+</script>
+
+
+
+
+
+
+
+
+
+
+

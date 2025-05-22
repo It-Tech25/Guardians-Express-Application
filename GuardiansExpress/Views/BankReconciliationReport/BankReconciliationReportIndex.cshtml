@@ -1,0 +1,114 @@
+﻿@model GuardiansExpress.Models.DTOs.BankRecoSummaryDTO
+
+@{
+    ViewData["Title"] = "Bank Reconciliation Report";
+}
+
+<h2>Bank Reconciliation Report</h2>
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"> Bank Reconciliation Report</h4>
+            </div>
+
+
+<form id="bankRecoForm" method="post" asp-controller="BankReconciliationReport" asp-action="Search">
+    <div class="row mb-3">
+                    <div class="col-md-2">
+                        <label asp-for="BankName">Bank Name</label>
+                        <select asp-for="BankName" asp-items="ViewBag.BankNames" class="form-control" required>
+                            <option value="">-- Select Bank --</option>
+                        </select>
+                    </div>
+
+        <div class="col-md-2">
+            <label>On Date</label>
+            <input type="date" name="onDate" class="form-control" required />
+        </div>
+        <div class="col-md-2">
+            <label>From Date</label>
+            <input type="date" name="fromDate" class="form-control" />
+        </div>
+        <div class="col-md-2">
+            <label>To Date</label>
+            <input type="date" name="toDate" class="form-control" />
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+            <button type="submit" class="btn btn-success me-2">
+                <i class="bi bi-search"></i> Search
+            </button>
+            <a asp-action="ExportToExcel" class="btn btn-outline-success">
+                <i class="bi bi-file-earmark-excel"></i> Excel
+            </a>
+        </div>
+    </div>
+
+</form>
+
+<hr />
+
+<div id="bankRecoResult">
+    @if (Model != null)
+    {
+        <table class="table table-bordered table-striped table-sm text-center">
+            <thead class="table-success">
+                <tr>
+                    <th>S.No</th>
+                    <th>Doc No</th>
+                    <th>Date</th>
+                    <th>Reco. Date</th>
+                    <th>Cheque No.</th>
+                    <th>Ref. Description</th>
+                    <th>Particular</th>
+                    <th>Amount</th>
+                    <th>Type</th>
+                </tr>
+            </thead>
+            <tbody class="table-light">
+                <tr>
+                    <td colspan="6"></td>
+                    <td>Balance As Per Our Books</td>
+                    <td>@Model.BalanceAsPerBooks.ToString("N2")</td>
+                    <td>Dr</td>
+                </tr>
+                <tr>
+                    <td colspan="6"></td>
+                    <td>Less - Cheque deposited but not cleared</td>
+                    <td>@Model.DepositedButNotCleared.ToString("N2")</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td colspan="6"></td>
+                    <td>Add - Cheque issued but not cleared</td>
+                    <td>@Model.IssuedButNotCleared.ToString("N2")</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td colspan="6"></td>
+                    <td>Balance As Per Bank Books</td>
+                    <td>@Model.BalanceAsPerBank.ToString("N2")</td>
+                    <td>Dr</td>
+                </tr>
+            </tbody>
+        </table>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            $('#bankRecoForm').submit(function (e) {
+                e.preventDefault();
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("Search", "BankReconciliationReport")',
+                    data: $(this).serialize(),
+                    success: function (result) {
+                        $('#bankRecoResult').html(result);
+                    }
+                });
+            });
+        });
+    </script>
+}

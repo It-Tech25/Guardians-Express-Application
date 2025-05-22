@@ -1,0 +1,238 @@
+﻿@model IEnumerable<GuardiansExpress.Models.DTOs.VehicleGroupModel>
+@{
+    int rCnt = 1;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="row">
+            <div class="col-md-12 mt-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Vehicle Group List</h4>
+                        <a href="javascript:void(0);" onclick="addVehicleGroupModal();" class="btn btn-success btn-xs" style="height: 100%; display: flex; justify-content: center; align-items: center; padding: 0 10px;">
+                            <i class="fa fa-plus" aria-hidden="true"></i> Add Vehicle Group
+                        </a>
+                    </div>
+
+                    <div class="box-body">
+                        <div class="table-responsive">
+                            <table id="example1" class="text-fade table table-bordered" style="width:100%">
+                                <thead>
+                                    <tr class="text-dark">
+                                        <th>S.No</th>
+                                        <th>Vehicle Group</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var vehicleGroup in Model)
+                                    {
+                                        <tr>
+                                            <td scope="row">@(rCnt++)</td>
+                                            <td> <a href="#" onclick="EditVehicleGroup(@vehicleGroup.Id, '@vehicleGroup.VehicleGroup')" title="Edit">@vehicleGroup.VehicleGroup</a></td>
+                                            <td>
+                                                <a href="#" onclick="DeleteVehicleGroup(@vehicleGroup.Id)" title="Delete">
+                                                    <button type="button" class="waves-effect waves-circle btn btn-circle btn-danger btn-xs">
+                                                        <i class="fa fa-trash"></i>
+                                                    </button>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Vehicle Group Modal -->
+<div class="modal fade" id="addVehicleGroupModal" tabindex="-1" aria-labelledby="addVehicleGroupModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addVehicleGroupModalLabel">Add Vehicle Group</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="vehicleGroupForm" action="@Url.Action("VehicleGroupAdd", "VehicleGroup")" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <h5 class="mb-3" style="background-color: whitesmoke; color: black; padding: 10px; text-transform: uppercase;">Vehicle Group Information</h5>
+                        </div>
+                        <div class="col-lg-12">
+                            <label for="VehicleGroup">Vehicle Group *</label>
+                            <input type="text" class="form-control" id="VehicleGroup" name="VehicleGroup" maxlength="20"
+                                   pattern="[A-Za-z]{1,20}" title="Please enter alphabets only (max 20 characters)" required>
+                            <div class="invalid-feedback">Please enter a valid Vehicle Group (max 20 characters, alphabets only).</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Vehicle Group Modal -->
+<div class="modal fade" id="editVehicleGroupModal" tabindex="-1" aria-labelledby="editVehicleGroupModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editVehicleGroupModalLabel">Edit Vehicle Group</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editVehicleGroupForm" action="@Url.Action("VehicleGroupUpdate", "VehicleGroup")" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="Id" id="editVehicleGroupId" value="" />
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <h5 class="mb-3" style="background-color: whitesmoke; color: black; padding: 10px; text-transform: uppercase;">Edit Vehicle Group</h5>
+                        </div>
+                        <div class="col-lg-12">
+                            <label for="editVehicleGroup">Vehicle Group *</label>
+                            <input type="text" class="form-control" id="editVehicleGroup" name="VehicleGroup" maxlength="20"
+                                   pattern="[A-Za-z]{1,20}" title="Please enter alphabets only (max 20 characters)" required>
+                            <div class="invalid-feedback">Please enter a valid Vehicle Group (max 20 characters, alphabets only).</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Update</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('#vehicleGroupList').DataTable();
+
+        $('#vehicleGroupForm').submit(function (e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+            $.ajax({
+                url: '/VehicleGroup/VehicleGroupAdd',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire("Success!", "Vehicle Group added successfully.", "success")
+                            .then(() => {
+                                window.location.reload();
+                            });
+                    } else {
+                        Swal.fire("Error!", response.message || "There was an issue adding the Vehicle Group.", "error");
+                    }
+                },
+                error: function () {
+                    Swal.fire("Error!", "There was an error processing your request.", "error");
+                }
+            });
+        });
+
+        $('#editVehicleGroupForm').submit(function (e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+            $.ajax({
+                url: '/VehicleGroup/VehicleGroupUpdate',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire("Updated!", "Vehicle Group updated successfully.", "success").then(() => {
+                            $('#editVehicleGroupModal').modal('hide');
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire("Error!", response.message || "Failed to update Vehicle Group.", "error");
+                    }
+                },
+                error: function () {
+                    Swal.fire("Error!", "An error occurred while updating the Vehicle Group.", "error");
+                }
+            });
+        });
+    });
+
+    function addVehicleGroupModal() {
+        $('#addVehicleGroupModal').modal('show');
+    }
+
+    function EditVehicleGroup(id, vehicleGroup) {
+        $("#editVehicleGroupId").val(id);
+        $("#editVehicleGroup").val(vehicleGroup);
+        $('#editVehicleGroupModal').modal('show');
+    }
+
+    function DeleteVehicleGroup(id) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/VehicleGroup/Delete/' + id,
+                    type: 'POST',
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire("Deleted!", "Vehicle Group has been deleted.", "success").then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire("Error!", response.message || "There was an issue deleting the Vehicle Group.", "error");
+                        }
+                    },
+                    error: function () {
+                        Swal.fire("Error!", "There was an error processing your request.", "error");
+                    }
+                });
+            }
+        });
+    }
+
+    function searchTable() {
+        var idInput = document.getElementById("searchId").value.toLowerCase();
+        var vehicleGroupInput = document.getElementById("searchVehicleGroup").value.toLowerCase();
+        var table = document.getElementById("vehicleGroupList");
+        var rows = table.getElementsByTagName("tr");
+
+        for (var i = 1; i < rows.length; i++) {
+            var idColumn = rows[i].getElementsByTagName("td")[1]; // Id is in the second column
+            var vehicleGroupColumn = rows[i].getElementsByTagName("td")[2]; // Vehicle Group is in the third column
+
+            if (idColumn && vehicleGroupColumn) {
+                var idText = idColumn.textContent.toLowerCase();
+                var vehicleGroupText = vehicleGroupColumn.textContent.toLowerCase();
+
+                // Check if both fields match
+                if (idText.includes(idInput) && vehicleGroupText.includes(vehicleGroupInput)) {
+                    rows[i].style.display = "";
+                } else {
+                    rows[i].style.display = "none";
+                }
+            }
+        }
+    }
+</script>

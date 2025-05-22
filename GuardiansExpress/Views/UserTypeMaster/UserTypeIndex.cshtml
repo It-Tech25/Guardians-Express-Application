@@ -1,0 +1,273 @@
+﻿@model IEnumerable<GuardiansExpress.Models.DTOs.UserTypeMasterDto>
+@{
+    int rCnt = 1;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="container-full">
+            <div class="content">
+                <div class="row">
+                    <div class="col-md-12 mt-3">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">User Type Master List</h4>
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserTypeModal">
+                                    <i class="fas fa-plus"></i> Add User Type
+                                </button>
+                            </div>
+                             <div class="box-body">
+                        <div class="table-responsive">
+                            <table id="userTypeTable" class="text-fade table table-bordered" style="width:100%">
+                                <thead>
+                            
+                                            <tr class="text-dark">
+                                                <th>S.No</th>
+                                                <th>User Type Name</th>
+                                                <th>Description</th>
+                                                <th>Status</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var userType in Model)
+                                            {
+                                                <tr>
+                                                    <td scope="row">@(rCnt++)</td>
+                                                    <td>
+                                                        <a href="#" onclick="EditUserType('@userType.UserTypeId', '@userType.UserTypeName', '@userType.Description')"
+                                                           title="Edit" class="text-primary">
+                                                            @userType.UserTypeName
+                                                        </a>
+                                                    </td>
+                                                    <td>@userType.Description</td>
+                                                    <td>
+                                                        <a href="#" onclick="DeleteUserType(@userType.UserTypeId)" title="Delete">
+                                                            <button type="button" class="waves-effect waves-circle btn btn-circle btn-danger btn-xs">
+                                                                <i class="fa fa-trash"></i>
+                                                            </button>
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add User Type Modal -->
+<div class="modal fade" id="addUserTypeModal" tabindex="-1" aria-labelledby="addUserTypeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addUserTypeModalLabel">Add User Type</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="UserTypeMasterForm" action="@Url.Action("UserTypeAdd", "UserTypeMaster")" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <h5 class="mb-3" style="background-color: whitesmoke; color: black; padding: 10px; text-transform: uppercase;">User Type Details</h5>
+                        </div>
+                        <div class="col-lg-6">
+                            <label for="UserTypeName">User Type Name *</label>
+                            <input type="text" class="form-control" id="UserTypeName" name="UserTypeName" required placeholder="Enter User Type Name" />
+                        </div>
+                        <div class="col-lg-6">
+                            <label for="Description">Description</label>
+                            <input type="text" class="form-control" id="Description" name="Description" placeholder="Enter Description" />
+                        </div>
+                    </div>
+
+                    <div class="row mt-4 align-items-center">
+                        <div class="col-lg-12">
+                            <label for="Status">Status *</label>
+                            <select class="form-control" id="Status" name="Status" required>
+                                <option value="--Select--" selected>Select</option>
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <button type="submit" class="btn btn-primary">Save</button>
+                            <button type="reset" class="btn btn-success">Reset</button>
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Type Modal -->
+<div class="modal fade" id="editUserTypeModal" tabindex="-1" aria-labelledby="editUserTypeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editUserTypeModalLabel">Edit User Type</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editUserTypeForm" action="@Url.Action("UserTypeUpdate", "UserTypeMaster")" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="UserTypeId" id="editUserTypeId" value="" />
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <h5 class="mb-3" style="background-color: whitesmoke; color: black; padding: 10px; text-transform: uppercase;">User Type Details</h5>
+                        </div>
+                        <div class="col-lg-6">
+                            <label for="editUserTypeName">User Type Name *</label>
+                            <input type="text" class="form-control" id="editUserTypeName" name="UserTypeName" required placeholder="Enter User Type Name" />
+                        </div>
+                        <div class="col-lg-6">
+                            <label for="editDescription">Description</label>
+                            <input type="text" class="form-control" id="editDescription" name="Description" placeholder="Enter Description" />
+                        </div>
+                    </div>
+
+                    <div class="row mt-4 align-items-center">
+                        <div class="col-lg-12">
+                            <label for="editStatus">Status *</label>
+                            <select class="form-control" id="editStatus" name="Status" required>
+                                <option value="--Select--">Select</option>
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <button type="submit" class="btn btn-primary">Update</button>
+                            <button type="reset" class="btn btn-success">Reset</button>
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        // Initialize DataTable
+        $('#userTypeTable').DataTable();
+
+        // Add User Type Form Submission
+        $('#UserTypeMasterForm').submit(function (e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+            $.ajax({
+                url: '/UserTypeMaster/UserTypeAdd',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire("Success!", "User Type added successfully.", "success")
+                        .then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire("Error!", response.message || "User Type already exists.", "error");
+                    }
+                },
+                error: function () {
+                    Swal.fire("Error!", "There was an error processing your request.", "error");
+                }
+            });
+        });
+
+        // Edit User Type Form Submission
+        $('#editUserTypeForm').submit(function (e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+            $.ajax({
+                url: '/UserTypeMaster/UserTypeUpdate',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire("Updated!", "User Type updated successfully.", "success").then(() => {
+                            $('#editUserTypeModal').modal('hide');
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire("Error!", response.message || "Failed to update User Type.", "error");
+                    }
+                },
+                error: function () {
+                    Swal.fire("Error!", "An error occurred while updating the User Type.", "error");
+                }
+            });
+        });
+    });
+
+    // Edit User Type Function
+    function EditUserType(userTypeId, userTypeName, description, status) {
+        console.log("Editing User Type:", userTypeId, userTypeName, description, status);
+
+        // Set the hidden ID field
+        $("#editUserTypeId").val(userTypeId);
+
+        // Set other values
+        $("#editUserTypeName").val(userTypeName);
+        $("#editDescription").val(description);
+        $("#editStatus").val(status);
+
+        // Show the edit modal
+        $('#editUserTypeModal').modal('show');
+    }
+
+    // Delete User Type Function
+    function DeleteUserType(userTypeId) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/UserTypeMaster/Delete/' + userTypeId,
+                    type: 'POST',
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire("Deleted!", "User Type has been deleted.", "success").then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire("Error!", response.message || "There was an issue deleting the User Type.", "error");
+                        }
+                    },
+                    error: function () {
+                        Swal.fire("Error!", "There was an error processing your request.", "error");
+                    }
+                });
+            }
+        });
+    }
+</script>
