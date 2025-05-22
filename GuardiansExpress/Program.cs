@@ -168,9 +168,11 @@ builder.Services.AddScoped<IExpCreditNoteService, ExpCreditNotesService>();
 builder.Services.AddScoped<IExpCreditNoteRepository, ExpCreditNoteRepository>();
 
 
-
 builder.Services.AddScoped<IFinancialLedgerRepository, FinancialLedgerRepository>();
 //builder.Services.AddScoped<IProfitLossService, ProfitLossService>();
+
+builder.Services.AddScoped<IDebitNoteService, DebitNoteService>();
+builder.Services.AddScoped<IDebitNoteRepository, DebitNoteRepository>();
 
 
 

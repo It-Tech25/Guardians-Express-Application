@@ -1,0 +1,224 @@
+﻿@model IEnumerable<GuardiansExpress.Models.DTOs.DebitNoteFilterDTO>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var branch = Context.Request.Method == "POST"
+        ? Context.Request.Form["Branch"].ToString()
+        : Context.Request.Query["Branch"].ToString();
+
+    var fromDate = Context.Request.Method == "POST"
+        ? Context.Request.Form["FromDate"].ToString()
+        : Context.Request.Query["FromDate"].ToString();
+
+    var toDate = Context.Request.Method == "POST"
+        ? Context.Request.Form["ToDate"].ToString()
+        : Context.Request.Query["ToDate"].ToString();
+
+    int currentPage = ViewBag.CurrentPage != null ? (int)ViewBag.CurrentPage : 1;
+    int totalPages = ViewBag.TotalPages != null ? (int)ViewBag.TotalPages : 1;
+    int pageSize = 10; // adjust if needed
+    int rCnt = (currentPage - 1) * pageSize + 1;
+}
+
+<title>@ViewBag.Title</title>
+
+<style>
+    .form-row .form-group {
+        margin-right: 1rem;
+    }
+
+    .search-form {
+        margin-bottom: 20px;
+    }
+
+    .no-records {
+        margin-top: 10px;
+        font-size: 16px;
+        color: red;
+        text-align: center;
+    }
+</style>
+
+<div class="header">
+    <h2>Inc/ Debit Note Register</h2>
+</div>
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="row">
+            <div class="col-md-12 mt-3">
+                <div class="card">
+
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4 class="card-title mb-0">Inc/ Debit Note Register</h4>
+
+                        <!-- Export Buttons -->
+                        <form asp-action="Export" method="post" class="d-flex gap-2">
+                            <input type="hidden" name="Branch" value="@branch" />
+                            <input type="hidden" name="NoteDate" value="@fromDate" />
+                            <input type="hidden" name="ToDate" value="@toDate" />
+
+                            <button type="submit" name="exportType" value="Excel" class="btn btn-success">
+                                <i class="fa fa-file-excel"></i> Export to Excel
+                            </button>
+                            <button type="submit" name="exportType" value="PDF" class="btn btn-danger">
+                                <i class="fa fa-file-pdf"></i> Export to PDF
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="box-body">
+                        <!-- Search Form -->
+                        <form id="dbit" action="@Url.Action("DebitNote", "DebitNoteFilterIndex")" method="post" class="search-form">
+                            <div class="form-row d-flex flex-wrap align-items-end">
+                                <div class="form-group">
+                                    <label for="Branch">Branch:</label>
+                                    <select id="Branch" name="Branch" class="form-control" >
+                                        <option value="">--Select Branch--</option>
+                                        @* Pre-select branch *@
+                                        @foreach (var item in ViewBag.BranchList)
+                                        {
+                                            <option value="@item">@item</option>
+                                        }
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="FromDate">Date:</label>
+                                    <div class="d-flex align-items-center">
+                                        <input type="date" id="FromDate" name="FromDate" class="form-control" value="@fromDate" />
+                                        <span class="mx-2">-</span>
+                                        <input type="date" id="ToDate" name="ToDate" class="form-control" value="@toDate" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <button type="submit" class="btn btn-primary mt-4">Search</button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <!-- Table & Pagination -->
+                        <div id="debitNoteTable">
+                            @if (!Model.Any())
+                            {
+                                <div class="no-records"><b>No Records Found</b></div>
+                            }
+                            else
+                            {
+                                <table class="table table-bordered table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Branch</th>
+                                            <th>Note Date</th>
+                                            <th>Note Type</th>
+                                            <th>DN/CN No</th>
+                                            <th>Account Head</th>
+                                            <th>Bill No</th>
+                                            <th>Bill Date</th>
+                                            <th>Sales Type</th>
+                                            <th>Bill Amount</th>
+                                            <th>Address</th>
+                                            <th>GSTIN</th>
+                                            <th>No GST</th>
+                                            <th>Created At</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in Model)
+                                        {
+                                            <tr>
+                                                <td>@rCnt++</td>
+                                                <td>@item.Branch</td>
+                                                <td>@item.NoteDate?.ToString("dd-MM-yyyy")</td>
+                                                <td>@item.NoteType</td>
+                                                <td>@item.DN_CN_No</td>
+                                                <td>@item.AccHead</td>
+                                                <td>@item.BillNo</td>
+                                                <td>@item.BillDate?.ToString("dd-MM-yyyy")</td>
+                                                <td>@item.SalesType</td>
+                                                <td>@item.BillAmount?.ToString("F2")</td>
+                                                <td>@item.Address</td>
+                                                <td>@item.AccGSTIN</td>
+                                                <td>@(item.NoGST == true ? "Yes" : "No")</td>
+                                                <td>@item.CreatedAt?.ToString("dd-MM-yyyy")</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+
+                                <nav aria-label="Page navigation">
+                                    <ul class="pagination justify-content-center">
+                                        @for (int i = 1; i <= totalPages; i++)
+                                        {
+                                            <li class="page-item @(i == currentPage ? "active" : "")">
+                                                <a class="page-link" href="#" data-page="@i">@i</a>
+                                            </li>
+                                        }
+                                    </ul>
+                                </nav>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+
+    <!-- jQuery (must come before DataTables) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+
+    <script>
+        $(document).ready(function () {
+
+            // Handle search form submit with AJAX
+            $('#dbit').submit(function (e) {
+                e.preventDefault();
+                loadTable(1); // Always start at page 1
+            });
+
+            // Handle pagination link clicks dynamically
+            $('#debitNoteTable').on('click', '.pagination a', function (e) {
+                e.preventDefault();
+                var page = $(this).data('page');
+                if (page) {
+                    loadTable(page);
+                }
+            });
+
+            function loadTable(page) {
+                var form = $('#dbit');
+                var data = form.serializeArray();
+
+                // Add the page number to form data
+                data.push({ name: "page", value: page });
+
+                $.ajax({
+                    url: form.attr('action'),
+                    type: "POST",
+                    data: data,
+                    success: function (result) {
+                        // Replace the entire #debitNoteTable content with partial view's content
+                        var newContent = $(result).find('#debitNoteTable').html();
+                        $('#debitNoteTable').html(newContent);
+                    },
+                    error: function () {
+                        alert('Error loading data. Please try again.');
+                    }
+                });
+            }
+
+        });
+    </script>
+}
