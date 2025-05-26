@@ -174,9 +174,11 @@ builder.Services.AddScoped<ICashReceiptRepository, CashReceiptRegisterRepository
 builder.Services.AddScoped<ICashReceiptService, CashReceiptService>();
 
 
-
 builder.Services.AddScoped<IFinancialLedgerRepository, FinancialLedgerRepository>();
 //builder.Services.AddScoped<IProfitLossService, ProfitLossService>();
+
+builder.Services.AddScoped<IDebitNoteService, DebitNoteService>();
+builder.Services.AddScoped<IDebitNoteRepository, DebitNoteRepository>();
 
 
 
