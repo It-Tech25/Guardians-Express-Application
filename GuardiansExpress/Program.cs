@@ -167,6 +167,12 @@ builder.Services.AddScoped<IDayBookRepository, DayBookRepository>();
 builder.Services.AddScoped<IExpCreditNoteService, ExpCreditNotesService>();
 builder.Services.AddScoped<IExpCreditNoteRepository, ExpCreditNoteRepository>();
 
+builder.Services.AddScoped<IInvoiceRegisterRepository, InvoiceRegisterRepository>();
+builder.Services.AddScoped<IInvoiceRegisterService, InvoiceRegisterService>();
+
+builder.Services.AddScoped<ICashReceiptRepository, CashReceiptRegisterRepository>();
+builder.Services.AddScoped<ICashReceiptService, CashReceiptService>();
+
 
 builder.Services.AddScoped<IFinancialLedgerRepository, FinancialLedgerRepository>();
 //builder.Services.AddScoped<IProfitLossService, ProfitLossService>();
