@@ -174,6 +174,9 @@ builder.Services.AddScoped<IFinancialLedgerRepository, FinancialLedgerRepository
 builder.Services.AddScoped<IDebitNoteService, DebitNoteService>();
 builder.Services.AddScoped<IDebitNoteRepository, DebitNoteRepository>();
 
+builder.Services.AddScoped<ICashPaymentRepository, CashPaymentRepository>();
+builder.Services.AddScoped<ICashPaymentService, CashPaymentService>();
+
 
 
 //var context = new CustomAssemblyLoadContext();
