@@ -8,9 +8,12 @@ namespace GuardiansExpress.Models.DTOs
     {
         public int Id { get; set; }
 
-        public string? Branch { get; set; }
 
-     
+        public string? Branch { get; set; }
+        public string? branchname { get; set; }
+
+
+
         public DateTime? NoteDate { get; set; }
 
       
