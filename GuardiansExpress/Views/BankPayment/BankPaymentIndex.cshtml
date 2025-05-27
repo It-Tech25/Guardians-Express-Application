@@ -1,0 +1,185 @@
+﻿@model List<GuardiansExpress.Models.DTOs.VoucherDto>
+@{
+    ViewData["Title"] = "Bank Payment Register";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="content-wrapper">
+    <div class="container-full">
+        <div class="content">
+            <div class="row">
+                <div class="col-md-12 mt-3">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="container-fluid">
+                                <!-- Page Header with Export Buttons -->
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <h2 class="mb-0">Bank Payment Register</h2>
+                                    <div>
+                                        <a href="@Url.Action("ExportToExcel", "BankPayment")" class="btn btn-success me-2">
+                                            <i class="mdi mdi-file-excel"></i> Export to Excel
+                                        </a>
+                                        <a href="@Url.Action("ExportToPdf", "BankPayment")" class="btn btn-danger">
+                                            <i class="mdi mdi-file-pdf"></i> Export to PDF
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <!-- Search Filters Card -->
+                                <div class="card mb-4">
+                                    <div class="card-header bg-primary text-white">
+                                        <h5 class="card-title mb-0">Search Filters</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <form method="post" action="@Url.Action("Search", "BankPayment")">
+                                            <div class="row">
+                                                <div class="col-md-3">
+                                                    <div class="mb-3">
+                                                        <label for="Branch" class="form-label">Branch</label>
+                                                        <select class="form-select" id="Branch" name="Branch">
+                                                            <option value="">All Branches</option>
+                                                            @if (ViewBag.BranchList != null)
+                                                            {
+                                                                @foreach (var branch in ViewBag.BranchList as List<SelectListItem>)
+                                                                {
+                                                                    <option value="@branch.Value">@branch.Text</option>
+                                                                }
+                                                            }
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <div class="mb-3">
+                                                        <label for="FromDate" class="form-label">From Date</label>
+                                                        <input type="date" class="form-control" id="FromDate" name="FromDate">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <div class="mb-3">
+                                                        <label for="ToDate" class="form-label">To Date</label>
+                                                        <input type="date" class="form-control" id="ToDate" name="ToDate">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <div class="mb-3">
+                                                        <label class="form-label">&nbsp;</label>
+                                                        <div>
+                                                            <button type="submit" class="btn btn-primary px-4">
+                                                                <i class="mdi mdi-magnify"></i> Search
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                @if (Model != null && Model.Any())
+                                {
+                                    <!-- Results Table -->
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <div class="table-responsive">
+                                                <table class="table table-bordered table-striped table-hover" id="cashPaymentTable">
+                                                    <thead class="bg-light">
+                                                        <tr>
+                                                            <th>Voucher ID</th>
+                                                            <th>Voucher Type</th>
+                                                            <th>Branch</th>
+                                                            <th>Serial Number</th>
+                                                            <th>Voucher Number</th>
+                                                            <th>Voucher Date</th>
+                                                            <th>Account Head</th>
+                                                            <th>Cheque Number</th>
+                                                            <th>Cheque Date</th>
+                                                            <th>Total Amount</th>
+                                                            <th>Account Description</th>
+                                                            <th>Current Balance</th>
+                                                            <th>Particular</th>
+                                                            <th>Bill To Party</th>
+                                                            <th>Bill Number</th>
+                                                            <th>Vehicle Number</th>
+                                                            <th>Transaction Type</th>
+                                                            <th>Amount</th>
+                                                            <th>Balance Amount</th>
+                                                            <th>Created On</th>
+                                                            <th>Updated On</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach (var item in Model)
+                                                        {
+                                                            <tr>
+                                                                <td>@item.VoucherId</td>
+                                                                <td>@item.VoucherType</td>
+                                                                <td>@item.Branch</td>
+                                                                <td>@item.SerialNumber</td>
+                                                                <td>@item.VoucherNumber</td>
+                                                                <td>@(item.VoucherDate?.ToString("dd/MM/yyyy") ?? "-")</td>
+                                                                <td>@item.AccountHead</td>
+                                                                <td>@item.ChequeNumber</td>
+                                                                <td>@(item.ChequeDate?.ToString("dd/MM/yyyy") ?? "-")</td>
+                                                                <td class="text-end">@(item.TotalAmount?.ToString("F2") ?? "0.00")</td>
+                                                                <td>@item.AccountDescription</td>
+                                                                <td class="text-end">@(item.CurrentBalance?.ToString("F2") ?? "0.00")</td>
+                                                                <td>@item.Particular</td>
+                                                                <td>@item.BillToParty</td>
+                                                                <td>@item.BillNumber</td>
+                                                                <td>@item.VehicleNumber</td>
+                                                                <td>@item.TransactionType</td>
+                                                                <td class="text-end">@(item.Amount?.ToString("F2") ?? "0.00")</td>
+                                                                <td class="text-end">@(item.BalAmount?.ToString("F2") ?? "0.00")</td>
+                                                                <td>@(item.CreatedOn?.ToString("dd/MM/yyyy HH:mm") ?? "-")</td>
+                                                                <td>@(item.UpdatedOn?.ToString("dd/MM/yyyy HH:mm") ?? "-")</td>
+                                                            </tr>
+                                                        }
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            <div class="mt-3">
+                                                <p class="text-muted">Total Records: @Model.Count</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                                else if (ViewBag.SearchPerformed == true)
+                                {
+                                    <!-- No Records Found Message -->
+                                    <div class="alert alert-info text-center" role="alert">
+                                        <h4 class="alert-heading">No Records Found!</h4>
+                                        <p class="mb-0">No cash payment records found for the selected criteria. Please try different search parameters.</p>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <!-- Default Message -->
+                                    <div class="alert alert-info text-center" role="alert">
+                                        <p class="mb-0">No records found matching your criteria.</p>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#BankPaymentTable').DataTable({
+                "responsive": true,
+                "lengthChange": false,
+                "autoWidth": false,
+                "pageLength": 25,
+                "order": [[5, "desc"]], // Sort by Voucher Date descending
+                "columnDefs": [
+                    { "targets": [9, 11, 17, 18], "className": "text-end" } // Right align amount columns
+                ]
+            });
+        });
+    </script>
+}
