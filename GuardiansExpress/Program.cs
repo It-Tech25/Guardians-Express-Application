@@ -183,6 +183,12 @@ builder.Services.AddScoped<IDebitNoteRepository, DebitNoteRepository>();
 builder.Services.AddScoped<ICashPaymentRepository, CashPaymentRepository>();
 builder.Services.AddScoped<ICashPaymentService, CashPaymentService>();
 
+builder.Services.AddScoped<IBankReceiptRepository, BankReceiptRepository>();
+builder.Services.AddScoped<IBankReceiptService, BankReceiptService>();
+
+builder.Services.AddScoped<IBankPaymentRepository, BankPaymentRepository>();
+builder.Services.AddScoped<IBankPaymentService, BankPaymentService>();
+
 
 
 //var context = new CustomAssemblyLoadContext();
