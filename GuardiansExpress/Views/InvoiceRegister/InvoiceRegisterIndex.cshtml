@@ -1,0 +1,132 @@
+﻿@model List<GuardiansExpress.Models.DTOs.InvoiceDTO>
+@{
+    ViewBag.Title = "Invoice Register";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="content-wrapper">
+    <div class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1 class="m-0">@ViewBag.Title</h1>
+                </div>
+                <div class="col-sm-6 text-right">
+                    <a href="@Url.Action("ExportToExcel", "InvoiceRegister")" class="btn btn-success">
+                        <i class="fas fa-file-excel"></i> Export to Excel
+                    </a>
+                    <a href="@Url.Action("ExportToPdf", "InvoiceRegister")" class="btn btn-danger">
+                        <i class="fas fa-file-pdf"></i> Export to PDF
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="content">
+        <div class="container-fluid">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Search Filters</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" asp-action="Search" asp-controller="InvoiceRegister">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="Branch">Branch</label>
+                                    <select name="Branch" id="Branch" class="form-control">
+                                        <option value="">All Branches</option>
+                                        @foreach (var item in ViewBag.BranchList as List<SelectListItem>)
+                                        {
+                                            <option value="@item.Value">@item.Text</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="FromDate">From Date</label>
+                                    <input type="date" name="FromDate" id="FromDate" class="form-control"
+                                           value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="ToDate">To Date</label>
+                                    <input type="date" name="ToDate" id="ToDate" class="form-control"
+                                           value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                                </div>
+                            </div>
+
+                            <div class="col-md-3 align-self-end">
+                                <div class="form-group">
+                                    <label>&nbsp;</label>
+                                    <button type="submit" class="btn btn-primary btn-block">
+                                        <i class="fas fa-search"></i> Search
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            @if (Model != null && Model.Any())
+            {
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Invoice Register Results</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped">
+                                <thead>
+                                    <tr>
+                                        @foreach (var column in ViewBag.TableColumns as List<string>)
+                                        {
+                                            <th>@column</th>
+                                        }
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model)
+                                    {
+                                        <tr>
+                                            @foreach (var column in ViewBag.TableColumns as List<string>)
+                                            {
+                                                <td>@item.GetType().GetProperty(column)?.GetValue(item)?.ToString()</td>
+                                            }
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (Model != null)
+            {
+                <div class="alert alert-info">
+                    No records found matching your criteria.
+                </div>
+            }
+        </div>
+    </section>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Set default dates to current date if not already set
+            if (!$('#FromDate').val()) {
+                $('#FromDate').val('@DateTime.Now.ToString("yyyy-MM-dd")');
+            }
+            if (!$('#ToDate').val()) {
+                $('#ToDate').val('@DateTime.Now.ToString("yyyy-MM-dd")');
+            }
+        });
+    </script>
+}
