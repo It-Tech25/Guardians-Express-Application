@@ -1472,7 +1472,7 @@
             // Function to show/hide fields when selecting "Sundry Creditors"
             $("#editAccGroup").change(function () {
                 let selectedValue = $(this).val();
-                if (selectedValue === "SundryCreditors" || selectedValue === "SundryDebitors" || selectedValue === "Owner") {
+                if (selectedValue === "SundryCreditors" || selectedValue === "SundryDebtors" || selectedValue === "Owner") {
                     $("#editContactAddressField").removeClass("d-none");
                     $("#editDocumentBankField").removeClass("d-none");
                     $("#editAddressField").removeClass("d-none");
@@ -1515,7 +1515,7 @@
         // Show/hide additional fields for SundryCreditors AND SundryDebtors
         $("#AccGroup").change(function () {
             let selected = $(this).val();
-                if (selected === "SundryCreditors" || selected === "SundryDebitors" || selected === "Owner") { // Corrected typo
+                if (selected === "SundryCreditors" || selected === "SundryDebtors" || selected === "Owner") { // Corrected typo
                 $("#additionalFields").removeClass("d-none"); // Show all extra fields
             } else {
                 $("#additionalFields").addClass("d-none"); // Hide for other groups

@@ -46,8 +46,7 @@ namespace GuardiansExpress.Controllers
             // Get results - filter only for Cash Receipt vouchers
             var model = _bankPaymentService.GetBankPaymentRegisterDetails(
                 string.IsNullOrEmpty(branchId) ? null : int.Parse(branchId),
-                fromDate,
-                toDate);
+                fromDate,toDate); 
 
             TempData["BankPaymentRegisterData"] = JsonConvert.SerializeObject(model);
             return View("BankPaymentIndex", model);
