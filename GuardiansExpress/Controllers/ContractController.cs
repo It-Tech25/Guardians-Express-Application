@@ -315,16 +315,6 @@ namespace GuardiansExpress.Controllers
 
             try
             {
-                // Delete contract items first
-                //var contractItems = _context.contractEntities
-                //    .Where(item => item.ContractId == id)
-                //    .FirstOrDefault();
-                //contractItems.IsActive = false;
-                //contractItems.IsDeleted = true;
-                //_context.contractEntities.Update(contractItems);
-                //_context.SaveChanges();
-
-                // Then, delete the contract
                 var response = _service.DeleteContract(id);
 
                 if (response.statuCode == 1)
@@ -340,7 +330,6 @@ namespace GuardiansExpress.Controllers
             {
                 return Json(new { success = false, message = "Error: " + ex.Message });
             }
-
             
         }
     }
