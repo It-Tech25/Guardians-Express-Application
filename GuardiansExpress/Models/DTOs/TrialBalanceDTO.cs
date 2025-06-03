@@ -12,8 +12,8 @@ namespace GuardiansExpress.Models.DTOs
         public decimal? OpeningDebit { get; set; }
         public decimal? OpeningCredit { get; set; }
 
-        public decimal? CurrentDebit { get; set; }
-        public decimal? CurrentCredit { get; set; }
+        public decimal? FreightAmount { get; set; }
+        public decimal? HireAmount { get; set; }
 
         public decimal? TotalDebit { get; set; }
         public decimal? TotalCredit { get; set; }

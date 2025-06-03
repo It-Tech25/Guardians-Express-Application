@@ -61,55 +61,56 @@
             </div>
         </div>
 
-<div class="table-responsive">
-    <table class="table table-bordered table-striped">
-        <thead>
-            <tr>
-                <th rowspan="2">S.No</th>
-                <th rowspan="2">Acc Head</th>
-                <th rowspan="2">Group</th>
-                <th rowspan="2">Sub Group</th>
-                <th colspan="2">Opening Balance</th>
-                <th colspan="2">Current Balance</th>
-                <th colspan="2">Total Balance</th>
-            </tr>
-            <tr>
-                <th>Debit</th>
-                <th>Credit</th>
-                <th>Debit</th>
-                <th>Credit</th>
-                <th>Debit</th>
-                <th>Credit</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (Model != null && Model.Any())
-            {
-                int count = 1;
-                foreach (var item in Model)
-                {
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead>
                     <tr>
-                        <td>@count</td>
-                        <td>@item.AccHead</td>
-                        <td>@item.Group</td>
-                        <td>@item.SubGroup</td>
-                        <td>@item.OpeningDebit</td>
-                        <td>@item.OpeningCredit</td>
-                        <td>@item.CurrentDebit</td>
-                        <td>@item.CurrentCredit</td>
-                        <td>@item.TotalDebit</td>
-                        <td>@item.TotalCredit</td>
+                        <th rowspan="2">S.No</th>
+                        <th rowspan="2">Acc Head</th>
+                        <th rowspan="2">Group</th>
+                        <th rowspan="2">Sub Group</th>
+                        <th colspan="2">Opening Balance</th>
+                        <th colspan="2">Current Balance</th>
+                        <th colspan="2">Total Balance</th>
                     </tr>
-                    count++;
-                }
-            }
-            else
-            {
-                <tr>
-                    <td colspan="10" class="text-center">No data available</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+                    <tr>
+                        <th>Debit</th>
+                        <th>Credit</th>
+                        <th>FreightAmount</th>
+                        <th>HireAmount</th>
+                        <th>Debit</th>
+                        <th>Credit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        int count = 1;
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@count</td>
+                                <td>@item.AccHead</td>
+                                <td>@item.Group</td>
+                                <td>@item.SubGroup</td>
+                                <td>@item.OpeningDebit</td>
+                                <td>@item.OpeningCredit</td>
+                                <td>@item.FreightAmount</td>
+                                <td>@item.HireAmount</td>
+                                <td>@item.TotalDebit</td>
+                                <td>@item.TotalCredit</td>
+                            </tr>
+                            count++;
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="10" class="text-center">No data available</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
-
