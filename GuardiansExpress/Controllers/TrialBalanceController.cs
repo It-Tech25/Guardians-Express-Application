@@ -15,8 +15,9 @@ public class TrialBalanceController : Controller
 
     public IActionResult TrialBalanceIndex(string Branch, string AccGroup, DateTime? DateFrom, DateTime? DateTo)
     {
+        // Fixed the logic error - changed !a.IsDeleted==false to a.IsDeleted==false
         ViewBag.group = _context.ledgerEntity
-                            .Where(a => !a.IsDeleted==false)
+                            .Where(a => a.IsDeleted == false)
                             .Select(a => a.AccGroup)
                             .Distinct()
                             .ToList();
@@ -38,4 +39,3 @@ public class TrialBalanceController : Controller
         return View(data);
     }
 }
-
