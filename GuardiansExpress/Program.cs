@@ -158,6 +158,11 @@ builder.Services.AddScoped<IBalanceSheetService, BalanceSheetService>();
 builder.Services.AddScoped<ITrialBalanceRepository, TrialBalanceRepository>();
 builder.Services.AddScoped<ITrialBalanceService, TrialBalanceService>();
 
+builder.Services.AddScoped<IProfitAndLossRepository, ProfitAndLossRepository>();
+builder.Services.AddScoped<IProfitAndLossService, ProfitAndLossService>();
+
+
+
 builder.Services.AddScoped<IBankRecoRepository, BankRecoRepository>();
 builder.Services.AddScoped<IBankRecoService, BankRecoService>();
 
@@ -188,6 +193,9 @@ builder.Services.AddScoped<IBankReceiptService, BankReceiptService>();
 
 builder.Services.AddScoped<IBankPaymentRepository, BankPaymentRepository>();
 builder.Services.AddScoped<IBankPaymentService, BankPaymentService>();
+
+builder.Services.AddScoped<IContractReportRepository, ContractReportRepository>();
+builder.Services.AddScoped<IContractReportService, ContractReportService>();
 
 
 

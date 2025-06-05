@@ -14,6 +14,5 @@ public class BalanceSheetController : Controller
     {
         var balanceSheets = _balanceSheetService.GetBalanceSheet();
         return View(balanceSheets); // You should have a corresponding Index.cshtml
-    }
-    
+    }   
 }

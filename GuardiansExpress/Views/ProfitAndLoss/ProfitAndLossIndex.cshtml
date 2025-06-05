@@ -1,0 +1,177 @@
+﻿@model List<GuardiansExpress.Models.Entity.LedgerMasterEntity>
+@{
+    ViewData["Title"] = "Profit And Loss Report";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+}
+
+<style>
+    .dropdown-menu {
+        width: 100%;
+    }
+
+    .table-responsive {
+        max-height: 70vh;
+        overflow: auto;
+    }
+
+    .selected-filter {
+        background-color: #e6f7ff;
+        border-left: 3px solid #1890ff;
+        padding-left: 10px;
+    }
+
+    .table th {
+        position: sticky;
+        top: 0;
+        background-color: #f8f9fa;
+        z-index: 10;
+    }
+
+    .text-end {
+        text-align: right;
+    }
+</style>
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="container-full">
+            <div class="content">
+                <div class="row">
+                    <div class="col-md-12 mt-3">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h4 class="card-title">Profit And Loss Report</h4>
+                                <div>
+                                    <a href="javascript:void(0)" onclick="exportToPdf()" class="btn btn-danger">
+                                        <i class="fas fa-file-pdf"></i> Export PDF
+                                    </a>
+                                    <a href="javascript:void(0)" onclick="exportToExcel()" class="btn btn-success">
+                                        <i class="fas fa-file-excel"></i> Export Excel
+                                    </a>
+                                </div>
+                            </div>
+                            <form asp-action="Search" method="post" id="searchForm">
+                                <div class="box-body">
+                                    <div class="row g-3">
+                                        <!-- Date Range -->
+                                        <div class="col-md-3">
+                                            <label>Start Date</label>
+                                            <input type="date" name="startDate" class="form-control"
+                                                   value="@ViewBag.StartDate" />
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label>End Date</label>
+                                            <input type="date" name="endDate" class="form-control"
+                                                   value="@ViewBag.EndDate" />
+                                        </div>
+
+                                        <!-- Branch -->
+                                        <div class="col-md-3">
+                                            <label>Branch</label>
+                                            <input type="text" name="branch" class="form-control"
+                                                   value="@ViewBag.SelectedBranch"
+                                                   placeholder="Enter Branch Name" />
+                                        </div>
+
+                                        <!-- Account Group -->
+                                        <div class="col-md-3 @(ViewBag.SelectedAccGroup != null ? "selected-filter" : "")">
+                                            <label>Account Group</label>
+                                            <input type="text" name="accGroup" id="accGroup" class="form-control"
+                                                   placeholder="Enter Account Group"
+                                                   value="@ViewBag.SelectedAccGroup"
+                                                   list="accGroupOptions" />
+                                            <datalist id="accGroupOptions">
+                                                @foreach (var group in ViewBag.UniqueAccountGroups as List<string> ?? new List<string>())
+                                                {
+                                                    <option value="@group">@group</option>
+                                                }
+                                            </datalist>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Submit -->
+                                <div class="text-end mt-3">
+                                    <button type="submit" class="btn btn-success me-2">
+                                        <i class="fa fa-search"></i> Search
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="resetForm()">
+                                        <i class="fa fa-refresh"></i> Reset
+                                    </button>
+                                </div>
+                            </form>
+
+                            <!-- Results Table -->
+                            <div class="card-body">
+                                @if (Model != null && Model.Any())
+                                {
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-hover">
+                                            <thead class="thead-light">
+                                                <tr>
+                                                    <th>Account Group</th>
+                                                    <th>OpeningBalance</th>
+                                                    <th class="text-end">Balance</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var item in Model)
+                                                {
+                                                    <tr>
+                                                        <td>@item.AccGroup</td>
+                                                        <td>@item.BalanceOpening</td>
+                                                        
+                                                        <td class="text-end">@item.BalanceIn.ToString()</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="alert alert-info">
+                                        No records found. Please adjust your search criteria.
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Highlight AccGroup field if it has a value
+        const accGroupField = document.getElementById('accGroup');
+        if (accGroupField && accGroupField.value) {
+            accGroupField.parentElement.classList.add('selected-filter');
+        }
+    });
+
+    function resetForm() {
+        document.getElementById('searchForm').reset();
+        // Remove highlighting
+        document.querySelectorAll('.selected-filter').forEach(el => {
+            el.classList.remove('selected-filter');
+        });
+    }
+
+    function exportToPdf() {
+        // Get all form values
+        const formData = new FormData(document.getElementById('searchForm'));
+        const queryString = new URLSearchParams(formData).toString();
+        window.location.href = '@Url.Action("ExportToPdf", "ProfitAndLoss")?' + queryString;
+    }
+
+    function exportToExcel() {
+        // Get all form values
+        const formData = new FormData(document.getElementById('searchForm'));
+        const queryString = new URLSearchParams(formData).toString();
+        window.location.href = '@Url.Action("ExportToExcel", "ProfitAndLoss")?' + queryString;
+    }
+</script>

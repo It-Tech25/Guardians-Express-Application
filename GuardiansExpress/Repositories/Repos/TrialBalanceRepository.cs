@@ -12,7 +12,6 @@ namespace GuardiansExpress.Repositories.Repos
         {
             _context = context;
         }
-
         public List<TrialBalanceDTO> GetTrialBalance()
         {
             return _context.ledgerEntity
