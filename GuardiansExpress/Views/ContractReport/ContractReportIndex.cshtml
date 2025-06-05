@@ -1,0 +1,285 @@
+﻿@model IEnumerable<GuardiansExpress.Models.DTOs.ContractReportViewModel>
+@{
+    ViewData["Title"] = "Contract Report";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-file-contract me-2"></i>Contract Report
+                        <span class="badge bg-light text-success ms-2">✓</span>
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Search Form -->
+                    <form asp-action="Search" method="post" class="mb-4">
+                        <div class="row g-3">
+                            <div class="col-md-2">
+                                <label for="BranchName" class="form-label">Branch</label>
+                                <select name="BranchName" id="BranchName" class="form-select">
+                                    <option value="">Head Office</option>
+                                    @foreach (var accHead in (IEnumerable<GuardiansExpress.Models.Entity.BranchMasterEntity>)ViewBag.BranchList)
+                                    {
+                                        <option value="@accHead.BranchName">@accHead.BranchName</option>
+                                    }
+
+
+                                </select>
+                            </div>
+
+                            <div class="col-md-2">
+                                <label for="accHead" class="form-label">Acc Head</label>
+                                <input type="text" name="accHead" id="accHead" class="form-control" 
+                                       value="@ViewBag.SelectedAccHead" list="accHeadList" placeholder="Enter Acc Head">
+                                <datalist id="accHeadList">
+                                    @if (ViewBag.AccHeadList != null)
+                                    {
+                                        @foreach (var accHead in ViewBag.AccHeadList)
+                                        {
+                                            <option value="@accHead">@accHead</option>
+                                        }
+                                    }
+                                </datalist>
+                            </div>
+
+                            <div class="col-md-2">
+                                <label for="referenceName" class="form-label">Reference Name</label>
+                                <input type="text" name="referenceName" id="referenceName" class="form-control" 
+                                       value="@ViewBag.SelectedReferenceName" placeholder="Reference Name Not in List">
+                            </div>
+
+                            <div class="col-md-2">
+                                <label for="invoiceType" class="form-label">Invoice Type</label>
+                                <select name="invoiceType" id="invoiceType" class="form-select" asp-items="ViewBag.InvoiceTypeList">
+                                    <option value="">Select</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-2">
+                                <label for="contractType" class="form-label">Contract Type</label>
+                                <select name="contractType" id="contractType" class="form-select" asp-items="ViewBag.ContractTypeList">
+                                    <option value="">Select</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary me-2">
+                                    <i class="fas fa-search me-1"></i>Search
+                                </button>
+                                <a href="@Url.Action("ContractReportIndex")" class="btn btn-secondary">
+                                    <i class="fas fa-refresh me-1"></i>Clear
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+
+                    @if (ViewData.ModelState.Count > 0 && !ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger">
+                            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                            {
+                                <div>@error.ErrorMessage</div>
+                            }
+                        </div>
+                    }
+
+                    <!-- Export Buttons -->
+                    @if (Model != null )
+                    {
+                        <div class="mb-3">
+                            <a href="@Url.Action("ExportToExcel", new { 
+                                branchId = ViewBag.SelectedBranchId, 
+                                accHead = ViewBag.SelectedAccHead, 
+                                referenceName = ViewBag.SelectedReferenceName, 
+                                invoiceType = ViewBag.SelectedInvoiceType, 
+                                contractType = ViewBag.SelectedContractType 
+                            })" class="btn btn-success me-2">
+                                <i class="fas fa-file-excel me-1"></i>Export to Excel
+                            </a>
+                            <a href="@Url.Action("ExportToPdf", new { 
+                                branchId = ViewBag.SelectedBranchId, 
+                                accHead = ViewBag.SelectedAccHead, 
+                                referenceName = ViewBag.SelectedReferenceName, 
+                                invoiceType = ViewBag.SelectedInvoiceType, 
+                                contractType = ViewBag.SelectedContractType 
+                            })" class="btn btn-danger">
+                                <i class="fas fa-file-pdf me-1"></i>Export to PDF
+                            </a>
+                        </div>
+                    }
+
+                    <!-- Results Table -->
+                    @if (Model != null )
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>S.No</th>
+                                        <th>Branch</th>
+                                        <th>Client Name</th>
+                                        <th>Reference Name</th>
+                                        <th>Invoice Type</th>
+                                        <th>Contract Type</th>
+                                        <th>Invoice No</th>
+                                        <th>Material Description</th>
+                                        <th>Start Date</th>
+                                        <th>End Date</th>
+                                        <th>Contract End Date</th>
+                                        <th>From Place</th>
+                                        <th>To Place</th>
+                                        <th>Vehicle Type</th>
+                                        <th>Vehicle Size</th>
+                                        <th>Freight Rate</th>
+                                        <th>Auto Invoice</th>
+                                        <th>End Rental</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        int srNo = 1;
+                                    }
+                                    @foreach (var item in Model)
+                                    {
+                                        <tr>
+                                            <td>@(srNo++)</td>
+                                            <td>@(item.BranchName ?? "-")</td>
+                                            <td>@(item.ClientName ?? "-")</td>
+                                            <td>@(item.ReferenceName ?? "-")</td>
+                                            <td>@(item.InvoiceType ?? "-")</td>
+                                            <td>@(item.ContractType ?? "-")</td>
+                                            <td>@(item.InvoiceNo ?? "-")</td>
+                                            <td>@(item.MaterialDescription ?? "-")</td>
+                                            <td>@(item.StartDate?.ToString("dd/MM/yyyy") ?? "-")</td>
+                                            <td>@(item.EndDate?.ToString("dd/MM/yyyy") ?? "-")</td>
+                                            <td>@(item.ContractEndDate?.ToString("dd/MM/yyyy") ?? "-")</td>
+                                            <td>@(item.FromPlace ?? "-")</td>
+                                            <td>@(item.ToPlace ?? "-")</td>
+                                            <td>@(item.VehicleType ?? "-")</td>
+                                            <td>@(item.VehicleSize ?? "-")</td>
+                                            <td>@(item.FreightRate?.ToString("N2") ?? "-")</td>
+                                            <td>
+                                                @if (item.AutoInvoice == true)
+                                                {
+                                                    <span class="badge bg-success">Yes</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary">No</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (item.EndRental == true)
+                                                {
+                                                    <span class="badge bg-danger">Yes</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-success">No</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <p class="text-muted">
+                                    Total Records: <strong>strong>
+                                </p>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <p class="text-muted">
+                                    Generated on: <strong>@DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")</strong>
+                                </p>
+                            </div>
+                        </div>
+                    }
+                    else if (ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-info text-center">
+                            <i class="fas fa-info-circle me-2"></i>
+                            No records found matching the search criteria. Please try different filters.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-secondary text-center">
+                            <i class="fas fa-search me-2"></i>
+                            Use the search filters above to find contract records.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Keep selected values after form submission
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set selected branch
+        var selectedBranchId = '@ViewBag.SelectedBranchId';
+        if (selectedBranchId) {
+            document.getElementById('branchId').value = selectedBranchId;
+        }
+
+        // Set selected invoice type
+        var selectedInvoiceType = '@ViewBag.SelectedInvoiceType';
+        if (selectedInvoiceType) {
+            document.getElementById('invoiceType').value = selectedInvoiceType;
+        }
+
+        // Set selected contract type
+        var selectedContractType = '@ViewBag.SelectedContractType';
+        if (selectedContractType) {
+            document.getElementById('contractType').value = selectedContractType;
+        }
+    });
+
+    // Add loading spinner for search
+    document.querySelector('form').addEventListener('submit', function() {
+        var submitBtn = document.querySelector('button[type="submit"]');
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Searching...';
+        submitBtn.disabled = true;
+    });
+</script>
+
+<style>
+    .table th {
+        background-color: #495057;
+        color: white;
+        font-weight: 600;
+        text-align: center;
+        vertical-align: middle;
+        white-space: nowrap;
+    }
+    
+    .table td {
+        vertical-align: middle;
+        font-size: 0.9rem;
+    }
+    
+    .card-header {
+        border-bottom: 3px solid #28a745;
+    }
+    
+    .btn {
+        border-radius: 6px;
+    }
+    
+    .form-control, .form-select {
+        border-radius: 6px;
+    }
+    
+    .table-responsive {
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+</style>
