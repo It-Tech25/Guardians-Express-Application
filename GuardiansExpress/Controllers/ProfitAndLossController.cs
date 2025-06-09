@@ -27,7 +27,6 @@ namespace GuardiansExpress.Controllers
 
         public IActionResult ProfitAndLossIndex()
         {
-
             // Get unique account groups for dropdown/datalist
             ViewBag.UniqueAccountGroups = _context.ledgerEntity
                 .Where(a => a.IsDeleted == false)
@@ -50,22 +49,14 @@ namespace GuardiansExpress.Controllers
                 // Add other report types as needed
             };
 
-            return View();
+            // Return empty list initially - data will load only after search
+            return View(new List<LedgerMasterEntity>());
         }
 
         [HttpPost]
         public IActionResult Search(DateTime? startDate, DateTime? endDate, string branch, string accGroup)
         {
-            // Validate at least one filter is provided
-            if (string.IsNullOrEmpty(accGroup) &&
-                !startDate.HasValue &&
-                !endDate.HasValue &&
-                string.IsNullOrEmpty(branch))
-            {
-                ModelState.AddModelError("", "Please provide at least one search criteria");
-                return View("GroupSummaryReportIndex", new List<LedgerMasterEntity>());
-            }
-            // Get unique account groups for dropdown/datalist
+            // Populate ViewBag data for the view (needed for dropdowns)
             ViewBag.UniqueAccountGroups = _context.ledgerEntity
                 .Where(a => a.IsDeleted == false)
                 .Select(a => a.AccGroup)
@@ -79,15 +70,31 @@ namespace GuardiansExpress.Controllers
                 .Distinct()
                 .ToList();
 
+            // Populate Report Type dropdown
+            ViewBag.ReportTypeList = new List<SelectListItem>
+            {
+                new SelectListItem { Value = "Type1", Text = "Type 1" },
+                new SelectListItem { Value = "Type2", Text = "Type 2" },
+                // Add other report types as needed
+            };
+
+            // Validate at least one filter is provided
+            if (string.IsNullOrEmpty(accGroup) &&
+                !startDate.HasValue &&
+                !endDate.HasValue &&
+                string.IsNullOrEmpty(branch))
+            {
+                ModelState.AddModelError("", "Please provide at least one search criteria");
+                return View("ProfitAndLossIndex", new List<LedgerMasterEntity>());
+            }
+
             // Pass selected values back to view for persistence
             ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
             ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
             ViewBag.SelectedBranch = branch;
             ViewBag.SelectedAccGroup = accGroup;
 
-           
-
-            // Get report data with exact AccGroup match
+            // Get report data with filters
             var reportData = _reportService.GetAll(startDate, endDate, branch, accGroup);
 
             // Filter by exact AccGroup if specified
@@ -105,6 +112,17 @@ namespace GuardiansExpress.Controllers
         [HttpGet]
         public IActionResult ExportToExcel(DateTime? startDate, DateTime? endDate, string branch, string accGroup)
         {
+            // Validate at least one filter is provided for export
+            if (string.IsNullOrEmpty(accGroup) &&
+                !startDate.HasValue &&
+                !endDate.HasValue &&
+                string.IsNullOrEmpty(branch))
+            {
+                // Redirect back to index with error message
+                TempData["ErrorMessage"] = "Please provide at least one search criteria before exporting";
+                return RedirectToAction("ProfitAndLossIndex");
+            }
+
             var reportData = _reportService.GetAll(startDate, endDate, branch, accGroup);
 
             // Filter by exact AccGroup if specified
@@ -116,16 +134,22 @@ namespace GuardiansExpress.Controllers
                 ).ToList();
             }
 
+            // Check if data exists
+            if (!reportData.Any())
+            {
+                TempData["ErrorMessage"] = "No data found for the selected criteria";
+                return RedirectToAction("ProfitAndLossIndex");
+            }
+
             using (var workbook = new XLWorkbook())
             {
                 var worksheet = workbook.Worksheets.Add("Profit Loss");
 
-               
-                worksheet.Cell(1, 3).Value = "Acc Group";
-                worksheet.Cell(1, 3).Value = "OpeningBalance";
-                worksheet.Cell(1, 7).Value = "Bal. Type";
-                worksheet.Cell(1, 8).Value = "Balance";
-               
+                // Column headers
+                worksheet.Cell(1, 1).Value = "Acc Group";
+                worksheet.Cell(1, 2).Value = "Opening Balance";
+                worksheet.Cell(1, 3).Value = "Balance Type";
+                worksheet.Cell(1, 4).Value = "Balance";
 
                 var headerRow = worksheet.Row(1);
                 headerRow.Style.Font.Bold = true;
@@ -134,9 +158,10 @@ namespace GuardiansExpress.Controllers
                 int row = 2;
                 foreach (var item in reportData)
                 {
-                    worksheet.Cell(row, 3).Value = item.AccGroup;
-                    worksheet.Cell(row, 3).Value = item.OpeningBalance;
-                    worksheet.Cell(row, 7).Value = item.BalanceIn;
+                    worksheet.Cell(row, 1).Value = item.AccGroup ?? "";
+                    worksheet.Cell(row, 2).Value = item.BalanceOpening ?? 0;
+                    worksheet.Cell(row, 3).Value = item.BalanceIn ?? "";
+                    worksheet.Cell(row, 4).Value = item.BalanceIn ?? "";
                     row++;
                 }
 
@@ -146,7 +171,7 @@ namespace GuardiansExpress.Controllers
                 {
                     workbook.SaveAs(stream);
                     var content = stream.ToArray();
-                    return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "ProfitAndLossIndex.xlsx");
+                    return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "ProfitAndLossReport.xlsx");
                 }
             }
         }
@@ -154,6 +179,17 @@ namespace GuardiansExpress.Controllers
         [HttpGet]
         public IActionResult ExportToPdf(DateTime? startDate, DateTime? endDate, string branch, string accGroup)
         {
+            // Validate at least one filter is provided for export
+            if (string.IsNullOrEmpty(accGroup) &&
+                !startDate.HasValue &&
+                !endDate.HasValue &&
+                string.IsNullOrEmpty(branch))
+            {
+                // Redirect back to index with error message
+                TempData["ErrorMessage"] = "Please provide at least one search criteria before exporting";
+                return RedirectToAction("ProfitAndLossIndex");
+            }
+
             var reportData = _reportService.GetAll(startDate, endDate, branch, accGroup);
 
             // Filter by exact AccGroup if specified
@@ -165,6 +201,13 @@ namespace GuardiansExpress.Controllers
                 ).ToList();
             }
 
+            // Check if data exists
+            if (!reportData.Any())
+            {
+                TempData["ErrorMessage"] = "No data found for the selected criteria";
+                return RedirectToAction("ProfitAndLossIndex");
+            }
+
             using (var ms = new MemoryStream())
             {
                 var document = new Document(PageSize.A4.Rotate(), 25, 25, 30, 30);
@@ -172,7 +215,7 @@ namespace GuardiansExpress.Controllers
                 document.Open();
 
                 var titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 18, BaseColor.Black);
-                var title = new Paragraph("Group Summary Report", titleFont)
+                var title = new Paragraph("Profit And Loss Report", titleFont)
                 {
                     Alignment = Element.ALIGN_CENTER,
                     SpacingAfter = 20f
@@ -187,13 +230,14 @@ namespace GuardiansExpress.Controllers
                 };
                 document.Add(date);
 
-                var table = new PdfPTable(9) { WidthPercentage = 100 };
-                table.SetWidths(new float[] { 3f, 3f, 3f, 3f, 3f, 3f, 3f, 3f, 2f });
+                // Create table with 4 columns
+                var table = new PdfPTable(4) { WidthPercentage = 100 };
+                table.SetWidths(new float[] { 3f, 3f, 3f, 3f });
 
                 var headerFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 10, BaseColor.White);
                 BaseColor headerBackground = new BaseColor(0, 102, 204);
 
-                string[] headers = { "Date", "Branch", "Acc Group","OpeningBalance" , "Bal. Type", "Balance", };
+                string[] headers = { "Account Group", "Opening Balance", "Balance Type", "Balance" };
                 foreach (var header in headers)
                 {
                     var cell = new PdfPCell(new Phrase(header, headerFont))
@@ -208,20 +252,17 @@ namespace GuardiansExpress.Controllers
                 var dataFont = FontFactory.GetFont(FontFactory.HELVETICA, 9);
                 foreach (var item in reportData)
                 {
-                   
-                    table.AddCell(new Phrase(item.AccGroup));
-                    table.AddCell(new Phrase(item.OpeningBalance.ToString()));
-
-                    table.AddCell(new Phrase(item.BalanceIn));
-                    // Add other cells as needed
+                    table.AddCell(new Phrase(item.AccGroup ?? "", dataFont));
+                    table.AddCell(new Phrase(item.BalanceOpening?.ToString() ?? "0", dataFont));
+                    table.AddCell(new Phrase(item.BalanceIn ?? "", dataFont));
+                    table.AddCell(new Phrase(item.BalanceIn ?? "", dataFont));
                 }
 
                 document.Add(table);
                 document.Close();
 
-                return File(ms.ToArray(), "application/pdf", "ProfitAndLossIndex.pdf");
+                return File(ms.ToArray(), "application/pdf", "ProfitAndLossReport.pdf");
             }
         }
-
     }
 }
