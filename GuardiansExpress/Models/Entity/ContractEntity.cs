@@ -14,6 +14,8 @@ namespace GuardiansExpress.Models.Entity
         public bool? TempClose { get; set; } = false;
 
         public string? ClientName { get; set; }
+        public string? BranchName { get; set; }
+
         public string? ReferenceName { get; set; }
         public string? InvoiceType { get; set; }
 

@@ -1,9 +1,6 @@
 ﻿using GuardiansExpress.Models.DTOs;
 using GuardiansExpress.Models.Entity;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace GuardiansExpress.Repositories
 {
@@ -16,83 +13,78 @@ namespace GuardiansExpress.Repositories
             _context = context;
         }
 
-        public List<ContractReportViewModel> GetContractReports(int? branchId, string accHead, string referenceName, string invoiceType, string contractType)
+        public List<ContractEntity> GetAll(string? branchName = null, string? referenceName = null, string? invoiceType = null, string? contractType = null, bool? tempClose = null)
         {
-            var query = from contract in _context.Set<ContractModel>()
-                        join branch in _context.branch on contract.BranchMasterId equals branch.id into branchGroup
-                        from branch in branchGroup.DefaultIfEmpty()
-                        join contractItem in _context.Set<ContractItemModel>() on contract.ContractId equals contractItem.ContractId into itemGroup
-                        from contractItem in itemGroup.DefaultIfEmpty()
-                        where contract.IsDeleted == false && contract.IsActive == true
-                        select new ContractReportViewModel
-                        {
-                            ContractId = contract.ContractId,
-                            BranchMasterId = contract.BranchMasterId,
-                            BranchName = branch != null ? branch.BranchName : "Head Office",
-                            ClientName = contract.ClientName,
-                            ReferenceName = contract.ReferenceName,
-                            InvoiceType = contract.InvoiceType,
-                            ContractType = contract.ContractType,
-                            InvoiceNo = contract.InvoiceNo,
-                            ContractEndDate = contract.ContractEndDate,
-                            LastInvNo = contract.LastInvNo,
-                            DisableContract = contract.DisableContract,
-                            AutoInvoice = contract.AutoInvoice,
-                            TempClose = contract.TempClose,
-                            EndRental = contract.EndRental,
-                            EmailReminder = contract.EmailReminder,
-                            SMSReminder = contract.SMSReminder,
-                            WhatsAppReminder = contract.WhatsAppReminder,
-                            ItemId = contractItem != null ? contractItem.ItemId : 0,
-                            MaterialDescription = contractItem != null ? contractItem.MaterialDescription : "",
-                            StartDate = contractItem != null ? contractItem.StartDate : null,
-                            EndDate = contractItem != null ? contractItem.EndDate : null,
-                            FromPlace = contractItem != null ? contractItem.FromPlace : "",
-                            ToPlace = contractItem != null ? contractItem.ToPlace : "",
-                            VehicleType = contractItem != null ? contractItem.VehicleType : "",
-                            VehicleSize = contractItem != null ? contractItem.VehicleSize : "",
-                            FreightRate = contractItem != null ? contractItem.FreightRate : null
-                        };
+            var query = _context.contractEntities
+                .Where(c => c.IsDeleted == false)
+                .AsQueryable();
 
             // Apply filters
-            if (branchId.HasValue)
-            {
-                query = query.Where(x => x.BranchMasterId == branchId.Value);
-            }
+            //if (!string.IsNullOrWhiteSpace(branchName))
+            //{
+            //    query = query.Where(c => c.BranchName != null && c.BranchName.Contains(branchName));
+            //}
 
-            if (!string.IsNullOrEmpty(referenceName))
-            {
-                query = query.Where(x => x.ReferenceName != null && x.ReferenceName.Contains(referenceName));
-            }
+            //if (!string.IsNullOrWhiteSpace(referenceName))
+            //{
+            //    query = query.Where(c => c.ReferenceName != null && c.ReferenceName.Contains(referenceName));
+            //}
 
-            if (!string.IsNullOrEmpty(invoiceType))
-            {
-                query = query.Where(x => x.InvoiceType == invoiceType);
-            }
+            //if (!string.IsNullOrWhiteSpace(invoiceType))
+            //{
+            //    query = query.Where(c => c.InvoiceType != null && c.InvoiceType.Equals(invoiceType, StringComparison.OrdinalIgnoreCase));
+            //}
 
-            if (!string.IsNullOrEmpty(contractType))
-            {
-                query = query.Where(x => x.ContractType == contractType);
-            }
+            //if (!string.IsNullOrWhiteSpace(contractType))
+            //{
+            //    query = query.Where(c => c.ContractType != null && c.ContractType.Equals(contractType, StringComparison.OrdinalIgnoreCase));
+            //}
 
-            return query.OrderBy(x => x.BranchName).ThenBy(x => x.ClientName).ToList();
+            //if (tempClose.HasValue)
+            //{
+            //    query = query.Where(c => c.TempClose == tempClose.Value);
+            //}
+
+            return query.OrderBy(c => c.ContractId).ToList();
         }
 
-        public List<BranchMasterEntity> GetAllBranches()
+        public List<string> GetUniqueBranchNames()
         {
-            return _context.branch
-                .Where(b => b.IsDeleted == false && b.IsActive == true)
-                .OrderBy(b => b.BranchName)
+            return _context.contractEntities
+                .Where(c => c.IsDeleted == false && !string.IsNullOrEmpty(c.BranchName))
+                .Select(c => c.BranchName!)
+                .Distinct()
+                .OrderBy(b => b)
                 .ToList();
         }
 
-        public List<string> GetAllAccHeads()
+        public List<string> GetUniqueReferenceNames()
         {
-            return _context.ledgerEntity
-                .Where(a => a.IsDeleted == false)
-                .Select(a => a.AccHead)
+            return _context.contractEntities
+                .Where(c => c.IsDeleted == false && !string.IsNullOrEmpty(c.ReferenceName))
+                .Select(c => c.ReferenceName!)
                 .Distinct()
-                .OrderBy(a => a)
+                .OrderBy(r => r)
+                .ToList();
+        }
+
+        public List<string> GetUniqueInvoiceTypes()
+        {
+            return _context.contractEntities
+                .Where(c => c.IsDeleted == false && !string.IsNullOrEmpty(c.InvoiceType))
+                .Select(c => c.InvoiceType!)
+                .Distinct()
+                .OrderBy(i => i)
+                .ToList();
+        }
+
+        public List<string> GetUniqueContractTypes()
+        {
+            return _context.contractEntities
+                .Where(c => c.IsDeleted == false && !string.IsNullOrEmpty(c.ContractType))
+                .Select(c => c.ContractType!)
+                .Distinct()
+                .OrderBy(ct => ct)
                 .ToList();
         }
     }
