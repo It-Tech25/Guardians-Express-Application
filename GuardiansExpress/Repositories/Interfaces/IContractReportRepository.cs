@@ -1,14 +1,15 @@
 ﻿using GuardiansExpress.Models.DTOs;
 using GuardiansExpress.Models.Entity;
-using System;
-using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 
 namespace GuardiansExpress.Repositories
 {
     public interface IContractReportRepository
     {
-        List<ContractReportViewModel> GetContractReports(int? branchId, string accHead, string referenceName, string invoiceType, string contractType);
-        List<BranchMasterEntity> GetAllBranches();
-        List<string> GetAllAccHeads();
+        List<ContractEntity> GetAll(string? branchName = null, string? referenceName = null, string? invoiceType = null, string? contractType = null, bool? tempClose = null);
+        List<string> GetUniqueBranchNames();
+        List<string> GetUniqueReferenceNames();
+        List<string> GetUniqueInvoiceTypes();
+        List<string> GetUniqueContractTypes();
     }
 }

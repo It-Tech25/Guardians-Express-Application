@@ -1,34 +1,42 @@
 ﻿using GuardiansExpress.Models.DTOs;
 using GuardiansExpress.Models.Entity;
 using GuardiansExpress.Repositories;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using GuardiansExpress.Services.Interfaces;
 
 namespace GuardiansExpress.Services
 {
     public class ContractReportService : IContractReportService
     {
-        private readonly IContractReportRepository _repository;
+        private readonly IContractReportRepository _contractRepository;
 
-        public ContractReportService(IContractReportRepository repository)
+        public ContractReportService(IContractReportRepository contractRepository)
         {
-            _repository = repository;
+            _contractRepository = contractRepository;
         }
 
-        public List<ContractReportViewModel> GetContractReports(int? branchId, string accHead, string referenceName, string invoiceType, string contractType)
+        public List<ContractEntity> GetAll(string? branchName = null, string? referenceName = null, string? invoiceType = null, string? contractType = null, bool? tempClose = null)
         {
-            return _repository.GetContractReports(branchId, accHead, referenceName, invoiceType, contractType);
+            return _contractRepository.GetAll(branchName, referenceName, invoiceType, contractType, tempClose);
         }
 
-        public List<BranchMasterEntity> GetAllBranches()
+        public List<string> GetUniqueBranchNames()
         {
-            return _repository.GetAllBranches();
+            return _contractRepository.GetUniqueBranchNames();
         }
 
-        public List<string> GetAllAccHeads()
+        public List<string> GetUniqueReferenceNames()
         {
-            return _repository.GetAllAccHeads();
+            return _contractRepository.GetUniqueReferenceNames();
+        }
+
+        public List<string> GetUniqueInvoiceTypes()
+        {
+            return _contractRepository.GetUniqueInvoiceTypes();
+        }
+
+        public List<string> GetUniqueContractTypes()
+        {
+            return _contractRepository.GetUniqueContractTypes();
         }
     }
 }
