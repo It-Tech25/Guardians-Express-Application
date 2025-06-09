@@ -1,6 +1,18 @@
-﻿using GuardiansExpress.Models.DTOs;
+﻿using System;
+using System.Collections.Generic;
+using GuardiansExpress.Models.DTOs;
+using GuardiansExpress.Models.Entity;
 
-public interface IBalanceSheetRepository
+namespace GuardiansExpress.Repositories
 {
-    IEnumerable<BalanceSheetDTO> GetBalanceSheet();
+    public interface IBalanceSheetRepository
+    {
+        IEnumerable<LedgerMasterEntity> GetAll();
+        LedgerMasterEntity GetById(int id);
+        bool Create(LedgerMasterEntity entity);
+        LedgerMasterEntity Update(LedgerMasterEntity entity);
+        bool Delete(int id);
+        IEnumerable<LedgerMasterEntity> Filter(
+            DateTime? startDate, DateTime? endDate, string branch, string accGroup);
+    }
 }
