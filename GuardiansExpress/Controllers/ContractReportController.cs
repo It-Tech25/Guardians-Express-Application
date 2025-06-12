@@ -2,18 +2,18 @@
 using GuardiansExpress.Models.DTOs;
 using GuardiansExpress.Services;
 using GuardiansExpress.Models.Entity;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;   
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using System.Linq; 
 using ClosedXML.Excel;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using GuardiansExpress.Services.Interfaces;
 
-namespace GuardiansExpress.Controllers
+namespace GuardiansExpress.Controllers   
 {
     public class ContractReportController : Controller
     {
@@ -236,7 +236,7 @@ namespace GuardiansExpress.Controllers
                     table.AddCell(new Phrase(item.ContractEndDate?.ToString("dd/MM/yyyy") ?? "", dataFont));
                     table.AddCell(new Phrase(item.TempClose == true ? "Closed" : "Active", dataFont));
                 }
-
+               
                 document.Add(table);
                 document.Close();
 
