@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Generic; 
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -33,7 +33,7 @@ namespace GuardiansExpress.Repositories
             {
                 res = _context.ledgerEntity
                     .Where(x => x.LedgerId == id && x.IsDeleted == false)
-                    .FirstOrDefault();
+                    .FirstOrDefault();    
             }
             catch (Exception e)
             {
