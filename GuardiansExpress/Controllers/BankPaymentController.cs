@@ -125,8 +125,7 @@ namespace GuardiansExpress.Controllers
             }
 
             return RedirectToAction("BankPaymentIndex");
-        }
-
+        } 
         private string GetPropertyValue(VoucherDto item, string propertyName)
         {
             var prop = typeof(VoucherDto).GetProperty(propertyName);
@@ -228,7 +227,6 @@ namespace GuardiansExpress.Controllers
 
             return columnNames;
         }
-
         private List<SelectListItem> GetBranchList()
         {
             return _context.branch

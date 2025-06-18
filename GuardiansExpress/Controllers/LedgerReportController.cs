@@ -9,6 +9,7 @@ using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace GuardiansExpress.Controllers
 {
+    // Updated Controller
     public class LedgerReportController : Controller
     {
         private readonly MyDbContext _context;
@@ -27,7 +28,7 @@ namespace GuardiansExpress.Controllers
         }
 
         [HttpPost]
-        public IActionResult Search(string Type, string Branch, string FromDate, string ToDate)
+        public IActionResult Search(string AccGroup, string Branch, string FromDate, string ToDate)
         {
             var selectedColumns = Request.Form["SelectedColumns"].ToList();
             ViewBag.TableColumns = GetColumnNames("LedgerMaster");
@@ -100,26 +101,38 @@ namespace GuardiansExpress.Controllers
                             CreatedBy = ledger.CreatedBy
                         };
 
-            // 🔍 Apply Filters
-            if (!string.IsNullOrEmpty(Type))
-                query = query.Where(x => x.AccGroup != null && x.AccGroup.Contains(Type));
+            // Apply Filters
+            if (!string.IsNullOrEmpty(AccGroup))
+            {
+                query = query.Where(x => x.AccGroup != null &&
+                                        x.AccGroup.ToLower().Contains(AccGroup.ToLower()));
+            }
 
             if (!string.IsNullOrEmpty(Branch))
-                query = query.Where(x => x.BranchName != null && x.BranchName.Contains(Branch));
+            {
+                query = query.Where(x => x.BranchName != null &&
+                                        x.BranchName.ToLower().Contains(Branch.ToLower()));
+            }
 
             if (fromDate.HasValue)
-                query = query.Where(x => x.CreatedOn.HasValue && x.CreatedOn.Value.Date >= fromDate.Value.Date);
+            {
+                query = query.Where(x => x.CreatedOn.HasValue &&
+                                       x.CreatedOn.Value.Date >= fromDate.Value.Date);
+            }
 
             if (toDate.HasValue)
-                query = query.Where(x => x.CreatedOn.HasValue && x.CreatedOn.Value.Date <= toDate.Value.Date);
+            {
+                query = query.Where(x => x.CreatedOn.HasValue &&
+                                       x.CreatedOn.Value.Date <= toDate.Value.Date);
+            }
 
             var results = query.ToList();
 
             return View("LedgerReportIndex", results);
         }
 
-        [HttpGet]
-        public IActionResult ExportToExcel()
+    [HttpGet]
+       public IActionResult ExportToExcel()
         {
             var data = _context.ledgerEntity.Select(x => new LedgerMasterDTO
             {
@@ -259,11 +272,9 @@ namespace GuardiansExpress.Controllers
                 }
             }
         }
-
         [HttpGet]
         public IActionResult ExportToPdf()
         {
-          
             var data = _context.ledgerEntity
                 .Select(x => new LedgerMasterDTO
                 {
@@ -359,7 +370,6 @@ namespace GuardiansExpress.Controllers
                         BackgroundColor = new BaseColor(220, 220, 220)
                     });
                 }
-
                 // Add data rows
                 foreach (var item in data)
                 {
@@ -425,9 +435,6 @@ namespace GuardiansExpress.Controllers
                 return File(ms.ToArray(), "application/pdf", "LedgerMasterReport.pdf");
             }
         }
-
-        
-
         private List<string> GetColumnNames(string tableName)
         {
             var columnNames = new List<string>();
