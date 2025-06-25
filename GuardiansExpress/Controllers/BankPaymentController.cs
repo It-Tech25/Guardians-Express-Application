@@ -31,7 +31,7 @@ namespace GuardiansExpress.Controllers
         }
 
         [HttpPost]
-        public IActionResult Search()
+        public IActionResult Search() 
         {
             var selectedColumns = Request.Form["SelectedColumns"].ToList();
             ViewBag.SelectedColumns = selectedColumns;

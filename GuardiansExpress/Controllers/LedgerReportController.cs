@@ -5,26 +5,25 @@ using iTextSharp.text;
 using Microsoft.AspNetCore.Mvc;
 using GuardiansExpress.Models.DTOs;
 using Microsoft.EntityFrameworkCore;
-using DocumentFormat.OpenXml.Wordprocessing;
+using DocumentFormat.OpenXml.Wordprocessing;      
 
 namespace GuardiansExpress.Controllers
 {
-    // Updated Controller
+    // Updated Controller 
     public class LedgerReportController : Controller
     {
         private readonly MyDbContext _context;
-
-        public LedgerReportController(MyDbContext context)
+        public LedgerReportController(MyDbContext context) 
         {
-            _context = context;
+            _context = context; 
         }
 
-        public IActionResult LedgerReportIndex()
+        public IActionResult LedgerReportIndex() 
         {
             var allColumns = GetColumnNames("LedgerMaster");
-            ViewBag.TableColumns = allColumns;
+            ViewBag.TableColumns = allColumns; 
             ViewBag.SelectedColumns = allColumns;
-            return View();
+            return View();  
         }
 
         [HttpPost]
@@ -102,9 +101,9 @@ namespace GuardiansExpress.Controllers
                         };
 
             // Apply Filters
-            if (!string.IsNullOrEmpty(AccGroup))
+            if (!string.IsNullOrEmpty(AccGroup)) 
             {
-                query = query.Where(x => x.AccGroup != null &&
+                query = query.Where(x => x.AccGroup != null && 
                                         x.AccGroup.ToLower().Contains(AccGroup.ToLower()));
             }
 
@@ -114,9 +113,9 @@ namespace GuardiansExpress.Controllers
                                         x.BranchName.ToLower().Contains(Branch.ToLower()));
             }
 
-            if (fromDate.HasValue)
+            if (fromDate.HasValue)    
             {
-                query = query.Where(x => x.CreatedOn.HasValue &&
+                query = query.Where(x => x.CreatedOn.HasValue && 
                                        x.CreatedOn.Value.Date >= fromDate.Value.Date);
             }
 
@@ -128,11 +127,11 @@ namespace GuardiansExpress.Controllers
 
             var results = query.ToList();
 
-            return View("LedgerReportIndex", results);
+            return View("LedgerReportIndex", results); 
         }
 
-    [HttpGet]
-       public IActionResult ExportToExcel()
+        [HttpGet]
+       public IActionResult ExportToExcel() 
         {
             var data = _context.ledgerEntity.Select(x => new LedgerMasterDTO
             {
@@ -173,7 +172,7 @@ namespace GuardiansExpress.Controllers
                 AAdharNumber = x.AAdharNumber,
                 Pincode = x.Pincode,
                 AccHolderName = x.AccHolderName,
-                BankName = x.BankName,
+                BankName = x.BankName,      
                 BankAccNo = x.BankAccNo,
                 BankBranch = x.BankBranch,
                 IFSCCode = x.IFSCCode,
@@ -188,9 +187,9 @@ namespace GuardiansExpress.Controllers
                 WalkinLedger = x.WalkinLedger
             }).ToList();
 
-            using (var workbook = new XLWorkbook())
+            using (var workbook = new XLWorkbook()) 
             {
-                var worksheet = workbook.Worksheets.Add("Ledger");
+                var worksheet = workbook.Worksheets.Add("Ledger"); 
 
                 var headers = new string[]
                 {
@@ -200,7 +199,7 @@ namespace GuardiansExpress.Controllers
             "VendorCode", "Address1", "Address2", "City", "State", "Country", "RegistrationType", "PartyType",
             "CINNo", "GSTIN", "PANNo", "AAdharNumber", "Pincode", "AccHolderName", "BankName", "BankAccNo",
             "BankBranch", "IFSCCode", "PaymentTerm", "DueDays", "Agent", "Password", "BranchName", "NameAddressMobile",
-            "Address", "CityStatePincode", "WalkinLedger"
+            "Address", "CityStatePincode", "WalkinLedger" 
                 };
 
                 for (int i = 0; i < headers.Length; i++)
@@ -210,16 +209,16 @@ namespace GuardiansExpress.Controllers
                 }
 
                 int row = 2;
-                foreach (var item in data)
+                foreach (var item in data) 
                 {
                     worksheet.Cell(row, 1).Value = item.LedgerId;
-                    worksheet.Cell(row, 2).Value = item.subgroupName;
+                    worksheet.Cell(row, 2).Value = item.subgroupName;  
                     worksheet.Cell(row, 3).Value = item.AccHead;
                     worksheet.Cell(row, 4).Value = item.Email;
                     worksheet.Cell(row, 5).Value = item.Mobile;
                     worksheet.Cell(row, 6).Value = item.BalanceOpening;
                     worksheet.Cell(row, 7).Value = item.AccGroup;
-                    worksheet.Cell(row, 8).Value = item.Status;
+                    worksheet.Cell(row, 8).Value = item.Status; 
                     worksheet.Cell(row, 9).Value = item.IsActive.ToString();
                     worksheet.Cell(row, 10).Value = item.BankAccount.ToString();
                     worksheet.Cell(row, 11).Value = item.TaxLedger.ToString();
@@ -261,8 +260,8 @@ namespace GuardiansExpress.Controllers
                     worksheet.Cell(row, 47).Value = item.NameAddressMobile;
                     worksheet.Cell(row, 48).Value = item.Address;
                     worksheet.Cell(row, 49).Value = item.CityStatePincode;
-                    worksheet.Cell(row, 50).Value = item.WalkinLedger.ToString();
-                    row++;
+                    worksheet.Cell(row, 50).Value = item.WalkinLedger.ToString();   
+                    row++;  
                 }
 
                 using (var stream = new MemoryStream())
@@ -272,8 +271,10 @@ namespace GuardiansExpress.Controllers
                 }
             }
         }
-        [HttpGet]
-        public IActionResult ExportToPdf()
+
+      [HttpGet]
+      public IActionResult ExportToPdf()
+
         {
             var data = _context.ledgerEntity
                 .Select(x => new LedgerMasterDTO
@@ -336,7 +337,7 @@ namespace GuardiansExpress.Controllers
                 })
                 .ToList();
 
-            using (var ms = new MemoryStream())
+            using (var ms = new MemoryStream()) 
             {
                 var customPageSize = new Rectangle(2000, 1400); // width x height in points
                 var document = new iTextSharp.text.Document(customPageSize);
@@ -348,7 +349,7 @@ namespace GuardiansExpress.Controllers
                 var table = new PdfPTable(54)
                 {
                     WidthPercentage = 100,
-                    HeaderRows = 1
+                    HeaderRows = 1   
                 };
 
                 string[] headers = new string[]
@@ -454,7 +455,7 @@ namespace GuardiansExpress.Controllers
                     }
                 }
                 _context.Database.CloseConnection();
-            }
+            }  
             return columnNames;
         }
     }

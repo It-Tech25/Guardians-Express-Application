@@ -22,19 +22,8 @@ namespace GuardiansExpress.Services.Implementation
             _grReportRepository = grReportRepository;
             _context = context;
         }
-
-        //public IEnumerable<GRDTOs> GetAllGRReports()
-        //{
-        //    return _grReportRepository.GetAllGRReports();
-        //}
-
-        public IEnumerable<GRDTOs> Getgrdetails(
-     int? branchId,
-     string fromDate,
-     string toDate,
-     string fromGRNo,
-     string toGRNo,
-     string status)
+        public IEnumerable<GRDTOs> Getgrdetails(int? branchId,string fromDate,string toDate,string fromGRNo,
+            string toGRNo,string status)
         {
             DateTime? parsedFromDate = null;
             DateTime? parsedToDate = null;

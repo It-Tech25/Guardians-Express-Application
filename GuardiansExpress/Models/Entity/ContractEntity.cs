@@ -6,7 +6,7 @@ namespace GuardiansExpress.Models.Entity
     {
         [Key]
         public int ContractId { get; set; }
-        public int? BranchMasterId { get; set; } 
+        public int? BranchMasterId { get; set; }
         public int? InvoiceId { get; set; }
          
         public bool? DisableContract { get; set; } = false;
